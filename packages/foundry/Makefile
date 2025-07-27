@@ -10,10 +10,10 @@ setup-anvil-wallet:
 # Start local chain
 chain: setup-anvil-wallet
 	anvil
-
-# Start a fork
+	
+# Start a fork from Base
 fork: setup-anvil-wallet
-	anvil --fork-url ${FORK_URL} --chain-id 31337
+	anvil --fork-url https://sepolia.base.org --chain-id 31337
 
 # Deploy the contracts
 deploy:

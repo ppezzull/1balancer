@@ -1,245 +1,222 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title Balancer
- * @notice A contract that manages asset allocation with configurable parameters
- * @dev Ownable contract that maintains asset percentages and rebalancing parameters
+ * @author @ppezzull
+ * @notice Manages a portfolio of assets, ensuring they are balanced according to specified percentages.
  */
 contract Balancer is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    // Events
+    // -- Constants --
+
+    uint256 public constant MAX_BASIS_POINTS = 100; // 100%
+
+    // -- State --
+
+    struct Asset {
+        uint256 percentage; // In percentage (100 = 100%)
+    }
+
+    mapping(address => Asset) public assets;
+    address[] public assetAddresses;
+
+    uint256 public driftPercentage; // In percentage
+    uint256 public updatePeriodicity; // In seconds
+    uint256 public lastUpdateTimestamp;
+
+    // -- Events --
+
+    event Funded(address indexed asset, uint256 amount);
+    event Withdrawn(address indexed asset, uint256 amount);
+    event ETHWithdrawn(address indexed to, uint256 amount);
     event AssetMappingUpdated(address[] assets, uint256[] percentages);
-    event DriftPercentageUpdated(uint256 oldDrift, uint256 newDrift);
-    event PeriodicityUpdated(uint256 oldPeriodicity, uint256 newPeriodicity);
-    event Funded(address indexed token, uint256 amount);
-    event Withdrawn(address indexed token, uint256 amount, address indexed to);
+    event DriftPercentageUpdated(uint256 newDriftPercentage);
+    event UpdatePeriodicitySet(uint256 newUpdatePeriodicity);
 
-    // State variables
-    mapping(address => uint256) public assetPercentages; // asset address => percentage (in basis points, 10000 = 100%)
-    address[] public assets; // array of asset addresses for iteration
-    uint256 public driftPercentage; // maximum allowed drift in basis points
-    uint256 public updatePeriodicity; // time in seconds between updates
-    uint256 public lastUpdateTime; // timestamp of last update
+    // -- Errors --
 
-    // Constants
-    uint256 public constant MAX_BASIS_POINTS = 10000; // 100%
+    error Balancer__InvalidAssetCount();
+    error Balancer__InvalidPercentagesSum();
+    error Balancer__AssetNotFound(address asset);
+    error Balancer__ZeroAddressNotAllowed();
+    error Balancer__WithdrawalFailed();
 
-    /**
-     * @notice Constructor to initialize the Balancer contract
-     * @param _owner The owner of the contract
-     * @param _assets Array of asset addresses
-     * @param _percentages Array of percentages corresponding to assets (in basis points)
-     * @param _driftPercentage Maximum allowed drift percentage (in basis points)
-     * @param _updatePeriodicity Time between updates in seconds
-     */
+    // -- Constructor --
+
     constructor(
-        address _owner,
-        address[] memory _assets,
+        address initialOwner,
+        address[] memory _assetAddresses,
         uint256[] memory _percentages,
         uint256 _driftPercentage,
         uint256 _updatePeriodicity
-    ) Ownable(_owner) {
-        require(_owner != address(0), "Owner cannot be zero address");
-        require(_assets.length == _percentages.length, "Assets and percentages length mismatch");
-        require(_assets.length > 0, "Must have at least one asset");
-        require(_driftPercentage <= MAX_BASIS_POINTS, "Drift percentage too high");
-        require(_updatePeriodicity > 0, "Update periodicity must be positive");
-
-        // Validate percentages sum to 100%
-        uint256 totalPercentage = 0;
-        for (uint256 i = 0; i < _percentages.length; i++) {
-            require(_percentages[i] > 0, "Percentage must be positive");
-            totalPercentage += _percentages[i];
-        }
-        require(totalPercentage == MAX_BASIS_POINTS, "Percentages must sum to 100%");
-
-        // Owner is set by Ownable constructor
-
-        // Initialize asset mapping
-        assets = _assets;
-        for (uint256 i = 0; i < _assets.length; i++) {
-            require(_assets[i] != address(0), "Asset address cannot be zero");
-            assetPercentages[_assets[i]] = _percentages[i];
-        }
-
+    ) Ownable(initialOwner) {
+        _updateAssetMapping(_assetAddresses, _percentages);
         driftPercentage = _driftPercentage;
         updatePeriodicity = _updatePeriodicity;
-        lastUpdateTime = block.timestamp;
+        lastUpdateTimestamp = block.timestamp;
+    }
 
-        emit AssetMappingUpdated(_assets, _percentages);
-        emit DriftPercentageUpdated(0, _driftPercentage);
-        emit PeriodicityUpdated(0, _updatePeriodicity);
+    // -- External Functions --
+
+    /**
+     * @notice Allows the owner to fund the contract with a specific ERC20 token.
+     * @param _asset The address of the ERC20 token.
+     * @param _amount The amount of the token to deposit.
+     */
+    function fund(address _asset, uint256 _amount) external onlyOwner {
+        if (assets[_asset].percentage == 0) {
+            revert Balancer__AssetNotFound(_asset);
+        }
+        IERC20(_asset).safeTransferFrom(msg.sender, address(this), _amount);
+        emit Funded(_asset, _amount);
     }
 
     /**
-     * @notice Update the asset mapping with new assets and percentages
-     * @param _assets Array of new asset addresses
-     * @param _percentages Array of new percentages (in basis points)
+     * @notice Allows the owner to withdraw a specific ERC20 token from the contract.
+     * @param _asset The address of the ERC20 token.
+     * @param _amount The amount of the token to withdraw.
      */
-    function updateAssetMapping(
-        address[] memory _assets,
-        uint256[] memory _percentages
-    ) external onlyOwner {
-        require(_assets.length == _percentages.length, "Assets and percentages length mismatch");
-        require(_assets.length > 0, "Must have at least one asset");
+    function withdraw(address _asset, uint256 _amount) external onlyOwner nonReentrant {
+        if (assets[_asset].percentage == 0) {
+            revert Balancer__AssetNotFound(_asset);
+        }
+        IERC20(_asset).safeTransfer(msg.sender, _amount);
+        emit Withdrawn(_asset, _amount);
+    }
 
-        // Validate percentages sum to 100%
+    /**
+     * @notice Allows the owner to withdraw ETH from the contract.
+     * @param _to The recipient address.
+     * @param _amount The amount of ETH to withdraw.
+     */
+    function withdrawETH(address _to, uint256 _amount) external onlyOwner nonReentrant {
+        (bool success, ) = _to.call{value: _amount}("");
+        if (!success) {
+            revert Balancer__WithdrawalFailed();
+        }
+        emit ETHWithdrawn(_to, _amount);
+    }
+
+    /**
+     * @notice Updates the asset mapping.
+     * @param _assetAddresses The new list of asset addresses.
+     * @param _percentages The new list of percentages.
+     */
+    function updateAssetMapping(address[] memory _assetAddresses, uint256[] memory _percentages) external onlyOwner {
+        _updateAssetMapping(_assetAddresses, _percentages);
+    }
+
+    /**
+     * @notice Updates the drift percentage.
+     * @param _newDriftPercentage The new drift percentage.
+     */
+    function updateDriftPercentage(uint256 _newDriftPercentage) external onlyOwner {
+        driftPercentage = _newDriftPercentage;
+        emit DriftPercentageUpdated(_newDriftPercentage);
+    }
+
+    /**
+     * @notice Sets the update periodicity.
+     * @param _newUpdatePeriodicity The new update periodicity in seconds.
+     */
+    function setUpdatePeriodicity(uint256 _newUpdatePeriodicity) external onlyOwner {
+        updatePeriodicity = _newUpdatePeriodicity;
+        emit UpdatePeriodicitySet(_newUpdatePeriodicity);
+    }
+
+    // -- Internal Functions --
+
+    /**
+     * @notice Internal function to update the asset mapping.
+     * @param _newAssetAddresses The new list of asset addresses.
+     * @param _newPercentages The new list of percentages.
+     */
+    /**
+     * @notice Validates that the sum of percentages equals MAX_BASIS_POINTS.
+     * @param _percentages The list of percentages to validate.
+     */
+    function _validateAssetPercentages(uint256[] memory _percentages) internal pure {
         uint256 totalPercentage = 0;
         for (uint256 i = 0; i < _percentages.length; i++) {
-            require(_percentages[i] > 0, "Percentage must be positive");
             totalPercentage += _percentages[i];
         }
-        require(totalPercentage == MAX_BASIS_POINTS, "Percentages must sum to 100%");
 
-        // Clear old mappings
-        for (uint256 i = 0; i < assets.length; i++) {
-            delete assetPercentages[assets[i]];
-        }
-
-        // Set new mappings
-        assets = _assets;
-        for (uint256 i = 0; i < _assets.length; i++) {
-            require(_assets[i] != address(0), "Asset address cannot be zero");
-            assetPercentages[_assets[i]] = _percentages[i];
-        }
-
-        emit AssetMappingUpdated(_assets, _percentages);
-    }
-
-    /**
-     * @notice Update the drift percentage
-     * @param _driftPercentage New drift percentage (in basis points)
-     */
-    function updateDriftPercentage(uint256 _driftPercentage) external onlyOwner {
-        require(_driftPercentage <= MAX_BASIS_POINTS, "Drift percentage too high");
-        
-        uint256 oldDrift = driftPercentage;
-        driftPercentage = _driftPercentage;
-        
-        emit DriftPercentageUpdated(oldDrift, _driftPercentage);
-    }
-
-    /**
-     * @notice Update the periodicity for updates
-     * @param _updatePeriodicity New update periodicity in seconds
-     */
-    function setUpdatePeriodicity(uint256 _updatePeriodicity) external onlyOwner {
-        require(_updatePeriodicity > 0, "Update periodicity must be positive");
-        
-        uint256 oldPeriodicity = updatePeriodicity;
-        updatePeriodicity = _updatePeriodicity;
-        
-        emit PeriodicityUpdated(oldPeriodicity, _updatePeriodicity);
-    }
-
-    /**
-     * @notice Fund the contract with tokens
-     * @param _token Token address to fund
-     * @param _amount Amount of tokens to fund
-     */
-    function fund(address _token, uint256 _amount) external onlyOwner nonReentrant {
-        require(_token != address(0), "Token address cannot be zero");
-        require(_amount > 0, "Amount must be positive");
-        
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
-        
-        emit Funded(_token, _amount);
-    }
-
-    /**
-     * @notice Withdraw tokens from the contract
-     * @param _token Token address to withdraw
-     * @param _amount Amount of tokens to withdraw
-     * @param _to Address to send tokens to
-     */
-    function withdraw(
-        address _token,
-        uint256 _amount,
-        address _to
-    ) external onlyOwner nonReentrant {
-        require(_token != address(0), "Token address cannot be zero");
-        require(_amount > 0, "Amount must be positive");
-        require(_to != address(0), "Recipient address cannot be zero");
-        
-        IERC20 token = IERC20(_token);
-        require(token.balanceOf(address(this)) >= _amount, "Insufficient balance");
-        
-        token.safeTransfer(_to, _amount);
-        
-        emit Withdrawn(_token, _amount, _to);
-    }
-
-    /**
-     * @notice Withdraw ETH from the contract
-     * @param _amount Amount of ETH to withdraw
-     * @param _to Address to send ETH to
-     */
-    function withdrawETH(uint256 _amount, address payable _to) external onlyOwner nonReentrant {
-        require(_amount > 0, "Amount must be positive");
-        require(_to != address(0), "Recipient address cannot be zero");
-        require(address(this).balance >= _amount, "Insufficient ETH balance");
-        
-        _to.transfer(_amount);
-        
-        emit Withdrawn(address(0), _amount, _to);
-    }
-
-    /**
-     * @notice Get all assets and their percentages
-     * @return _assets Array of asset addresses
-     * @return _percentages Array of corresponding percentages
-     */
-    function getAssetMapping() external view returns (address[] memory _assets, uint256[] memory _percentages) {
-        _assets = assets;
-        _percentages = new uint256[](assets.length);
-        
-        for (uint256 i = 0; i < assets.length; i++) {
-            _percentages[i] = assetPercentages[assets[i]];
+        if (totalPercentage != MAX_BASIS_POINTS) {
+            revert Balancer__InvalidPercentagesSum();
         }
     }
 
     /**
-     * @notice Get the number of assets
-     * @return Number of assets in the mapping
+     * @notice Internal function to update the asset mapping.
+     * @param _newAssetAddresses The new list of asset addresses.
+     * @param _newPercentages The new list of percentages.
      */
-    function getAssetCount() external view returns (uint256) {
-        return assets.length;
+    function _updateAssetMapping(address[] memory _newAssetAddresses, uint256[] memory _newPercentages) internal {
+        if (_newAssetAddresses.length != _newPercentages.length || _newAssetAddresses.length == 0) {
+            revert Balancer__InvalidAssetCount();
+        }
+
+        _validateAssetPercentages(_newPercentages);
+
+        for (uint256 i = 0; i < _newAssetAddresses.length; i++) {
+            if (_newAssetAddresses[i] == address(0)) {
+                revert Balancer__ZeroAddressNotAllowed();
+            }
+        }
+
+        // Clear old mapping
+        for (uint256 i = 0; i < assetAddresses.length; i++) {
+            delete assets[assetAddresses[i]];
+        }
+
+        assetAddresses = _newAssetAddresses;
+        for (uint256 i = 0; i < assetAddresses.length; i++) {
+            assets[assetAddresses[i]] = Asset({percentage: _newPercentages[i]});
+        }
+
+        emit AssetMappingUpdated(_newAssetAddresses, _newPercentages);
+    }
+
+    // -- View Functions --
+
+    /**
+     * @notice Returns the list of asset addresses.
+     */
+    function getAssetAddresses() external view returns (address[] memory) {
+        return assetAddresses;
     }
 
     /**
-     * @notice Check if an update is due based on periodicity
-     * @return True if update is due
+     * @notice Returns the details of a specific asset.
+     * @param _asset The address of the asset.
      */
-    function isUpdateDue() external view returns (bool) {
-        return block.timestamp >= lastUpdateTime + updatePeriodicity;
+    function getAsset(address _asset) external view returns (Asset memory) {
+        return assets[_asset];
     }
 
     /**
-     * @notice Get contract balance for a specific token
-     * @param _token Token address
-     * @return Token balance
+     * @notice Returns the balance of a specific asset in the contract.
+     * @param _asset The address of the asset.
      */
-    function getTokenBalance(address _token) external view returns (uint256) {
-        return IERC20(_token).balanceOf(address(this));
+    function getAssetBalance(address _asset) external view returns (uint256) {
+        return IERC20(_asset).balanceOf(address(this));
     }
 
     /**
-     * @notice Get ETH balance of the contract
-     * @return ETH balance
+     * @notice Returns the ETH balance of the contract.
      */
     function getETHBalance() external view returns (uint256) {
         return address(this).balance;
     }
 
-    /**
-     * @notice Allow contract to receive ETH
-     */
+    // -- Receive Function --
+
     receive() external payable {}
 }
