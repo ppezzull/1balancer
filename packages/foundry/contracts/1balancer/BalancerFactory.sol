@@ -1,120 +1,84 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import "./Balancer.sol";
+import {Balancer} from "./Balancer.sol";
 
 /**
  * @title BalancerFactory
- * @notice Factory contract for creating Balancer instances
- * @dev Creates Balancer contracts and sets the creator as the owner
+ * @author @ppezzull
+ * @notice A factory for creating and managing Balancer contracts.
  */
 contract BalancerFactory {
-    // Events
-    event BalancerCreated(
-        address indexed balancer,
-        address indexed owner,
-        address[] assets,
-        uint256[] percentages,
-        uint256 driftPercentage,
-        uint256 updatePeriodicity
-    );
+    // -- State --
 
-    // State variables
-    address[] public balancers;
-    mapping(address => address[]) public ownerToBalancers;
-    mapping(address => address) public balancerToOwner;
+    address[] public allBalancers;
+    mapping(address => address[]) public balancersByOwner;
+    mapping(address => bool) public isBalancer;
+
+    // -- Events --
+
+    event BalancerCreated(address indexed newBalancer, address indexed owner);
+
+    // -- Errors --
+
+    error BalancerFactory__InvalidPercentagesSum();
+
+    // -- External Functions --
 
     /**
-     * @notice Create a new Balancer contract
-     * @param _assets Array of asset addresses
-     * @param _percentages Array of percentages corresponding to assets (in basis points)
-     * @param _driftPercentage Maximum allowed drift percentage (in basis points)
-     * @param _updatePeriodicity Time between updates in seconds
-     * @return balancer Address of the newly created Balancer contract
+     * @notice Creates a new Balancer contract.
+     * @param _assetAddresses The list of asset addresses.
+     * @param _percentages The list of percentages for each asset.
+     * @param _driftPercentage The drift percentage.
+     * @param _updatePeriodicity The update periodicity.
+     * @return newBalancer The address of the newly created Balancer contract.
      */
+    /**
+     * @notice Validates that the sum of percentages equals 100.
+     * @param _percentages The list of percentages to validate.
+     */
+    function _validateAssetPercentages(uint256[] memory _percentages) internal pure {
+        uint256 totalPercentage = 0;
+        for (uint256 i = 0; i < _percentages.length; i++) {
+            totalPercentage += _percentages[i];
+        }
+
+        if (totalPercentage != 100) {
+            revert BalancerFactory__InvalidPercentagesSum();
+        }
+    }
+
     function createBalancer(
-        address[] memory _assets,
+        address[] memory _assetAddresses,
         uint256[] memory _percentages,
         uint256 _driftPercentage,
         uint256 _updatePeriodicity
-    ) external returns (address balancer) {
-        // Create new Balancer contract with msg.sender as owner
-        Balancer newBalancer = new Balancer(
-            msg.sender,
-            _assets,
-            _percentages,
-            _driftPercentage,
-            _updatePeriodicity
-        );
+    ) external returns (address newBalancer) {
+        _validateAssetPercentages(_percentages);
+        Balancer balancer = new Balancer(msg.sender, _assetAddresses, _percentages, _driftPercentage, _updatePeriodicity);
+        newBalancer = address(balancer);
 
-        balancer = address(newBalancer);
+        allBalancers.push(newBalancer);
+        balancersByOwner[msg.sender].push(newBalancer);
+        isBalancer[newBalancer] = true;
 
-        // Store the balancer information
-        balancers.push(balancer);
-        ownerToBalancers[msg.sender].push(balancer);
-        balancerToOwner[balancer] = msg.sender;
-
-        emit BalancerCreated(
-            balancer,
-            msg.sender,
-            _assets,
-            _percentages,
-            _driftPercentage,
-            _updatePeriodicity
-        );
-
-        return balancer;
+        emit BalancerCreated(newBalancer, msg.sender);
     }
 
+    // -- View Functions --
+
     /**
-     * @notice Get all balancers created by this factory
-     * @return Array of balancer addresses
+     * @notice Returns the list of all created Balancer contracts.
      */
     function getAllBalancers() external view returns (address[] memory) {
-        return balancers;
+        return allBalancers;
     }
 
     /**
-     * @notice Get all balancers owned by a specific address
-     * @param _owner Owner address
-     * @return Array of balancer addresses owned by the specified address
+     * @notice Returns the list of Balancer contracts created by a specific owner.
+     * @param _owner The address of the owner.
      */
     function getBalancersByOwner(address _owner) external view returns (address[] memory) {
-        return ownerToBalancers[_owner];
-    }
-
-    /**
-     * @notice Get the owner of a specific balancer
-     * @param _balancer Balancer address
-     * @return Owner address
-     */
-    function getBalancerOwner(address _balancer) external view returns (address) {
-        return balancerToOwner[_balancer];
-    }
-
-    /**
-     * @notice Get the total number of balancers created
-     * @return Number of balancers
-     */
-    function getBalancerCount() external view returns (uint256) {
-        return balancers.length;
-    }
-
-    /**
-     * @notice Get the number of balancers owned by a specific address
-     * @param _owner Owner address
-     * @return Number of balancers owned
-     */
-    function getBalancerCountByOwner(address _owner) external view returns (uint256) {
-        return ownerToBalancers[_owner].length;
-    }
-
-    /**
-     * @notice Check if a balancer was created by this factory
-     * @param _balancer Balancer address to check
-     * @return True if the balancer was created by this factory
-     */
-    function isBalancerFromFactory(address _balancer) external view returns (bool) {
-        return balancerToOwner[_balancer] != address(0);
+        return balancersByOwner[_owner];
     }
 }
