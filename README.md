@@ -134,3 +134,4 @@ When a user logs in with a social account, they are assigned a wallet that remai
 We welcome contributions to Scaffold-Privy-AA!
 
 Please see [CONTRIBUTING.MD](CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-Privy-AA.
+
