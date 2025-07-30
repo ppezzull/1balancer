@@ -16,6 +16,7 @@
     "vercel:yolo": "vercel --build-env YARN_ENABLE_IMMUTABLE_INSTALLS=false --build-env ENABLE_EXPERIMENTAL_COREPACK=1 --build-env NEXT_PUBLIC_IGNORE_BUILD_ERROR=true --build-env VERCEL_TELEMETRY_DISABLED=1"
   },
   "dependencies": {
+    "@1inch/limit-order-sdk": "^4.9.5-rc.0",
     "@ethersproject/strings": "^5.8.0",
     "@heroicons/react": "~2.1.5",
     "@privy-io/react-auth": "^2.18.1",

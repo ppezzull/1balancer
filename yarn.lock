@@ -5,6 +5,80 @@ __metadata:
   version: 6
   cacheKey: 8
 
+"@1inch/byte-utils@npm:2.2.1":
+  version: 2.2.1
+  resolution: "@1inch/byte-utils@npm:2.2.1"
+  checksum: d5733de94b821376687cf2ec31d9beedab57e5ebfba5aaaf7039a8015d2d0f589bf3f1a84b34de12bd6ea393d9f39dd1e929910fc7049475ff2c4532304ad315
+  languageName: node
+  linkType: hard
+
+"@1inch/byte-utils@npm:latest":
+  version: 3.1.0
+  resolution: "@1inch/byte-utils@npm:3.1.0"
+  peerDependencies:
+    assert: ^2.0.0
+  peerDependenciesMeta:
+    assert:
+      optional: true
+  checksum: 8145d564a2ba3399a7a1cc8c23d644844d07f2a02148488014a53b8cd64d1996ab076cdc3abd5d4d420a2fb005b7525c7d9644c20b8abf5679507a4965d4c0ad
+  languageName: node
+  linkType: hard
+
+"@1inch/eslint-config@npm:^3.0.7":
+  version: 3.0.7
+  resolution: "@1inch/eslint-config@npm:3.0.7"
+  dependencies:
+    semver: ^7.5.2
+  peerDependencies:
+    "@eslint/compat": ^1.1.0
+    "@eslint/eslintrc": ^3.1.0
+    "@eslint/js": ^9.5.0
+    "@stylistic/eslint-plugin": ^2.3.0
+    "@typescript-eslint/eslint-plugin": ^7.14.1
+    "@typescript-eslint/parser": ^7.14.1
+    eslint: ^9.5.0
+    eslint-config-prettier: ^9.1.0
+    eslint-config-standard: ^17.1.0
+    eslint-import-resolver-typescript: ^3.6.1
+    eslint-plugin-import: ^2.29.1
+    eslint-plugin-n: ^17.9.0
+    eslint-plugin-prettier: ^5.1.3
+    eslint-plugin-promise: ^6.2.0
+    eslint-plugin-unused-imports: ^4.0.0
+    globals: ^15.6.0
+    prettier: ^3.3.2
+    typescript: ^5.5.2
+  checksum: 3bc71e7ca319fab4f230b669e0c370db29ab878c25207f02225cffccc8a683718899e466b51f0d4abda996e02f4b74c08f08e6c654102224dfd099301e466ffd
+  languageName: node
+  linkType: hard
+
+"@1inch/limit-order-sdk@npm:^4.9.5-rc.0, @1inch/limit-order-sdk@npm:latest":
+  version: 4.9.5-rc.0
+  resolution: "@1inch/limit-order-sdk@npm:4.9.5-rc.0"
+  dependencies:
+    "@1inch/byte-utils": 2.2.1
+    ethers: 6.13.1
+  peerDependencies:
+    assert: ^2.0.0
+    axios: ">=1 <2"
+  peerDependenciesMeta:
+    assert:
+      optional: true
+    axios:
+      optional: true
+  checksum: bba433383b6711ac89dee919bcde2613bfb6251c0db98f37312eba2696859cb9664cf6e7ffa0e469ac03a5493d90c5f3d92585fd86fa9e045d534fcba5e4ddfe
+  languageName: node
+  linkType: hard
+
+"@1inch/tsconfig@npm:^1.0.9":
+  version: 1.0.9
+  resolution: "@1inch/tsconfig@npm:1.0.9"
+  dependencies:
+    semver: ^7.5.4
+  checksum: 3e90ee0024014dc241b20398681384b1e1a6bf9001f57ce2f4c662713361c2f1dc7ccf01c2ca3d2e85d011c9f5c034c4216b5e164521b4d51e534dff8cc67fd0
+  languageName: node
+  linkType: hard
+
 "@adraffy/ens-normalize@npm:1.10.1":
   version: 1.10.1
   resolution: "@adraffy/ens-normalize@npm:1.10.1"
@@ -2618,11 +2692,11 @@ __metadata:
   linkType: hard
 
 "@noble/curves@npm:^1.6.0, @noble/curves@npm:^1.7.0, @noble/curves@npm:^1.8.0, @noble/curves@npm:^1.9.1, @noble/curves@npm:~1.9.0":
-  version: 1.9.5
-  resolution: "@noble/curves@npm:1.9.5"
+  version: 1.9.6
+  resolution: "@noble/curves@npm:1.9.6"
   dependencies:
     "@noble/hashes": 1.8.0
-  checksum: 122c64ddc81e51191239a5f4332f9b655353b3f39dbaba7df2d02c91f6925ae9d5f502e9c61cde753c1e49d206ec6530b7530ae27b8fdcc4ce9af219d3bf50e9
+  checksum: 0944cb0fd0f521ee2004df22013e997c85d3a10b529e98cb2d5b552343fd62cd3edb65a3373dcb255bda18cb7651b0399e58a3f50b5307db2b3ef0c2bdb35248
   languageName: node
   linkType: hard
 
@@ -3256,9 +3330,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@privy-io/js-sdk-core@npm:0.53.0":
-  version: 0.53.0
-  resolution: "@privy-io/js-sdk-core@npm:0.53.0"
+"@privy-io/js-sdk-core@npm:0.53.1":
+  version: 0.53.1
+  resolution: "@privy-io/js-sdk-core@npm:0.53.1"
   dependencies:
     "@ethersproject/abstract-signer": ^5.7.0
     "@ethersproject/bignumber": ^5.7.0
@@ -3268,7 +3342,7 @@ __metadata:
     "@ethersproject/units": ^5.7.0
     "@privy-io/api-base": 1.5.2
     "@privy-io/chains": 0.0.2
-    "@privy-io/public-api": 2.40.1
+    "@privy-io/public-api": 2.41.0
     canonicalize: ^2.0.0
     eventemitter3: ^5.0.1
     fetch-retry: ^6.0.0
@@ -3285,26 +3359,26 @@ __metadata:
       optional: true
     viem:
       optional: true
-  checksum: eabc090ed32e6bbfd72a33f7c28be56f6a62f2f98ebb7b45b8ce579075a3be0ccae606adbfeb7715e185620f531acc57f5997568bb17056d392102478b921e84
+  checksum: f2453f63c84b153eed7e2a731ce18ec3e659296e27c7806b4d4bdceb087dd1c183b437ae78c89874e4e7063d7dbdcaf8d9218177a4635e4bae7c02edaeec4ca6
   languageName: node
   linkType: hard
 
-"@privy-io/public-api@npm:2.40.1":
-  version: 2.40.1
-  resolution: "@privy-io/public-api@npm:2.40.1"
+"@privy-io/public-api@npm:2.41.0":
+  version: 2.41.0
+  resolution: "@privy-io/public-api@npm:2.41.0"
   dependencies:
     "@privy-io/api-base": 1.5.2
     bs58: ^5.0.0
     libphonenumber-js: ^1.10.31
     viem: ^2
     zod: ^3.24.3
-  checksum: 3b408e8f4fa9d6109ea53a480c38ee8a17bb96d63418045f7623ee3a658d5a3e02453de253a6b183bde53e64676e2ad6f5e664566ad354739fc0152a8050cf64
+  checksum: f82312c8ac617c14def464b1708a6a5d61cffe85a02b7b3e33bcac180e25d98438298503b676d35adfbbeec5ba83adb2448ef7b7b009148d0038a2e232c75510
   languageName: node
   linkType: hard
 
 "@privy-io/react-auth@npm:^2.18.1":
-  version: 2.20.0
-  resolution: "@privy-io/react-auth@npm:2.20.0"
+  version: 2.21.0
+  resolution: "@privy-io/react-auth@npm:2.21.0"
   dependencies:
     "@base-org/account": ^1.1.0
     "@coinbase/wallet-sdk": 4.3.2
@@ -3316,8 +3390,8 @@ __metadata:
     "@privy-io/api-base": 1.5.2
     "@privy-io/chains": 0.0.2
     "@privy-io/ethereum": 0.0.2
-    "@privy-io/js-sdk-core": 0.53.0
-    "@privy-io/public-api": 2.40.1
+    "@privy-io/js-sdk-core": 0.53.1
+    "@privy-io/public-api": 2.41.0
     "@reown/appkit": ^1.7.11
     "@scure/base": ^1.2.5
     "@simplewebauthn/browser": ^9.0.1
@@ -3364,7 +3438,7 @@ __metadata:
       optional: true
     permissionless:
       optional: true
-  checksum: 549e9d04102bc16e3cdb7447d6dc6963d1e5dcc4c0a7a4e9b000beb288f78cdf52152d8fab1f71f3d2b12b18239bc7351c4c32fdd517a6c01f54bdefdf89a191
+  checksum: d3290a11d86c652924a56c3e2a8ec2a5375ea44b2ca620789e945dcf74ff796238befe4ac2c9395fb3b7005d4f075fe7a0a3ca37b8eed15ffd5def210ef34e54
   languageName: node
   linkType: hard
 
@@ -4340,6 +4414,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@se-2/nextjs@workspace:packages/nextjs"
   dependencies:
+    "@1inch/limit-order-sdk": ^4.9.5-rc.0
     "@ethersproject/strings": ^5.8.0
     "@heroicons/react": ~2.1.5
     "@privy-io/react-auth": ^2.18.1
@@ -5273,6 +5348,13 @@ __metadata:
   version: 16.18.11
   resolution: "@types/node@npm:16.18.11"
   checksum: 2a3b1da13063debe6e26f732defb5f03ef4ef732c3e08daba838d8850433bd00e537ce1a97ce9bcfc4b15db5218d701d1265fae94e0d6926906bec157e6b46e0
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:18.15.13":
+  version: 18.15.13
+  resolution: "@types/node@npm:18.15.13"
+  checksum: 79cc5a2b5f98e8973061a4260a781425efd39161a0e117a69cd089603964816c1a14025e1387b4590c8e82d05133b7b4154fa53a7dffb3877890a66145e76515
   languageName: node
   linkType: hard
 
@@ -10280,6 +10362,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ethers@npm:6.13.1":
+  version: 6.13.1
+  resolution: "ethers@npm:6.13.1"
+  dependencies:
+    "@adraffy/ens-normalize": 1.10.1
+    "@noble/curves": 1.2.0
+    "@noble/hashes": 1.3.2
+    "@types/node": 18.15.13
+    aes-js: 4.0.0-beta.5
+    tslib: 2.4.0
+    ws: 8.17.1
+  checksum: beef4b6d117f64c369f44be631e0f666b966374eac0cc0446fa7abe114b11d6b3019060022eec65c031f150711f4913d249de507ff3da3204e654635db80a07e
+  languageName: node
+  linkType: hard
+
 "ethers@npm:^5.7.0":
   version: 5.8.0
   resolution: "ethers@npm:5.8.0"
@@ -14392,8 +14489,8 @@ __metadata:
   linkType: hard
 
 "node-gyp@npm:^11.0.0, node-gyp@npm:^11.2.0, node-gyp@npm:latest":
-  version: 11.2.0
-  resolution: "node-gyp@npm:11.2.0"
+  version: 11.3.0
+  resolution: "node-gyp@npm:11.3.0"
   dependencies:
     env-paths: ^2.2.0
     exponential-backoff: ^3.1.1
@@ -14407,7 +14504,7 @@ __metadata:
     which: ^5.0.0
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: 2536282ba81f8a94b29482d3622b6ab298611440619e46de4512a6f32396a68b5530357c474b859787069d84a4c537d99e0c71078cce5b9f808bf84eeb78e8fb
+  checksum: 64255952af18222e930a0bb8239e8fc86ec25eddfbf61523ab30b45f19670c1e66384ceda0472f5d59e63a7779b2134eab8ec5322b9f092f60202b0e312a66c8
   languageName: node
   linkType: hard
 
@@ -16136,12 +16233,12 @@ __metadata:
   linkType: hard
 
 "react-resizable-panels@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "react-resizable-panels@npm:3.0.3"
+  version: 3.0.4
+  resolution: "react-resizable-panels@npm:3.0.4"
   peerDependencies:
     react: ^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
     react-dom: ^16.14.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
-  checksum: 6acd6c2c809786d0da473c4cd9507e41278f9b62515ea55e4d2e68702bed5b40227e2ca1260a29164847f0aaded3d31fa012e89b127d83a8ba23184b31996d12
+  checksum: e871d06c2ae0a288450715ff1eccc8f35ca49b34e5daf390fedb90d2d64e8d4d51157e063906223a4b21a7b2e06597297158a3ed0c3d3c87d15004cc5f894ce7
   languageName: node
   linkType: hard
 
@@ -16708,6 +16805,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "se-2@workspace:."
   dependencies:
+    "@1inch/byte-utils": latest
+    "@1inch/eslint-config": ^3.0.7
+    "@1inch/limit-order-sdk": latest
+    "@1inch/tsconfig": ^1.0.9
     husky: ^9.1.6
     lint-staged: ^15.2.10
   languageName: unknown
@@ -16788,7 +16889,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.7.2, semver@npm:^7.1.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3, semver@npm:^7.7.1, semver@npm:^7.7.2":
+"semver@npm:7.7.2, semver@npm:^7.1.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.3, semver@npm:^7.7.1, semver@npm:^7.7.2":
   version: 7.7.2
   resolution: "semver@npm:7.7.2"
   bin:
@@ -18192,6 +18293,13 @@ __metadata:
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd
+  languageName: node
+  linkType: hard
+
+"tslib@npm:2.4.0":
+  version: 2.4.0
+  resolution: "tslib@npm:2.4.0"
+  checksum: 8c4aa6a3c5a754bf76aefc38026134180c053b7bd2f81338cb5e5ebf96fefa0f417bff221592bf801077f5bf990562f6264fecbc42cd3309b33872cb6fc3b113
   languageName: node
   linkType: hard
 
