@@ -1,17 +1,22 @@
 "use server";
 
 import { CustomTokensAndWalletsRequest, MultiWalletBalancesResponse } from "../../types/token";
-import { CHAIN_ID, API_KEY } from "../../constants";
+import { CHAIN_ID } from "../../constants";
 
 export async function getMultiWalletBalances(
   request: CustomTokensAndWalletsRequest
 ): Promise<MultiWalletBalancesResponse | null> {
-  const url = `https://api.1inch.dev/balance/v1.2/${CHAIN_ID}/balances/multiple/walletsAndTokens`;
+  // When running on the server, we need to provide the full URL to the proxy.
+  // VERCEL_URL is a system environment variable provided by Vercel.
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+
+  const url = `${baseUrl}/api/1inch/balance/v1.2/${CHAIN_ID}/balances/multiple/walletsAndTokens`;
 
   const res = await fetch(url, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${API_KEY}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify(request),
