@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {Balancer} from "../modules/Balancer.sol";
+import {Balancer} from "../modules/BaseBalancer.sol";
 
 /**
  * @title BalancerFactory
