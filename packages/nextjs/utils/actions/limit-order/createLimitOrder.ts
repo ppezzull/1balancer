@@ -2,6 +2,7 @@
 
 import { LimitOrder, MakerTraits, Address, Api, randBigInt } from "@1inch/limit-order-sdk";
 import { AxiosProviderConnector } from "@1inch/limit-order-sdk/axios";
+import axios from 'axios';
 import { CHAIN_ID, API_KEY } from '../../constants';
 import { WalletClient } from 'viem';
 
@@ -17,11 +18,24 @@ export async function createAndSubmitLimitOrder(
   makingAmount: string,
   takingAmount: string,
 ) {
-  const httpConnector = new AxiosProviderConnector();
+  // When running on the server, we need to provide the full URL to the proxy.
+  // VERCEL_URL is a system environment variable provided by Vercel.
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000';
+
+  // Create a custom axios instance that points to our proxy route.
+  const axiosInstance = axios.create({
+    baseURL: `${baseUrl}/api/1inch`,
+  });
+
+
+  // The authKey is required by the SDK, but we can use a dummy value.
+  // The real key is added by our proxy route.
   const api = new Api({
     networkId: CHAIN_ID as number,
     authKey: API_KEY,
-    httpConnector,
+    httpConnector: axiosInstance,
   });
 
   const expiresIn = 120n; // 2 minutes
