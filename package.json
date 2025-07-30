@@ -57,5 +57,11 @@
   },
   "engines": {
     "node": ">=20.18.3"
+  },
+  "dependencies": {
+    "@1inch/byte-utils": "latest",
+    "@1inch/eslint-config": "^3.0.7",
+    "@1inch/limit-order-sdk": "latest",
+    "@1inch/tsconfig": "^1.0.9"
   }
 }
