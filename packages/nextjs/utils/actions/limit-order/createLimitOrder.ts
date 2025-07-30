@@ -1,7 +1,6 @@
 'use server';
 
 import { LimitOrder, MakerTraits, Address, Api, randBigInt } from "@1inch/limit-order-sdk";
-import { AxiosProviderConnector } from "@1inch/limit-order-sdk/axios";
 import axios from 'axios';
 import { CHAIN_ID, API_KEY } from '../../constants';
 import { WalletClient } from 'viem';
