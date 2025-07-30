@@ -40,6 +40,8 @@ This monorepo contains the complete 1Balancer implementation:
 ### Core Documentation
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and components
 - **[Development Guide](docs/DEVELOPMENT.md)** - Setup and development workflow
+- **[Bootstrap Infrastructure](docs/BOOTSTRAP-INFRASTRUCTURE.md)** - One-command setup guide
+- **[Environment Configuration](docs/ENVIRONMENT-CONFIGURATION.md)** - Centralized env management
 - **[Scaffold-ETH Template](docs/SCAFFOLD-ETH-TEMPLATE.md)** - Original template documentation
 
 ### Package-Specific Documentation
@@ -57,42 +59,47 @@ This monorepo contains the complete 1Balancer implementation:
 
 ### Prerequisites
 - Node.js >= v20.18.3
-- Yarn (v1 or v2+)
+- Yarn >= 3.2.3
 - Git
+- Curl (usually pre-installed)
 
-### Installation
+### One-Command Setup
 
-1. Clone and install dependencies:
 ```bash
-git clone https://github.com/your-org/1balancer
+# Clone with NEAR submodule
+git clone --recurse-submodules https://github.com/your-org/1balancer
 cd 1balancer
-yarn install
+
+# Bootstrap everything with one command
+yarn bootstrap
 ```
 
-2. Set up environment variables:
+That's it! The bootstrap command will:
+- ✅ Check system dependencies
+- ✅ Initialize 1balancer-near submodule
+- ✅ Install all dependencies
+- ✅ Setup Rust 1.86.0 for NEAR
+- ✅ Configure 1inch proxy
+- ✅ Create environment files
+- ✅ Start all services
+
+### What's Running
+
+After bootstrap, you'll have:
+- **Frontend**: http://localhost:3000
+- **Hardhat Node**: http://localhost:8545
+- **NEAR Bridge**: http://localhost:8090
+- **Status Check**: `yarn status`
+
+### Daily Commands
+
 ```bash
-cd packages/nextjs
-cp .env.example .env.local
-# Add your API keys (see Configuration section)
-
-cd ../hardhat
-cp .env.example .env
-# Add your deployment keys
+yarn d        # Start everything (short for dev:all)
+yarn st       # Check status
+yarn s        # Stop everything
 ```
 
-3. Start development:
-```bash
-# Terminal 1: Start local blockchain
-yarn chain
-
-# Terminal 2: Deploy contracts
-yarn deploy
-
-# Terminal 3: Start frontend
-yarn start
-```
-
-Visit `http://localhost:3000` to see your app.
+For detailed setup instructions, see [Bootstrap Infrastructure](docs/BOOTSTRAP-INFRASTRUCTURE.md).
 
 ## ⚙️ Configuration
 
@@ -145,13 +152,40 @@ See [Hardhat Configuration](packages/hardhat/docs/CONFIGURATION.md) for detailed
 - 1inch API proxy in `packages/nextjs/app/api/1inch/`
 
 ### Key Commands
+
+#### Quick Start & Management
+```bash
+yarn bootstrap      # Complete setup from scratch
+yarn dev:all        # Start all services (or yarn d)
+yarn stop           # Stop all services (or yarn s)
+yarn status         # Check service health (or yarn st)
+```
+
+#### Individual Services
 ```bash
 yarn chain          # Start local blockchain
-yarn deploy         # Deploy contracts
-yarn start          # Start frontend
-yarn hardhat:test   # Run contract tests
-yarn generate       # Generate new deployer account
+yarn deploy         # Deploy contracts to local
+yarn start          # Start frontend only
+yarn backend        # Start backend only
 ```
+
+#### Cross-Chain Operations
+```bash
+yarn deploy:all     # Deploy to both EVM and NEAR
+yarn test:all       # Run all tests
+yarn near:dev       # Start NEAR services
+yarn near:deploy    # Deploy NEAR contracts
+```
+
+#### Maintenance
+```bash
+yarn check:deps     # Check system dependencies
+yarn create:envs    # Create environment files
+yarn clean:all      # Clean everything
+yarn reset          # Clean and reinstall
+```
+
+See all commands: `yarn run`
 
 ## 🔒 Security
 
