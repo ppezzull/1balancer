@@ -1,19 +1,86 @@
 import "./globals.css";
+import { Metadata } from "next";
 import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
-import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
+import { Header } from "~~/components/Header";
+import { Footer } from "~~/components/Footer";
+import { Toaster } from "sonner";
 
-export const metadata = getMetadata({
-  title: "Scaffold-ETH 2 App",
-  description: "Built with 🏗 Scaffold-ETH 2",
-});
+export const metadata: Metadata = {
+  title: {
+    default: "1Balancer - DeFi Portfolio Management Platform",
+    template: "%s | 1Balancer"
+  },
+  description: "The next-generation decentralized portfolio management platform. Simplify and amplify your investment strategy with innovative DeFi tools.",
+  keywords: ["DeFi", "Portfolio Management", "Blockchain", "Cryptocurrency", "1Balancer", "Web3"],
+  authors: [{ name: "1Balancer Team" }],
+  creator: "1Balancer",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://1balancer.com",
+    title: "1Balancer - DeFi Portfolio Management",
+    description: "Simplify and amplify your investment strategy with innovative DeFi tools",
+    siteName: "1Balancer",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "1Balancer Platform"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "1Balancer - DeFi Portfolio Management",
+    description: "Simplify and amplify your investment strategy with innovative DeFi tools",
+    images: ["/og-image.jpg"],
+    creator: "@1balancer"
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1
+    }
+  },
+  verification: {
+    google: "verification-token-here"
+  }
+};
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (
-    <html suppressHydrationWarning className={``}>
-      <body>
-        <ThemeProvider themes={["light"]} defaultTheme="light">
-          <ScaffoldEthAppWithProviders>{children}</ScaffoldEthAppWithProviders>
+    <html suppressHydrationWarning className="h-full">
+      <body className="h-full">
+        <ThemeProvider themes={["light", "dark"]} defaultTheme="light">
+          <ScaffoldEthAppWithProviders>
+            <div className="flex flex-col min-h-screen">
+              {/* Header */}
+              <Header />
+              
+              {/* Main Content */}
+              <main className="flex-1">
+                {children}
+              </main>
+              
+              {/* Footer */}
+              <Footer />
+            </div>
+            
+            {/* Toast Notifications */}
+            <Toaster 
+              position="top-right"
+              expand={false}
+              richColors
+              closeButton
+            />
+          </ScaffoldEthAppWithProviders>
         </ThemeProvider>
       </body>
     </html>

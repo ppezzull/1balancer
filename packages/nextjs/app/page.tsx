@@ -1,72 +1,98 @@
 "use client";
 
-import Link from "next/link";
-import type { NextPage } from "next";
-import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { Address } from "~~/components/scaffold-eth";
+import { useState, useEffect } from "react";
+import { HeroSection } from "../components/figma/sections/HeroSection";
+import { LoadingScreen } from "../components/figma/sections/LoadingScreen";
+import { DynamicBackground } from "../components/figma/interactive/DynamicBackground";
+import { getServerSidePortfolioData } from "../utils/storage";
 
-const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
+export default function HomePage() {
+  const [showLoading, setShowLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'home' | 'about' | 'rebalance' | 'top-performers'>('home');
+
+  useEffect(() => {
+    // Simulate initial loading
+    const timer = setTimeout(() => {
+      setShowLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSkipLoading = () => {
+    setShowLoading(false);
+  };
+
+  const handleGetStarted = () => {
+    // Navigate to dashboard or wallet connection
+    setActiveTab('rebalance');
+    // In a real app, you would use Next.js router
+    window.location.href = '/dashboard';
+  };
+
+  if (showLoading) {
+    return <LoadingScreen onSkip={handleSkipLoading} />;
+  }
 
   return (
-    <>
-      <div className="flex items-center flex-col grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-Privy-AA</span>
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address address={connectedAddress} />
-          </div>
-
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/foundry/contracts
-            </code>
-          </p>
-        </div>
-
-        <div className="grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-          </div>
-        </div>
+    <main className="relative min-h-screen overflow-hidden">
+      {/* Dynamic Background Effects */}
+      <DynamicBackground />
+      
+      {/* Hero Section */}
+      <div className="relative z-10">
+        <HeroSection onGetStarted={handleGetStarted} />
       </div>
-    </>
+      
+      {/* SEO Content */}
+      <section className="sr-only">
+        <h1>1Balancer - DeFi Portfolio Management Platform</h1>
+        <p>
+          The next-generation decentralized portfolio management platform that simplifies 
+          and amplifies your investment strategy with innovative DeFi tools.
+        </p>
+        <h2>Key Features</h2>
+        <ul>
+          <li>Smart Portfolio Balancing with AI-powered optimization</li>
+          <li>Automated Rebalancing based on market conditions</li>
+          <li>Multi-chain Portfolio Management across Ethereum, Polygon, Arbitrum</li>
+          <li>Real-time Performance Analytics and reporting</li>
+          <li>Social Trading and Portfolio Sharing</li>
+        </ul>
+        <h2>Supported Networks</h2>
+        <p>
+          1Balancer supports portfolio management across multiple blockchain networks including 
+          Ethereum, Polygon, Arbitrum, Optimism, and Base for maximum flexibility.
+        </p>
+      </section>
+      
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "1Balancer",
+            "description": "DeFi Portfolio Management Platform",
+            "url": "https://1balancer.com",
+            "applicationCategory": "FinanceApplication",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "Portfolio Balancing",
+              "Automated Rebalancing", 
+              "Multi-chain Support",
+              "Performance Analytics",
+              "Social Trading"
+            ]
+          })
+        }}
+      />
+    </main>
   );
-};
-
-export default Home;
+}
