@@ -1,137 +1,177 @@
-# 🏗 Scaffold-Privy-AA
+# 1Balancer - Cross-Chain Portfolio Management
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Scaffold Documentation</a> |
-  <a href="https://privy.io">Privy</a>
+  <a href="https://docs.1inch.io">1inch Docs</a> |
+  <a href="docs/ARCHITECTURE.md">Architecture</a> |
+  <a href="docs/DEVELOPMENT.md">Development Guide</a>
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain with seamless onboarding through Privy's social login and account abstraction. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts without requiring users to have a traditional wallet or understand blockchain complexities.
+🔄 **1Balancer** is a cross-chain DeFi portfolio management system built for the 1inch Fusion+ hackathon. It enables automated portfolio rebalancing across EVM chains (via BASE) and NEAR Protocol using atomic swaps powered by 1inch's Fusion+ technology.
 
-> This template was developed for the napulETH Hackathon 2025: https://taikai.network/napulETH/hackathons/napuleth2025
+## 🏗️ Project Structure
 
-⚙️ Built using NextJS, Privy, Foundry, Wagmi, Viem, and Typescript.
-
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- � **Social Login with Privy**: Allow users to log in with email, Google, Discord, Telegram and other social accounts.
-- 🔐 **Account Abstraction**: Privy assigns users a smart wallet they can access with social login or connect their pre-existing wallet.
-- 🔐 **Integration with Traditional Wallets**: Connect to Coinbase Wallet, MetaMask, and other wallet providers.
-
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
-
-## Known Issues
-
-**React `isActive` prop warning**
-
-There's a console warning that appears when executing transactions:
+This monorepo contains the complete 1Balancer implementation:
 
 ```
-React does not recognize the `isActive` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `isactive` instead. If you accidentally passed it from a parent component, remove it from the DOM element.
-
-components/ScaffoldEthAppWithProviders.tsx (40:5) @ ScaffoldEthAppWithProviders
+1balancer/
+├── packages/
+│   ├── hardhat/         # Smart contracts (Ethereum Hub on BASE)
+│   │   ├── contracts/
+│   │   │   ├── ethereum-hub/    # Fusion+ cross-chain implementation
+│   │   │   ├── portfolio/       # Portfolio management modules
+│   │   │   └── foundation/      # 1inch protocol integrations
+│   │   └── docs/        # Hardhat-specific documentation
+│   └── nextjs/          # Frontend application
+│       └── app/api/1inch/       # 1inch API proxy
+├── docs/                # Project documentation
+└── rules/              # Development guidelines
 ```
 
-This is related to the Privy Provider implementation. While not breaking functionality, community contributions to fix this issue are welcome!
+## 🎯 Key Features
 
-## Requirements
+- **🔀 Cross-Chain Atomic Swaps**: Secure swaps between BASE and NEAR using HTLCs
+- **⚖️ Automated Rebalancing**: Multiple strategies (BaseBalancer, DriftBalancer, TimeBalancer)
+- **🔑 Social Login**: Privy integration for seamless onboarding
+- **🏛️ Three-Layer Architecture**: Clean separation of protocol, orchestration, and application layers
+- **🚀 1inch Foundation**: Built on battle-tested 1inch protocols
 
-Before you begin, you need to install the following tools:
+## 📚 Documentation
 
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
-- [Git](https://git-scm.com/downloads)
+### Core Documentation
+- **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and components
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup and development workflow
+- **[Scaffold-ETH Template](docs/SCAFFOLD-ETH-TEMPLATE.md)** - Original template documentation
 
-## Quickstart
+### Package-Specific Documentation
+- **[Hardhat Configuration](packages/hardhat/docs/CONFIGURATION.md)** - Smart contract development setup
+- **[Contract Architecture](packages/hardhat/contracts/README.md)** - Contract structure overview
+  - [Ethereum Hub](packages/hardhat/contracts/ethereum-hub/README.md)
+  - [Portfolio Management](packages/hardhat/contracts/portfolio/README.md)
+  - [1inch Foundation](packages/hardhat/contracts/foundation/README.md)
 
-To get started with Scaffold-Privy-AA, follow the steps below:
+### Related Repositories
+- **[1balancer-near](https://github.com/your-org/1balancer-near)** - NEAR Protocol implementation
+- **[1balancer-docs](https://github.com/your-org/1balancer-docs)** - Extended documentation and analysis
 
-1. Install dependencies if it was skipped in CLI:
+## 🚀 Quick Start
 
-```
-git clone https://github.com/ppezzull/Scaffold-Privy-AA
-cd Scaffold-Privy-AA
+### Prerequisites
+- Node.js >= v20.18.3
+- Yarn (v1 or v2+)
+- Git
+
+### Installation
+
+1. Clone and install dependencies:
+```bash
+git clone https://github.com/your-org/1balancer
+cd 1balancer
 yarn install
 ```
 
-2. Set up your environment variables:
-   - In the `packages/nextjs` directory, copy `.env.example` to `.env.local`
-   - (Optional for localhost) Get an Alchemy API key from [alchemy.com](https://www.alchemy.com/) if connecting to public Ethereum networks
-   - Create a Privy account at [console.privy.io](https://console.privy.io)
-   - Create a new project and obtain your Privy project ID
-   - Add both keys to the `.env.local` file
-   - In the Privy dashboard (https://dashboard.privy.io/apps/[YOUR-PROJECT-ID]/login-methods), enable Ethereum wallets
+2. Set up environment variables:
+```bash
+cd packages/nextjs
+cp .env.example .env.local
+# Add your API keys (see Configuration section)
 
-3. Run a local network in the first terminal:
-
+cd ../hardhat
+cp .env.example .env
+# Add your deployment keys
 ```
+
+3. Start development:
+```bash
+# Terminal 1: Start local blockchain
 yarn chain
-```
 
-This command starts a local Ethereum network using Foundry. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/foundry/foundry.toml`.
-
-4. On a second terminal, deploy the test contract:
-
-```
+# Terminal 2: Deploy contracts
 yarn deploy
-```
 
-This command deploys a test smart contract to the local network. The contract is located in `packages/foundry/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/foundry/script` to deploy the contract to the network. You can also customize the deploy script.
-
-5. On a third terminal, start your NextJS app:
-
-```
+# Terminal 3: Start frontend
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+Visit `http://localhost:3000` to see your app.
 
-**Important**: Make sure to set up both your Alchemy API key (optional if only using localhost) and Privy project ID in the `.env.local` file. The Alchemy API key is required to access public Ethereum networks, and the Privy project ID is needed for social login functionality. Without these, your dApp may not work as expected.
+## ⚙️ Configuration
 
-Run smart contract test with `yarn foundry:test`
+### Required API Keys
 
-- Edit your smart contracts in `packages/foundry/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/foundry/script`
-- Customize your Privy configuration in `components/PrivyConnector.tsx`
+1. **1inch API Key** (for hackathon):
+   - Obtain through ETHGlobal process
+   - Required for Fusion+ integration
+   - Add to `packages/nextjs/.env.local`
 
+2. **Alchemy API Key** (optional for localhost):
+   - Get from [alchemy.com](https://www.alchemy.com/)
+   - Required for mainnet/testnet deployment
+   - Add to both `.env` files
 
-## Documentation
+3. **Privy Project ID**:
+   - Create account at [console.privy.io](https://console.privy.io)
+   - Enable Ethereum wallets in dashboard
+   - Add to `packages/nextjs/.env.local`
 
-Visit [Scaffold-ETH 2 docs](https://docs.scaffoldeth.io) to learn about the base framework.
+See [Hardhat Configuration](packages/hardhat/docs/CONFIGURATION.md) for detailed setup.
 
-For Privy integration, check out the [Privy documentation](https://docs.privy.io/) to understand how to customize the social login and wallet experience.
+## 🏗️ Architecture
 
-## Setting up Environment Variables
+1Balancer implements a three-layer architecture:
 
-1. In the `packages/nextjs` directory, copy `.env.example` to `.env.local` and add your API keys:
-   ```
-   # Required for accessing Ethereum networks
-   NEXT_PUBLIC_ALCHEMY_API_KEY=your-alchemy-api-key-here
-   
-   # Required for Privy social login and wallet features
-   NEXT_PUBLIC_PRIVY_APP_ID=your-privy-project-id-here
-   ```
+```
+┌──────────────────────────────────────────────────────────┐
+│         APPLICATION LAYER - Portfolio Management         │
+│     Automated rebalancing with cross-chain support      │
+├──────────────────────────────────────────────────────────┤
+│      ORCHESTRATION LAYER - Custom Coordination          │
+│   Simulated resolver behavior (No KYC requirements)     │
+├──────────────────────────────────────────────────────────┤
+│        PROTOCOL LAYER - 1inch Foundation                │
+│    Limit Orders + Fusion + Cross-Chain Contracts        │
+└──────────────────────────────────────────────────────────┘
+```
 
-2. To get these keys:
-   - For Alchemy: Sign up at [alchemy.com](https://www.alchemy.com/) and create a new API key
-   - For Privy: Create an account at [console.privy.io](https://console.privy.io) and create a new project
-3. In the Privy dashboard (https://dashboard.privy.io/apps/[YOUR-PROJECT-ID]/login-methods), enable the login methods you want to support:
-   - Make sure "Ethereum wallets" is enabled to support MetaMask, Coinbase Wallet, etc.
-   - Enable social login methods like Google, Discord, Email, etc.
-4. Configure additional customization in `components/PrivyConnector.tsx`
+## 🔧 Development
 
-## How Privy Works in this Project
+### Smart Contracts
+- Edit contracts in `packages/hardhat/contracts/`
+- Run tests: `yarn hardhat:test`
+- Deploy: `yarn deploy`
 
-Privy provides users with a smart wallet that they can access through:
-1. Social login (Google, Discord, email, etc.)
-2. Connecting an existing wallet (MetaMask, Coinbase Wallet, etc.)
+### Frontend
+- Edit pages in `packages/nextjs/app/`
+- Components in `packages/nextjs/components/`
+- 1inch API proxy in `packages/nextjs/app/api/1inch/`
 
-When a user logs in with a social account, they are assigned a wallet that remains consistent across sessions. This wallet can be used to sign transactions and interact with your dApp's smart contracts seamlessly.
+### Key Commands
+```bash
+yarn chain          # Start local blockchain
+yarn deploy         # Deploy contracts
+yarn start          # Start frontend
+yarn hardhat:test   # Run contract tests
+yarn generate       # Generate new deployer account
+```
 
-## Contributing to Scaffold-Privy-AA
+## 🔒 Security
 
-We welcome contributions to Scaffold-Privy-AA!
+- Private keys are encrypted (never plain text)
+- Environment variables for sensitive data
+- Comprehensive `.gitignore` for security
+- Atomic swaps with timeout protection
 
-Please see [CONTRIBUTING.MD](CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-Privy-AA.
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 📜 License
+
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Scaffold-ETH 2](https://scaffoldeth.io)
+- Powered by [1inch Protocols](https://1inch.io)
+- Social login by [Privy](https://privy.io)
+- Hackathon: [1inch Fusion+ Challenge](https://ethglobal.com)
 
