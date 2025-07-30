@@ -16,10 +16,10 @@ A shared foundational module providing basic percentage-based allocation functio
 
 Implements highly precise "stress limit orders" for stablecoins (e.g., USDC and USDT) with a minimal drift threshold of 0.001, ensuring stablecoin portfolios remain tightly balanced with negligible slippage. This module also leverages the 1inch Price Feed Aggregator Contract to maintain accurate stablecoin valuations.
 
-### DriftBalancer
+### DriftBalancer is BaseBalancer + StableLimit + LimitOrder
 
 Uses the StableLimit and BaseBalancer modules to establish automatic drift-based rebalancing, enabling efficient and automatic management of diversified crypto asset portfolios.
 
-### TimeBalancer
+### TimeBalancer is BaseBalancer + StableLimit + Chainlink Automation + 1inch Fusion
 
 Combines the StableLimit and BaseBalancer logic with Chainlink Automation and the 1inch Fusion protocol to execute timely swaps, automatically maintaining desired portfolio distributions based on preset percentages.
