@@ -5,8 +5,6 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import "./interfaces/IHTLCManager.sol";
-import "./interfaces/IOrchestrationCoordinator.sol";
 import "./interfaces/IEscrowFactory.sol";
 import "./interfaces/ILimitOrderProtocol.sol";
 import "./libraries/ImmutablesLib.sol";
@@ -32,9 +30,7 @@ contract FusionPlusHub is
     // -- State --
     address public limitOrderProtocol;
     address public aggregationRouter;
-    IHTLCManager public htlcManager; // Legacy, to be migrated
-    IOrchestrationCoordinator public orchestrationCoordinator;
-    IEscrowFactory public escrowFactory; // New escrow pattern
+    IEscrowFactory public escrowFactory;
 
     // Protocol fee configuration
     uint256 public protocolFee; // basis points (e.g., 30 = 0.3%)
@@ -53,8 +49,6 @@ contract FusionPlusHub is
     event ContractsUpdated(
         address limitOrderProtocol,
         address aggregationRouter,
-        address htlcManager,
-        address orchestrationCoordinator,
         address escrowFactory
     );
 
@@ -75,8 +69,6 @@ contract FusionPlusHub is
     function initialize(
         address _limitOrderProtocol,
         address _aggregationRouter,
-        address _htlcManager,
-        address _orchestrationCoordinator,
         address _escrowFactory
     ) public initializer {
         __AccessControl_init();
@@ -86,8 +78,6 @@ contract FusionPlusHub is
         // Validate addresses
         if (_limitOrderProtocol == address(0) || 
             _aggregationRouter == address(0) ||
-            _htlcManager == address(0) ||
-            _orchestrationCoordinator == address(0) ||
             _escrowFactory == address(0)) {
             revert FusionPlusHub__InvalidAddress();
         }
@@ -95,8 +85,6 @@ contract FusionPlusHub is
         // Set foundation contracts
         limitOrderProtocol = _limitOrderProtocol;
         aggregationRouter = _aggregationRouter;
-        htlcManager = IHTLCManager(_htlcManager);
-        orchestrationCoordinator = IOrchestrationCoordinator(_orchestrationCoordinator);
         escrowFactory = IEscrowFactory(_escrowFactory);
 
         // Grant roles
@@ -114,55 +102,21 @@ contract FusionPlusHub is
 
     /**
      * @notice Creates a cross-chain Fusion+ order
-     * @param orderParams Order parameters for cross-chain swap
-     * @param limitOrderData Encoded limit order data for 1inch protocol
-     * @return orderHash The hash of the created order
+     * @dev This is now handled by the orchestration service off-chain
+     * The escrow factory will be called directly by the resolver
      */
     function createFusionPlusOrder(
-        IOrchestrationCoordinator.OrderParams calldata orderParams,
+        bytes32 destinationChain,
         bytes calldata limitOrderData
     ) external nonReentrant whenNotPaused returns (bytes32 orderHash) {
-        // Create cross-chain order in orchestration coordinator
-        orderHash = orchestrationCoordinator.createCrossChainOrder(orderParams);
-
-        // TODO: Integrate with 1inch Limit Order Protocol
-        // This would involve decoding limitOrderData and creating order on 1inch
-        // For hackathon demo, we simulate this integration
-
-        emit FusionPlusOrderCreated(orderHash, msg.sender, orderParams.destinationChain);
-    }
-
-    /**
-     * @notice Executes a cross-chain swap through HTLC
-     * @param orderHash The order hash to execute
-     * @param htlcParams HTLC parameters
-     */
-    function executeSwap(
-        bytes32 orderHash,
-        IOrchestrationCoordinator.HTLCParams calldata htlcParams
-    ) external onlyRole(RESOLVER_ROLE) nonReentrant whenNotPaused {
-        // Confirm order with HTLC creation
-        orchestrationCoordinator.confirmOrder(orderHash, htlcParams);
-    }
-
-    /**
-     * @notice Completes a swap after secret reveal
-     * @param orderHash The order hash
-     * @param secret The revealed secret
-     */
-    function completeSwap(
-        bytes32 orderHash,
-        bytes32 secret
-    ) external nonReentrant whenNotPaused {
-        // Get order details
-        IOrchestrationCoordinator.CrossChainOrder memory order = 
-            orchestrationCoordinator.getOrder(orderHash);
-
-        // Withdraw from HTLC using secret
-        htlcManager.withdraw(order.htlcId, secret);
-
-        // Complete order in orchestration coordinator
-        orchestrationCoordinator.completeOrder(orderHash, secret);
+        // Generate order hash
+        orderHash = keccak256(abi.encodePacked(msg.sender, destinationChain, block.timestamp));
+        
+        // Emit event for off-chain orchestration service
+        emit FusionPlusOrderCreated(orderHash, msg.sender, destinationChain);
+        
+        // The actual order creation happens off-chain
+        // The orchestration service will monitor this event and coordinate the swap
     }
 
     // -- Admin Functions --
@@ -195,14 +149,12 @@ contract FusionPlusHub is
      * @notice Updates contract addresses
      * @param _limitOrderProtocol New limit order protocol address
      * @param _aggregationRouter New aggregation router address
-     * @param _htlcManager New HTLC manager address
-     * @param _orchestrationCoordinator New orchestration coordinator address
+     * @param _escrowFactory New escrow factory address
      */
     function updateContracts(
         address _limitOrderProtocol,
         address _aggregationRouter,
-        address _htlcManager,
-        address _orchestrationCoordinator
+        address _escrowFactory
     ) external onlyAdmin {
         if (_limitOrderProtocol != address(0)) {
             limitOrderProtocol = _limitOrderProtocol;
@@ -210,18 +162,14 @@ contract FusionPlusHub is
         if (_aggregationRouter != address(0)) {
             aggregationRouter = _aggregationRouter;
         }
-        if (_htlcManager != address(0)) {
-            htlcManager = IHTLCManager(_htlcManager);
-        }
-        if (_orchestrationCoordinator != address(0)) {
-            orchestrationCoordinator = IOrchestrationCoordinator(_orchestrationCoordinator);
+        if (_escrowFactory != address(0)) {
+            escrowFactory = IEscrowFactory(_escrowFactory);
         }
 
         emit ContractsUpdated(
             limitOrderProtocol,
             aggregationRouter,
-            address(htlcManager),
-            address(orchestrationCoordinator)
+            _escrowFactory
         );
     }
 
@@ -254,20 +202,17 @@ contract FusionPlusHub is
      * @notice Gets all contract addresses
      * @return _limitOrderProtocol The limit order protocol address
      * @return _aggregationRouter The aggregation router address
-     * @return _htlcManager The HTLC manager address
-     * @return _orchestrationCoordinator The orchestration coordinator address
+     * @return _escrowFactory The escrow factory address
      */
     function getContractAddresses() external view returns (
         address _limitOrderProtocol,
         address _aggregationRouter,
-        address _htlcManager,
-        address _orchestrationCoordinator
+        address _escrowFactory
     ) {
         return (
             limitOrderProtocol,
             aggregationRouter,
-            address(htlcManager),
-            address(orchestrationCoordinator)
+            address(escrowFactory)
         );
     }
 }
