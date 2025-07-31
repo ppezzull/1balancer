@@ -956,9 +956,18 @@ export function PieChartCreator({
                         <span className="text-muted-foreground">
                           Percentage
                         </span>
-                        <span className="font-semibold text-foreground">
-                          {allocation.percentage.toFixed(1)}%
-                        </span>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                type="number"
+                                value={allocation.percentage.toFixed(1)}
+                                onChange={(e) => updateAllocation(index, parseFloat(e.target.value) || 0)}
+                                className="w-20 h-8 text-right font-semibold text-foreground"
+                                step="0.1"
+                                min={allocation.isProtected ? (allocation.minPercentage || 25) : 0}
+                                max="100"
+                            />
+                            <span className="font-semibold text-foreground">%</span>
+                        </div>
                       </div>
 
                       <div className="px-2">
@@ -1115,7 +1124,7 @@ export function PieChartCreator({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setDriftPercentage(Math.min(50, driftPercentage + 1))}
+                  onClick={() => setDriftPercentage(Math.min(100, driftPercentage + 1))}
                   className="w-8 h-8 rounded-full p-0"
                 >
                   <Plus className="w-3 h-3" />
@@ -1348,7 +1357,7 @@ export function PieChartCreator({
                       className="w-6 h-6 object-contain"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
-                        e.currentTarget.nextElementSibling!.style.display = 'flex';
+                        (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
                       }}
                     />
                     <div className="hidden w-full h-full bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg items-center justify-center">
