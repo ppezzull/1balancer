@@ -1,36 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { HeroSection } from "../components/figma/sections/HeroSection";
 import { LoadingScreen } from "../components/figma/sections/LoadingScreen";
 import { DynamicBackground } from "../components/figma/interactive/DynamicBackground";
 import { getServerSidePortfolioData } from "../utils/storage";
+import { useLoading } from "../contexts/LoadingContext";
 
 export default function HomePage() {
-  const [showLoading, setShowLoading] = useState(true);
+  const { isLoading, setIsLoading } = useLoading();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'home' | 'about' | 'rebalance' | 'top-performers'>('home');
 
   useEffect(() => {
     // Simulate initial loading
     const timer = setTimeout(() => {
-      setShowLoading(false);
+      setIsLoading(false);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [setIsLoading]);
 
   const handleSkipLoading = () => {
-    setShowLoading(false);
+    setIsLoading(false);
   };
 
   const handleGetStarted = () => {
-    // Navigate to dashboard or wallet connection
-    setActiveTab('rebalance');
-    // In a real app, you would use Next.js router
-    window.location.href = '/dashboard';
+    // Navigate to dashboard with all wallet sections (home, portfolio, trade, social, profile)
+    router.push('/dashboard');
   };
 
-  if (showLoading) {
+  if (isLoading) {
     return <LoadingScreen onSkip={handleSkipLoading} />;
   }
 

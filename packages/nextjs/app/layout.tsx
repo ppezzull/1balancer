@@ -2,9 +2,9 @@ import "./globals.css";
 import { Metadata } from "next";
 import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
-import { Header } from "~~/components/Header";
-import { Footer } from "~~/components/Footer";
 import { Toaster } from "sonner";
+import { LoadingProvider } from "~~/contexts/LoadingContext";
+import { LayoutContent } from "~~/components/LayoutContent";
 
 export const metadata: Metadata = {
   title: {
@@ -58,30 +58,23 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   return (
     <html suppressHydrationWarning className="h-full">
       <body className="h-full">
-        <ThemeProvider themes={["light", "dark"]} defaultTheme="light">
-          <ScaffoldEthAppWithProviders>
-            <div className="flex flex-col min-h-screen">
-              {/* Header */}
-              <Header />
-              
-              {/* Main Content */}
-              <main className="flex-1">
+        <LoadingProvider>
+          <ThemeProvider themes={["light", "dark"]} defaultTheme="light">
+            <ScaffoldEthAppWithProviders>
+              <LayoutContent>
                 {children}
-              </main>
+              </LayoutContent>
               
-              {/* Footer */}
-              <Footer />
-            </div>
-            
-            {/* Toast Notifications */}
-            <Toaster 
-              position="top-right"
-              expand={false}
-              richColors
-              closeButton
-            />
-          </ScaffoldEthAppWithProviders>
-        </ThemeProvider>
+              {/* Toast Notifications */}
+              <Toaster 
+                position="top-right"
+                expand={false}
+                richColors
+                closeButton
+              />
+            </ScaffoldEthAppWithProviders>
+          </ThemeProvider>
+        </LoadingProvider>
       </body>
     </html>
   );

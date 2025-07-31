@@ -34,7 +34,7 @@ import {
   Zap,
   Award
 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { getPortfolios, Portfolio, getUserProfile, CRYPTOCURRENCY_DATA } from "../utils/constants";
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 

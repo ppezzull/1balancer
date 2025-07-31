@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { useTheme } from "./ui/use-theme";
 import { useIsMobile } from "./ui/use-mobile";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { X, TrendingUp, TrendingDown, Euro, DollarSign, Minus, Plus, ArrowLeftRight } from "lucide-react";
 
 interface BuyCryptoModalProps {

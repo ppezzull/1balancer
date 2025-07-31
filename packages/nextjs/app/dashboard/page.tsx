@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { DashboardSection } from '../../components/figma/sections/DashboardSection';
+import { DashboardClient } from '../../components/DashboardClient';
 import { getServerSidePortfolioData, getServerSideMarketData, getServerSideUserData } from '../../utils/storage';
 
 export const metadata: Metadata = {
@@ -18,9 +18,12 @@ export default async function DashboardPage() {
   ]);
   
   return (
-    <main className="min-h-screen bg-background">
-      {/* Dashboard from Figma Pro with server-side data */}
-      <DashboardSection />
+    <>
+      <DashboardClient 
+        portfolioData={portfolioData}
+        marketData={marketData} 
+        userData={userData}
+      />
       
       {/* Hidden data for SSR hydration */}
       <script
@@ -51,8 +54,11 @@ export default async function DashboardPage() {
           <li>Interactive charts and analytics</li>
           <li>Portfolio allocation visualization</li>
           <li>Transaction history and analysis</li>
+          <li>Social trading and portfolio sharing</li>
+          <li>Advanced trading interface</li>
+          <li>User profile and settings management</li>
         </ul>
       </section>
-    </main>
+    </>
   );
 }

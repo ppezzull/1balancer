@@ -8,7 +8,7 @@ import { Badge } from "./ui/badge";
 import { Switch } from "./ui/switch";
 import { useIsMobile } from "./ui/use-mobile";
 import { User, Edit3, Save, X, PieChart, TrendingUp, Share2, Eye, Lock, Settings, Wallet, Trophy, Calendar, BarChart3 } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { 
   getPortfolios, 
   updatePortfolio, 

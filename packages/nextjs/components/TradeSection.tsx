@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { useInViewAnimation } from "./interactive/useInViewAnimation";
+import { useInViewAnimation } from "./figma/interactive/useInViewAnimation";
 import { useIsMobile } from "./ui/use-mobile";
 import { useTheme } from "./ui/use-theme";
 import { Button } from "./ui/button";
