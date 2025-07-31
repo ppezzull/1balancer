@@ -41,6 +41,8 @@ This monorepo contains the complete 1Balancer implementation:
 - **[Architecture Overview](docs/ARCHITECTURE.md)** - System design and components
 - **[Development Guide](docs/DEVELOPMENT.md)** - Setup and development workflow
 - **[Bootstrap Infrastructure](docs/BOOTSTRAP-INFRASTRUCTURE.md)** - One-command setup guide
+- **[Infrastructure Overview](docs/INFRASTRUCTURE.md)** - Complete infrastructure documentation
+- **[Proxy Deployment](docs/PROXY-DEPLOYMENT.md)** - Automated 1inch API proxy setup
 - **[Environment Configuration](docs/ENVIRONMENT-CONFIGURATION.md)** - Centralized env management
 - **[Scaffold-ETH Template](docs/SCAFFOLD-ETH-TEMPLATE.md)** - Original template documentation
 
@@ -79,7 +81,7 @@ That's it! The bootstrap command will:
 - ✅ Initialize 1balancer-near submodule
 - ✅ Install all dependencies
 - ✅ Setup Rust 1.86.0 for NEAR
-- ✅ Configure 1inch proxy
+- ✅ Deploy official 1inch proxy to Vercel automatically
 - ✅ Create environment files
 - ✅ Start all services
 

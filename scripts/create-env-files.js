@@ -2,8 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const chalk = require('chalk');
-const ora = require('ora');
+const chalk = require('chalk').default;
+const ora = require('ora').default;
 const dotenv = require('dotenv');
 
 console.log(chalk.blue.bold('\n📄 Setting up environment configuration...\n'));
@@ -63,7 +63,7 @@ NEXT_PUBLIC_ONE_INCH_API_URL=${env.NEXT_PUBLIC_ONE_INCH_API_URL || 'https://your
 
 # API Keys (Frontend access)
 NEXT_PUBLIC_ALCHEMY_API_KEY=${env.NEXT_PUBLIC_ALCHEMY_API_KEY || env.ALCHEMY_API_KEY || ''}
-ONEINCH_API_KEY=${env.ONEINCH_API_KEY || env.ONE_INCH_API_KEY || ''}
+ONEINCH_API_KEY=${env.ONEINCH_API_KEY || ''}
 
 # Authentication
 NEXT_PUBLIC_PRIVY_APP_ID=${env.NEXT_PUBLIC_PRIVY_APP_ID || 'your-privy-app-id-here'}
@@ -101,8 +101,7 @@ INFURA_API_KEY=${env.INFURA_API_KEY || ''}
 ETHERSCAN_API_KEY=${env.ETHERSCAN_API_KEY || ''}
 ETHERSCAN_V2_API_KEY=${env.ETHERSCAN_V2_API_KEY || env.ETHERSCAN_API_KEY || ''}
 BASESCAN_API_KEY=${env.BASESCAN_API_KEY || ''}
-ONE_INCH_API_KEY=${env.ONE_INCH_API_KEY || ''}
-ONEINCH_API_KEY=${env.ONEINCH_API_KEY || env.ONE_INCH_API_KEY || ''}
+ONEINCH_API_KEY=${env.ONEINCH_API_KEY || ''}
 
 # Deployment Configuration
 DEPLOYER_PRIVATE_KEY_ENCRYPTED=${env.DEPLOYER_PRIVATE_KEY_ENCRYPTED || ''}
@@ -184,7 +183,7 @@ console.log(chalk.gray(`   Skipped: ${skippedCount + (mainEnvPath ? 0 : 1)} file
 console.log(chalk.yellow('⚠️  Important next steps:\n'));
 
 const requiredKeys = [
-  { key: 'ONE_INCH_API_KEY', description: 'Get from ETHGlobal hackathon process or 1inch team' },
+  { key: 'ONEINCH_API_KEY', description: 'Get from ETHGlobal hackathon process or 1inch team' },
   { key: 'ALCHEMY_API_KEY', description: 'Get from https://www.alchemy.com/ (required for production)' },
   { key: 'NEXT_PUBLIC_PRIVY_APP_ID', description: 'Get from https://console.privy.io and enable Ethereum wallets' },
   { key: 'NEXT_PUBLIC_PROXY_URL', description: 'Deploy proxy from github.com/Tanz0rz/1inch-vercel-proxy' }

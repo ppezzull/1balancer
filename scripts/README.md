@@ -93,27 +93,116 @@ They handle system checks, environment setup, service management, and cross-chai
 
 ---
 
-### 5. `setup-proxy.js`
+### 5. `generate-proxy.js`
 
-**Purpose**: Guides through setting up the 1inch API proxy to handle CORS issues.
+**Purpose**: Generates a complete Vercel proxy project containing the **exact code** from the official 1inch Vercel proxy repository.
 
 **Why we need it**:
-- 1inch API requires server-side calls (CORS restriction)
-- Vercel provides free, easy proxy hosting
-- Interactive setup reduces configuration errors
-- Automates proxy URL configuration
+- Eliminates need to manually clone `Tanz0rz/1inch-vercel-proxy` repository
+- Bundles the exact official proxy code as templates for automated deployment
+- Creates identical project structure to the official repository
+- Ensures 100% compatibility with official 1inch proxy implementation
 
 **What it does**:
-1. Checks for Vercel CLI installation
-2. Provides step-by-step deployment instructions
-3. Prompts for proxy URL
-4. Updates environment configuration automatically
+1. Creates complete Vercel project structure in specified directory
+2. Generates `api/proxy.js` with **exact code** from official repository
+3. Creates `vercel.json` with **exact configuration** from official repository
+4. Uses correct environment variable names (`API_AUTH_TOKEN`, `ALLOWED_ORIGIN`)
+5. Includes proper documentation and project metadata
 
-**Usage**: Called by `yarn bootstrap` or manually via `yarn setup:proxy`
+**Exact Code Implementation**:
+- **Source**: `https://github.com/Tanz0rz/1inch-vercel-proxy`
+- **File Structure**: `api/proxy.js` + `vercel.json` (exactly as official repo)
+- **Environment Variables**: `API_AUTH_TOKEN` (exactly as official repo)
+- **CORS Logic**: Exact localhost detection and origin validation
+- **Error Handling**: Identical error messages and status codes
+
+**Key Features**:
+- **Zero deviation** from official 1inch proxy implementation
+- **Exact file structure** and naming conventions
+- **Identical CORS handling** for production security
+- **Same authentication flow** using Bearer tokens
+- **Complete project scaffolding** ready for Vercel deployment
+
+**Usage**: Called by `setup-proxy.js` or manually: `node generate-proxy.js <output-dir>`
 
 ---
 
-### 6. `show-logs.js`
+### 6. `setup-proxy.js`
+
+**Purpose**: Automated deployment of the **exact official 1inch Vercel proxy** to Vercel with zero configuration.
+
+**Why we need it**:
+- 1inch API requires server-side calls (CORS restriction)  
+- Automates deployment of the exact official proxy implementation
+- Handles authentication and environment configuration using official variable names
+- Eliminates manual cloning and setup of `Tanz0rz/1inch-vercel-proxy`
+
+**What it does**:
+1. Checks for existing proxy deployment
+2. Installs Vercel CLI if needed
+3. Handles interactive API key collection
+4. Generates proxy project using **exact official code** via `generate-proxy.js`
+5. Deploys to Vercel with correct environment variables (`API_AUTH_TOKEN`)
+6. Updates local environment files with deployed URL
+7. Tests deployed proxy functionality
+8. Cleans up temporary files
+
+**Official Repository Compatibility**:
+- Uses exact environment variable names from official repo
+- Deploys identical `api/proxy.js` and `vercel.json` files
+- Maintains same CORS and security behavior
+- Produces functionally identical deployment to manual process
+
+**Key Features**:
+- **Zero-configuration deployment** of official 1inch proxy
+- **Exact compatibility** with `Tanz0rz/1inch-vercel-proxy`
+- **Automatic Vercel CLI installation** and authentication
+- **Environment file auto-updating** with deployed URL
+- **Built-in deployment testing** for validation
+- **Error recovery and troubleshooting** with specific guidance
+
+**Usage**: Called by `yarn bootstrap` or manually via `yarn setup:proxy` / `yarn proxy:deploy`
+
+---
+
+### 7. `test-proxy.js`
+
+**Purpose**: Validates deployed 1inch API proxy functionality and performance, ensuring compatibility with the official proxy behavior.
+
+**Why we need it**:
+- Ensures the deployed proxy works identically to the official implementation
+- Verifies CORS headers match official proxy configuration
+- Tests key 1inch API endpoints through our deployed proxy
+- Validates authentication flow using `API_AUTH_TOKEN`
+- Provides performance metrics and health checks
+
+**What it does**:
+1. Tests multiple 1inch API endpoints (tokens, status, price, protocols)
+2. Validates CORS headers match official proxy implementation
+3. Measures response times and error rates
+4. Checks authentication with 1inch API using correct token format
+5. Provides detailed test results and troubleshooting guidance
+
+**Test Coverage**:
+- **Token list endpoint** (`/tokens/v1.1/1`)
+- **Chain status endpoint** (`/status/v1.0/1`)
+- **Protocol list endpoint** (`/liquidity-sources/v1.2/1`)
+- **Price check endpoint** (`/price/v1.1/1`)
+- **CORS preflight requests** (OPTIONS method)
+- **Error handling scenarios** and edge cases
+
+**Official Proxy Validation**:
+- Tests exact same endpoints as official proxy documentation
+- Validates CORS behavior matches official implementation
+- Checks authentication flow using official environment variables
+- Ensures response format compatibility with official proxy
+
+**Usage**: Called automatically by `setup-proxy.js` or manually via `yarn proxy:test` / `node test-proxy.js <proxy-url>`
+
+---
+
+### 8. `show-logs.js`
 
 **Purpose**: Displays logs from all running services for debugging.
 
@@ -168,11 +257,17 @@ When adding a new script:
    - List what it does
    - Show usage examples
 
-3. **Update package.json**
+3. **Update All Relevant README Files**
+   - Update `scripts/README.md` (this file)
+   - Update root `README.md` if it affects user workflow
+   - Update any documentation in `docs/` directory
+   - Update `BOOTSTRAP-INFRASTRUCTURE.md` if part of bootstrap flow
+
+4. **Update package.json**
    - Add corresponding yarn script
    - Include in bootstrap flow if needed
 
-4. **Handle Errors Gracefully**
+5. **Handle Errors Gracefully**
    ```javascript
    try {
      // Operation
@@ -182,6 +277,12 @@ When adding a new script:
      process.exit(1);
    }
    ```
+
+6. **Always Update Documentation**
+   - This is a MANDATORY step for all script changes
+   - Include the script in relevant workflow documentation
+   - Update troubleshooting guides if the script can fail
+   - Add examples and use cases
 
 ## Script Dependencies
 
