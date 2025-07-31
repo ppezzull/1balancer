@@ -63,6 +63,8 @@
     "near:deploy": "cd 1balancer-near && ./scripts/deploy-local.sh",
     "setup:rust": "node scripts/setup-rust.js",
     "setup:proxy": "node scripts/setup-proxy.js",
+    "proxy:deploy": "node scripts/setup-proxy.js",
+    "proxy:test": "node scripts/test-proxy.js",
     "create:envs": "node scripts/create-env-files.js",
     "check:deps": "node scripts/check-dependencies.js",
     "deploy:all": "yarn deploy && yarn near:deploy",
@@ -78,13 +80,13 @@
   },
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
+    "chalk": "^5.3.0",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.3.1",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
-    "concurrently": "^8.2.2",
-    "chalk": "^5.3.0",
-    "ora": "^8.0.1",
-    "cross-env": "^7.0.3",
-    "dotenv": "^16.3.1"
+    "ora": "^8.0.1"
   },
   "engines": {
     "node": ">=20.18.3"

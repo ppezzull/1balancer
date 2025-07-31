@@ -64,7 +64,7 @@ yarn create:envs
 
 ```env
 # 1inch API - Required for DeFi operations
-ONE_INCH_API_KEY=your-key-here
+ONEINCH_API_KEY=your-key-here
 
 # Social Auth - Required for user login
 NEXT_PUBLIC_PRIVY_APP_ID=your-privy-id
@@ -109,8 +109,8 @@ NEAR_SOLVER_CONTRACT_NAME=solver-registry.test.near
 
 ```javascript
 // Always validate required env vars
-if (!process.env.ONE_INCH_API_KEY) {
-  throw new Error('ONE_INCH_API_KEY is required');
+if (!process.env.ONEINCH_API_KEY) {
+  throw new Error('ONEINCH_API_KEY is required');
 }
 ```
 
@@ -169,7 +169,7 @@ yarn create:envs
 
 ```bash
 # Check loaded env vars (be careful not to expose secrets)
-node -e "console.log(process.env.ONE_INCH_API_KEY ? 'API Key is set' : 'API Key missing')"
+node -e "console.log(process.env.ONEINCH_API_KEY ? 'API Key is set' : 'API Key missing')"
 ```
 
 ## Production Deployment
