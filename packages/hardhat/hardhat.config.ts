@@ -10,6 +10,7 @@ import "solidity-coverage";
 import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "@openzeppelin/hardhat-upgrades";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
 
@@ -28,12 +29,12 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.20",
+        version: "0.8.23",
         settings: {
           optimizer: {
             enabled: true,
             // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
-            runs: 200,
+            runs: 1000000, // Optimize for deployment size as per BASE deployment guide
           },
         },
       },
@@ -54,6 +55,17 @@ const config: HardhatUserConfig = {
         url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
         enabled: process.env.MAINNET_FORKING_ENABLED === "true",
       },
+    },
+    // BASE mainnet fork for testing
+    baseFork: {
+      url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
+      chainId: 8453,
+      forking: {
+        url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
+        blockNumber: 19000000, // Fixed block for consistent testing
+        enabled: true
+      },
+      accounts: [deployerPrivateKey],
     },
     mainnet: {
       url: "https://mainnet.rpc.buidlguidl.com",
@@ -104,12 +116,16 @@ const config: HardhatUserConfig = {
       accounts: [deployerPrivateKey],
     },
     base: {
-      url: "https://mainnet.base.org",
+      url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
       accounts: [deployerPrivateKey],
+      chainId: 8453,
+      gasPrice: 1000000000, // 1 gwei
     },
     baseSepolia: {
       url: "https://sepolia.base.org",
       accounts: [deployerPrivateKey],
+      chainId: 84532, // BASE testnet chain ID as specified in task
+      gasPrice: 1000000000, // 1 gwei
     },
     scrollSepolia: {
       url: "https://sepolia-rpc.scroll.io",

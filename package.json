@@ -5,7 +5,8 @@
   "workspaces": {
     "packages": [
       "packages/hardhat",
-      "packages/nextjs"
+      "packages/nextjs",
+      "packages/proxy"
     ]
   },
   "scripts": {
@@ -51,7 +52,7 @@
     "verify": "yarn hardhat:verify",
     "bootstrap": "yarn check:deps && yarn submodule:init && yarn install:all && yarn setup:rust && yarn setup:proxy && yarn create:envs && yarn dev:all",
     "install:all": "yarn install && (test -d 1balancer-near && cd 1balancer-near && yarn install) || true",
-    "dev:all": "concurrently -n \"chain,frontend,backend,near\" -c \"blue,green,yellow,magenta\" \"yarn chain\" \"yarn start\" \"yarn backend\" \"yarn near:dev\"",
+    "dev:all": "concurrently -n \"chain,frontend,backend,near,proxy\" -c \"blue,green,yellow,magenta,cyan\" \"yarn chain\" \"yarn start\" \"yarn backend\" \"yarn near:dev\" \"yarn proxy:dev\"",
     "backend": "yarn workspace @se-2/nextjs backend",
     "stop": "pkill -f 'hardhat node' || true; pkill -f 'yarn' || true; pkill -f 'near' || true; pkill -f 'cargo' || true",
     "status": "node scripts/check-status.js",
@@ -77,7 +78,10 @@
     "b": "yarn bootstrap",
     "d": "yarn dev:all",
     "s": "yarn stop",
-    "st": "yarn status"
+    "st": "yarn status",
+    "proxy": "yarn workspace @1balancer/proxy start",
+    "proxy:dev": "yarn workspace @1balancer/proxy dev",
+    "proxy:install": "yarn workspace @1balancer/proxy install"
   },
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
