@@ -1115,16 +1115,33 @@ export function PieChartCreator({
                   <Input
                     type="number"
                     value={driftPercentage}
-                    onChange={(e) => setDriftPercentage(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Allow the input to be cleared
+                      if (value === "") {
+                        setDriftPercentage(0);
+                        return;
+                      }
+                      const numericValue = parseInt(value, 10);
+                      if (!isNaN(numericValue)) {
+                        // Remove the max(50) restriction and allow any number
+                        setDriftPercentage(numericValue);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // Ensure the value is at least 1 when the input loses focus
+                      const numericValue = parseInt(e.target.value, 10);
+                      if (isNaN(numericValue) || numericValue < 1) {
+                        setDriftPercentage(1);
+                      }
+                    }}
                     className="text-center"
-                    min="1"
-                    max="50"
                   />
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setDriftPercentage(Math.min(100, driftPercentage + 1))}
+                  onClick={() => setDriftPercentage(Math.min(50, driftPercentage + 1))}
                   className="w-8 h-8 rounded-full p-0"
                 >
                   <Plus className="w-3 h-3" />
