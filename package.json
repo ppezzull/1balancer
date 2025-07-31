@@ -93,6 +93,7 @@
     "@1inch/byte-utils": "latest",
     "@1inch/eslint-config": "^3.0.7",
     "@1inch/limit-order-sdk": "latest",
+    "@1inch/solidity-utils": "^6.6.0",
     "@1inch/tsconfig": "^1.0.9",
     "tw-animate-css": "^1.3.6"
   }
