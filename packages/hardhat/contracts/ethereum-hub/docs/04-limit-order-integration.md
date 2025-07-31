@@ -2,7 +2,8 @@
 
 ## Overview
 
-The Ethereum Hub integrates deeply with 1inch's Limit Order Protocol (LOP) to enable gasless cross-chain swaps. This document details how we leverage LOP for the Fusion+ challenge while maintaining full compatibility.
+The Ethereum Hub integrates deeply with 1inch's Limit Order Protocol (LOP) to enable gasless cross-chain swaps.
+ This document details how we leverage LOP for the Fusion+ challenge while maintaining full compatibility.
 
 ## Integration Architecture
 
