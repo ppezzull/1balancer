@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { Header } from "./Header";
-import { Footer } from "./Footer";
+import { CryptoTicker } from "./CryptoTicker";
 import { Toaster } from "sonner";
 import { useLoading } from "~~/contexts/LoadingContext";
 
@@ -44,8 +44,10 @@ export function LayoutContent({ children }: LayoutContentProps) {
     }
   };
 
+  const isHomePage = pathname === '/';
+
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className={`flex flex-col ${isHomePage ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Header - Hidden during loading or in dashboard */}
       {!isLoading && !isDashboard && (
         <Header 
@@ -56,12 +58,20 @@ export function LayoutContent({ children }: LayoutContentProps) {
       )}
       
       {/* Main Content */}
-      <main className={isLoading ? "h-screen" : isDashboard ? "min-h-screen" : "flex-1"}>
+      <main className={
+        isLoading 
+          ? "h-screen" 
+          : isDashboard 
+            ? "min-h-screen pb-12" 
+            : isHomePage 
+              ? "flex-1 overflow-hidden" 
+              : "flex-1 pb-12 overflow-y-auto"
+      }>
         {children}
       </main>
       
-      {/* Footer - Hidden during loading or in dashboard */}
-      {!isLoading && !isDashboard && <Footer />}
+      {/* Crypto Ticker - Always visible except during loading */}
+      {!isLoading && <CryptoTicker />}
     </div>
   );
 }

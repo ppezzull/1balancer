@@ -36,12 +36,12 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative h-screen overflow-hidden">
       {/* Dynamic Background Effects */}
       <DynamicBackground />
       
       {/* Hero Section */}
-      <div className="relative z-10">
+      <div className="relative z-10 h-full">
         <HeroSection onGetStarted={handleGetStarted} />
       </div>
       

@@ -62,7 +62,7 @@ export function DashboardClient({ portfolioData, marketData, userData }: Dashboa
       />
       
       {/* Main Dashboard Content */}
-      <div className="pt-20"> {/* Account for fixed header height */}
+      <div className="pt-20 pb-12"> {/* Account for fixed header height and crypto ticker */}
         <WalletHomeSection 
           activeWalletTab={activeWalletTab}
           onWalletTabChange={handleWalletTabChange}
