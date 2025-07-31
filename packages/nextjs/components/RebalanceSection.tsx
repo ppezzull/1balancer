@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useTheme } from "./ui/use-theme";
