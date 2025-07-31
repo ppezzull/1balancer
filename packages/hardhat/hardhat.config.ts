@@ -1,5 +1,7 @@
 import * as dotenv from "dotenv";
-dotenv.config();
+import * as path from "path";
+// Load environment variables from project root
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
