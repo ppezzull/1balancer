@@ -127,7 +127,7 @@ const convertToLocalPortfolio = (portfolio: Portfolio) => {
   return {
     id: portfolio.id,
     name: portfolio.name,
-    type: portfolio.investmentType || 'manual' as const,
+    type: portfolio.rebalancingType || (portfolio.rebalancingConfig?.driftPercentage ? 'drift' : 'time'),
     presetType: getPresetTypeFromName(portfolio.name),
     totalInvestment: portfolio.totalValue,
     allocations: portfolio.tokens.map((token, index) => {
@@ -143,12 +143,7 @@ const convertToLocalPortfolio = (portfolio: Portfolio) => {
         amount: token.amount
       };
     }),
-    autoinvestConfig: portfolio.investmentConfig ? {
-      initialDeposit: portfolio.investmentConfig.initialDeposit || 0,
-      monthlyInvestment: portfolio.investmentConfig.monthlyInvestment || 0,
-      years: portfolio.investmentConfig.years || 1,
-      projectedValue: portfolio.totalValue * 1.5 // Estimated projection
-    } : undefined,
+    rebalancingConfig: portfolio.rebalancingConfig,
     createdAt: portfolio.createdAt,
     performance: {
       totalValue: portfolio.totalValue,
@@ -176,7 +171,7 @@ export function PortfolioSection() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<'all' | 'autoinvest' | 'manual'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'drift' | 'time'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'value'>('date');
   const [isLoading, setIsLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -260,9 +255,9 @@ export function PortfolioSection() {
       );
     }
 
-    // Type filter
-    if (filterType !== 'all') {
-      filtered = filtered.filter(wallet => wallet.type === filterType);
+    // Rebalancing filter
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(wallet => wallet.type === activeFilter);
     }
 
     // Sort
@@ -279,7 +274,7 @@ export function PortfolioSection() {
     });
 
     setFilteredWallets(filtered);
-  }, [savedWallets, searchTerm, filterType, sortBy]);
+  }, [savedWallets, searchTerm, activeFilter, sortBy]);
 
   const handleDeleteWallet = (walletId: string) => {
     try {
@@ -513,20 +508,12 @@ export function PortfolioSection() {
             <div className="flex gap-2">
               {[
                 { id: 'all', label: 'All' },
-                { id: 'autoinvest', label: 'Auto Invest' },
-                { id: 'manual', label: 'Manual' }
+                { id: 'drift', label: 'Drift' },
+                { id: 'time', label: 'Time' }
               ].map((filter) => (
-                <button
-                  key={filter.id}
-                  onClick={() => setFilterType(filter.id as any)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                    filterType === filter.id
-                      ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white'
-                      : 'bg-card/50 text-muted-foreground hover:text-foreground hover:bg-card/80 border border-border/30'
-                  }`}
-                >
+                <Button size="sm" variant={activeFilter === filter.id ? 'default' : 'outline'} onClick={() => setActiveFilter(filter.id as any)}>
                   {filter.label}
-                </button>
+                </Button>
               ))}
             </div>
             
@@ -565,10 +552,10 @@ export function PortfolioSection() {
               <CardContent className="py-12 text-center">
                 <PieChart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {searchTerm || filterType !== 'all' ? 'No portfolios found' : 'No portfolios available'}
+                  {searchTerm || activeFilter !== 'all' ? 'No portfolios found' : 'No portfolios available'}
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  {searchTerm || filterType !== 'all' 
+                  {searchTerm || activeFilter !== 'all' 
                     ? 'Try adjusting your search or filter criteria.'
                     : 'Default portfolios should have been created automatically. Try refreshing or restoring defaults.'
                   }
@@ -651,7 +638,7 @@ export function PortfolioSection() {
                                   {wallet.presetType?.charAt(0).toUpperCase() + wallet.presetType?.slice(1) || 'Custom'}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
-                                  {wallet.type === 'autoinvest' ? 'Auto' : 'Manual'}
+                                  {wallet.type === 'drift' ? 'Drift' : 'Time'}
                                 </Badge>
                               </div>
                             </div>

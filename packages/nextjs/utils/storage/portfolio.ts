@@ -42,7 +42,7 @@ export const SHARED_PORTFOLIOS: SharedPortfolio[] = [
       totalValue: 500000,
       joinedAt: "2023-01-15"
     },
-    type: "autoinvest",
+    type: "drift",
     presetType: "Conservative DeFi",
     totalInvestment: 50000,
     allocations: [
@@ -137,7 +137,7 @@ export const SHARED_PORTFOLIOS: SharedPortfolio[] = [
       totalValue: 350000,
       joinedAt: "2023-03-20"
     },
-    type: "manual",
+    type: "time",
     presetType: "Growth",
     totalInvestment: 25000,
     allocations: [

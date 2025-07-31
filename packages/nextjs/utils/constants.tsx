@@ -798,13 +798,7 @@ export interface Portfolio {
     driftPercentage?: number;
     frequency?: 'weekly' | 'monthly' | 'quarterly' | 'semiannual';
   };
-  // Keep legacy fields for backward compatibility
-  investmentType?: 'manual' | 'autoinvest';
-  investmentConfig?: {
-    initialDeposit?: number;
-    monthlyInvestment?: number;
-    years?: number;
-  };
+
 }
 
 export interface UserProfile {
@@ -831,12 +825,7 @@ export const DEFAULT_PORTFOLIOS: Omit<Portfolio, 'id' | 'createdAt'>[] = [
     performance: 8.45,
     isPublic: true,
     strategy: "Conservative long-term strategy focusing on stability with major cryptocurrency exposure. Perfect for risk-averse investors seeking steady growth with minimal volatility.",
-    investmentType: 'autoinvest',
-    investmentConfig: {
-      initialDeposit: 10000,
-      monthlyInvestment: 500,
-      years: 5
-    }
+ 
   },
   {
     name: "1Balancer Gomora",
@@ -850,7 +839,6 @@ export const DEFAULT_PORTFOLIOS: Omit<Portfolio, 'id' | 'createdAt'>[] = [
     performance: 12.67,
     isPublic: true,
     strategy: "Balanced approach with oracle exposure through Chainlink. Combines stability with growth potential from established cryptocurrencies and infrastructure protocols.",
-    investmentType: 'manual'
   },
   {
     name: "1Balancer Tanos",
@@ -866,12 +854,7 @@ export const DEFAULT_PORTFOLIOS: Omit<Portfolio, 'id' | 'createdAt'>[] = [
     performance: 15.23,
     isPublic: true,
     strategy: "Diversified portfolio with DeFi exposure including yield optimization through Pendle. Balances stability with innovative DeFi protocols for enhanced returns and yield generation.",
-    investmentType: 'autoinvest',
-    investmentConfig: {
-      initialDeposit: 8000,
-      monthlyInvestment: 400,
-      years: 3
-    }
+   
   },
   {
     name: "Real Yield RWA",
@@ -887,7 +870,6 @@ export const DEFAULT_PORTFOLIOS: Omit<Portfolio, 'id' | 'createdAt'>[] = [
     performance: 18.95,
     isPublic: true,
     strategy: "Real World Asset focused portfolio targeting tokenized traditional assets. Provides exposure to gold, real estate, and institutional-grade yields through established RWA protocols.",
-    investmentType: 'manual'
   },
   {
     name: "Defi",
@@ -904,12 +886,6 @@ export const DEFAULT_PORTFOLIOS: Omit<Portfolio, 'id' | 'createdAt'>[] = [
     performance: 22.34,
     isPublic: true,
     strategy: "Pure DeFi strategy focusing on leading protocols including DEXes, lending platforms, and yield optimization. High growth potential through exposure to DeFi innovation and protocol tokens.",
-    investmentType: 'autoinvest',
-    investmentConfig: {
-      initialDeposit: 5000,
-      monthlyInvestment: 300,
-      years: 2
-    }
   },
   {
     name: "Meme",
@@ -929,8 +905,7 @@ export const DEFAULT_PORTFOLIOS: Omit<Portfolio, 'id' | 'createdAt'>[] = [
     performance: 45.67,
     isPublic: true,
     strategy: "High-risk meme coin portfolio with substantial stablecoin protection. Captures viral crypto momentum while maintaining significant downside protection through large stablecoin allocation.",
-    investmentType: 'manual'
-  },
+      },
   {
     name: "AI",
     tokens: [
@@ -945,12 +920,6 @@ export const DEFAULT_PORTFOLIOS: Omit<Portfolio, 'id' | 'createdAt'>[] = [
     performance: 28.91,
     isPublic: true,
     strategy: "Artificial Intelligence and machine learning focused portfolio targeting the convergence of blockchain and AI. Positions for the future of decentralized AI infrastructure and services.",
-    investmentType: 'autoinvest',
-    investmentConfig: {
-      initialDeposit: 7500,
-      monthlyInvestment: 600,
-      years: 4
-    }
   }
 ];
 

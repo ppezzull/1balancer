@@ -106,7 +106,7 @@ export interface SharedPortfolio {
   name: string;
   description?: string;
   author: UserProfile;
-  type: 'autoinvest' | 'manual';
+  type: 'drift' | 'time';
   presetType: string;
   totalInvestment: number;
   allocations: TokenAllocation[];

@@ -8,7 +8,7 @@ import {
   X, 
   TrendingUp, 
   TrendingDown, 
-  PieChart, 
+  PieChart as PieChartIcon, 
   Calendar, 
   DollarSign, 
   Target, 
@@ -21,12 +21,12 @@ import {
   Clock,
   Coins
 } from "lucide-react";
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 interface Portfolio {
   id: string;
   name: string;
-  type: 'autoinvest' | 'manual';
+  type: 'drift' | 'time';
   presetType?: string;
   totalInvestment: number;
   allocations: Array<{
@@ -37,11 +37,10 @@ interface Portfolio {
     image: string;
     amount: number;
   }>;
-  autoinvestConfig?: {
-    initialDeposit: number;
-    monthlyInvestment: number;
-    years: number;
-    projectedValue: number;
+  rebalancingConfig?: {
+    type: 'drift' | 'time';
+    driftPercentage?: number;
+    frequency?: 'daily' | 'weekly' | 'monthly' | 'quarterly';
   };
   createdAt: string;
   performance?: {
@@ -191,13 +190,13 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                         {portfolio.presetType || 'Custom'}
                       </span>
                     </Badge>
-                    <Badge variant={portfolio.type === 'autoinvest' ? 'default' : 'secondary'} className="text-xs">
-                      {portfolio.type === 'autoinvest' ? (
+                    <Badge variant={portfolio.type === 'drift' ? 'default' : 'secondary'} className="text-xs">
+                      {portfolio.type === 'drift' ? (
                         <Zap className="w-3 h-3 mr-1" />
                       ) : (
-                        <Settings className="w-3 h-3 mr-1" />
+                        <Clock className="w-3 h-3 mr-1" />
                       )}
-                      {portfolio.type === 'autoinvest' ? 'Auto' : 'Manual'}
+                      {portfolio.type === 'drift' ? 'Drift' : 'Time'}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -291,15 +290,12 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                 {/* Pie Chart */}
                 <Card className="border border-border/30 bg-card/50">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <PieChart className="w-5 h-5 text-cyan-500" />
-                      Asset Allocation
-                    </CardTitle>
+                    <CardTitle className="flex items-center text-lg">Asset Allocation <PieChartIcon className="ml-2 h-5 w-5" /></CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className={`${isMobile ? 'h-64' : 'h-80'}`}>
                       <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPieChart>
+                        <PieChart>
                           <Pie
                             data={pieData}
                             cx="50%"
@@ -337,7 +333,7 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                               </span>
                             )}
                           />
-                        </RechartsPieChart>
+                        </PieChart>
                       </ResponsiveContainer>
                     </div>
                   </CardContent>
@@ -368,8 +364,11 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                                 alt={allocation.name}
                                 className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} object-contain`}
                                 onError={(e) => {
-                                  e.currentTarget.style.display = 'none';
-                                  e.currentTarget.nextElementSibling!.style.display = 'flex';
+                                  (e.currentTarget as HTMLElement).style.display = 'none';
+                                  const nextEl = e.currentTarget.nextElementSibling as HTMLElement;
+                                  if (nextEl) {
+                                    nextEl.style.display = 'flex';
+                                  }
                                 }}
                               />
                               <div className="hidden w-full h-full bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg items-center justify-center">
@@ -408,43 +407,48 @@ export function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDe
                 </Card>
 
                 {/* Investment Configuration */}
-                {portfolio.type === 'autoinvest' && portfolio.autoinvestConfig && (
+                {portfolio.rebalancingConfig && (
                   <Card className="border border-border/30 bg-card/50">
                     <CardHeader className="pb-3">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-blue-500" />
-                        Autoinvest Configuration
-                      </CardTitle>
+                      <CardTitle className="text-lg">Rebalancing Strategy</CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-2 gap-4'}`}>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Initial Deposit</p>
-                          <p className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-foreground`}>
-                            ${portfolio.autoinvestConfig.initialDeposit.toLocaleString()}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Monthly Investment</p>
-                          <p className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-foreground`}>
-                            ${portfolio.autoinvestConfig.monthlyInvestment.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-2 gap-4'}`}>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Investment Period</p>
-                          <p className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-foreground`}>
-                            {portfolio.autoinvestConfig.years} years
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Projected Value</p>
-                          <p className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-green-600 dark:text-green-400`}>
-                            ${portfolio.autoinvestConfig.projectedValue.toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
+                    <CardContent className="space-y-3">
+                      {portfolio.type === 'drift' && portfolio.rebalancingConfig.driftPercentage && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Zap className="w-4 h-4" />
+                              <span>Rebalancing Type</span>
+                            </div>
+                            <span className="font-semibold text-foreground">Drift-based</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Target className="w-4 h-4" />
+                              <span>Drift Percentage</span>
+                            </div>
+                            <span className="font-semibold text-foreground">{portfolio.rebalancingConfig.driftPercentage}%</span>
+                          </div>
+                        </>
+                      )}
+                      {portfolio.type === 'time' && portfolio.rebalancingConfig.frequency && (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Clock className="w-4 h-4" />
+                              <span>Rebalancing Type</span>
+                            </div>
+                            <span className="font-semibold text-foreground">Time-based</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Calendar className="w-4 h-4" />
+                              <span>Frequency</span>
+                            </div>
+                            <span className="font-semibold text-foreground capitalize">{portfolio.rebalancingConfig.frequency}</span>
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 )}

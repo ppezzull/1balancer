@@ -223,7 +223,7 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<SocialPortfolio, 'user' | 'likes' | 'comm
     isPublic: true,
     strategy: "Low-risk approach focusing on established DeFi protocols with proven track records. Heavy weighting in stablecoins for capital preservation with selective exposure to blue-chip DeFi tokens for growth potential.",
     createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    investmentType: 'autoinvest',
+    investmentType: 'drift',
     investmentConfig: {
       initialDeposit: 15000,
       monthlyInvestment: 500,
@@ -245,7 +245,7 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<SocialPortfolio, 'user' | 'likes' | 'comm
     isPublic: true,
     strategy: "Betting big on Ethereum Layer 2 solutions. This portfolio captures the growth of scaling solutions while maintaining some stability with stablecoins. Focus on tokens that benefit from increased L2 adoption.",
     createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-    investmentType: 'manual'
+    investmentType: 'time'
   },
   {
     id: 'mock_yield_farming_pro',
@@ -263,7 +263,7 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<SocialPortfolio, 'user' | 'likes' | 'comm
     isPublic: true,
     strategy: "Aggressive yield farming strategy targeting high-APY opportunities across multiple DeFi protocols. Regular rebalancing to chase optimal yields while managing impermanent loss risk.",
     createdAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString(),
-    investmentType: 'manual'
+    investmentType: 'time'
   },
   {
     id: 'mock_gaming_metaverse',
@@ -280,7 +280,7 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<SocialPortfolio, 'user' | 'likes' | 'comm
     isPublic: true,
     strategy: "Focused on the intersection of gaming, NFTs, and metaverse development. Investing in platforms that are building the future of virtual worlds and digital ownership.",
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    investmentType: 'autoinvest',
+    investmentType: 'drift',
     investmentConfig: {
       initialDeposit: 25000,
       monthlyInvestment: 1000,
@@ -301,7 +301,7 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<SocialPortfolio, 'user' | 'likes' | 'comm
     isPublic: true,
     strategy: "High-risk meme token portfolio for maximum volatility and potential gains. Only invest what you can afford to lose. This is pure speculation and fun money allocation!",
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    investmentType: 'manual'
+    investmentType: 'time'
   },
   {
     id: 'mock_institutional_grade',
@@ -319,7 +319,7 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<SocialPortfolio, 'user' | 'likes' | 'comm
     isPublic: true,
     strategy: "Institutional-quality portfolio emphasizing regulatory compliance and risk management. Balanced allocation across established protocols with strong governance and proven security records.",
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    investmentType: 'autoinvest',
+    investmentType: 'drift',
     investmentConfig: {
       initialDeposit: 40000,
       monthlyInvestment: 2000,

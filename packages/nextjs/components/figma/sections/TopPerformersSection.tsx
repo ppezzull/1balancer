@@ -57,7 +57,7 @@ interface SharedPortfolio {
     isVerified: boolean;
     followers: number;
   };
-  type: 'autoinvest' | 'manual';
+  type: 'drift' | 'time';
   presetType: string;
   totalInvestment: number;
   allocations: TokenAllocation[];
@@ -340,12 +340,15 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                             <div className="flex items-center gap-3">
                               <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center`}>
                                 <img 
-                                  src={allocation.image} 
+                                  src={allocation.logo} 
                                   alt={allocation.name}
                                   className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} object-contain`}
                                   onError={(e) => {
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling!.style.display = 'flex';
+                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                    const nextEl = e.currentTarget.nextElementSibling as HTMLElement;
+                                    if (nextEl) {
+                                      nextEl.style.display = 'flex';
+                                    }
                                   }}
                                 />
                                 <div className="hidden w-full h-full bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full items-center justify-center">
@@ -387,8 +390,8 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
 }
 
 export function TopPerformersSection() {
-  const { ref: heroRef, isInView: heroInView } = useInViewAnimation();
-  const { ref: performersRef, isInView: performersInView } = useInViewAnimation();
+  const { ref: heroRef, isInView: heroInView } = useInViewAnimation<HTMLDivElement>();
+  const { ref: performersRef, isInView: performersInView } = useInViewAnimation<HTMLDivElement>();
   const isMobile = useIsMobile();
   const { isDark } = useTheme();
 
@@ -441,8 +444,8 @@ export function TopPerformersSection() {
         strategy: {
           description: `A ${portfolio.presetType || 'custom'} investment strategy focusing on long-term growth and diversification across multiple asset classes.`,
           riskLevel: portfolio.presetType === 'aggressive' ? 'aggressive' : portfolio.presetType === 'balanced' ? 'moderate' : 'conservative',
-          timeHorizon: portfolio.type === 'autoinvest' ? 'Long-term (3-5 years)' : 'Medium-term (1-3 years)',
-          rebalanceFrequency: portfolio.type === 'autoinvest' ? 'Monthly' : 'Quarterly'
+          timeHorizon: portfolio.type === 'drift' ? 'Long-term (3-5 years)' : 'Medium-term (1-3 years)',
+          rebalanceFrequency: portfolio.type === 'drift' ? 'Monthly' : 'Quarterly'
         },
         tags: [
           portfolio.presetType || 'custom',
@@ -465,7 +468,7 @@ export function TopPerformersSection() {
           isVerified: true,
           followers: 15420
         },
-        type: 'manual',
+        type: 'time',
         presetType: 'aggressive',
         totalInvestment: 75000,
         allocations: [
@@ -535,7 +538,7 @@ export function TopPerformersSection() {
           isVerified: true,
           followers: 8900
         },
-        type: 'autoinvest',
+        type: 'drift',
         presetType: 'moderate',
         totalInvestment: 50000,
         allocations: [
@@ -605,7 +608,7 @@ export function TopPerformersSection() {
           isVerified: true,
           followers: 25600
         },
-        type: 'manual',
+        type: 'time',
         presetType: 'conservative',
         totalInvestment: 150000,
         allocations: [

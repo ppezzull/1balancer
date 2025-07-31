@@ -8,11 +8,11 @@ interface UseInViewAnimationOptions {
   triggerOnce?: boolean;
 }
 
-export function useInViewAnimation(options: UseInViewAnimationOptions = {}) {
+export function useInViewAnimation<T extends HTMLElement>(options: UseInViewAnimationOptions = {}) {
   const { threshold = 0.1, rootMargin = '0px', triggerOnce = true } = options;
   const [isInView, setIsInView] = useState(false);
   const [hasBeenInView, setHasBeenInView] = useState(false);
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<T>(null);
 
   useEffect(() => {
     const element = ref.current;
