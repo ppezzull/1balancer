@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+// Load environment variables from root .env
+require('./env.config');
+
 const nextConfig: NextConfig = {
   experimental: {
     turbo: {
