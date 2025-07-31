@@ -8,15 +8,15 @@ Cross-chain coordination is the heart of the Fusion+ implementation. This docume
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                   Orchestration Service                       │
-│                  (Coordinator & Monitor)                      │
+│                   Orchestration Service                      │
+│                  (Coordinator & Monitor)                     │
 ├─────────────────┬────────────────────────┬───────────────────┤
-│                 │                         │                   │
-▼                 ▼                         ▼                   │
+│                 │                         │                  │
+▼                 ▼                         ▼                  │
 BASE Chain     Event Bridge            NEAR Chain              │
-│                 │                         │                   │
-├─ EscrowSrc      ├─ WebSocket            ├─ HTLC Contract    │
-├─ FusionPlusHub  ├─ REST API             ├─ FT Tokens        │
+│                 │                         │                  │
+├─ EscrowSrc      ├─ WebSocket            ├─ HTLC Contract     │
+├─ FusionPlusHub  ├─ REST API             ├─ FT Tokens         │
 └─ Resolver       └─ Message Queue        └─ Event Stream      │
 ```
 
