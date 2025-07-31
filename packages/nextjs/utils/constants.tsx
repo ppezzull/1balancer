@@ -793,6 +793,12 @@ export interface Portfolio {
   isPublic: boolean;
   strategy?: string;
   createdAt: string;
+  rebalancingType?: 'drift' | 'time';
+  rebalancingConfig?: {
+    driftPercentage?: number;
+    frequency?: 'weekly' | 'monthly' | 'quarterly' | 'semiannual';
+  };
+  // Keep legacy fields for backward compatibility
   investmentType?: 'manual' | 'autoinvest';
   investmentConfig?: {
     initialDeposit?: number;

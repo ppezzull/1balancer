@@ -28,6 +28,7 @@ import {
   ChevronDown,
   Wallet,
   Save,
+  Clock,
   Edit,
   Search,
 } from "lucide-react";
@@ -119,11 +120,11 @@ interface TokenAllocation {
   minPercentage?: number;
 }
 
-// Updated interface to match PortfolioSection exactly
+// Updated interface to support rebalancing strategies
 interface Portfolio {
   id: string;
   name: string;
-  type: 'autoinvest' | 'manual';
+  type: 'drift' | 'time';
   presetType?: string;
   totalInvestment: number;
   allocations: Array<{
@@ -134,13 +135,11 @@ interface Portfolio {
     image: string;
     amount: number;
   }>;
-  autoinvestConfig?: {
-    initialDeposit: number;
-    monthlyInvestment: number;
-    years: number; // Changed from investmentYears to years
-    projectedValue: number;
+  rebalancingConfig?: {
+    driftPercentage?: number;
+    frequency?: 'weekly' | 'monthly' | 'quarterly' | 'semiannual';
   };
-  createdAt: string; // Changed from Date to string
+  createdAt: string;
   performance?: {
     totalValue: number;
     totalReturn: number;
@@ -158,16 +157,18 @@ export function PieChartCreator({
   const isMobile = useIsMobile();
 
   // Modal states
-  const [showInvestmentModal, setShowInvestmentModal] =
+  const [showRebalancingModal, setShowRebalancingModal] =
     useState(false);
-  const [showAutoinvestModal, setShowAutoinvestModal] =
+  const [showDriftModal, setShowDriftModal] =
+    useState(false);
+  const [showTimeModal, setShowTimeModal] =
     useState(false);
   const [showSaveWalletModal, setShowSaveWalletModal] =
     useState(false);
   const [showTokenSelectionModal, setShowTokenSelectionModal] =
     useState(false);
-  const [investmentType, setInvestmentType] = useState<
-    "autoinvest" | "manual" | null
+  const [rebalancingType, setRebalancingType] = useState<
+    "drift" | "time" | null
   >(null);
 
   // Token selection state
@@ -179,11 +180,9 @@ export function PieChartCreator({
   const [existingWalletNames, setExistingWalletNames] =
     useState<string[]>([]);
 
-  // Autoinvest parameters
-  const [initialDeposit, setInitialDeposit] = useState(1000);
-  const [monthlyInvestment, setMonthlyInvestment] =
-    useState(1000);
-  const [investmentYears, setInvestmentYears] = useState(5);
+  // Rebalancing parameters
+  const [driftPercentage, setDriftPercentage] = useState(5); // Default 5% drift
+  const [timeFrequency, setTimeFrequency] = useState<"weekly" | "monthly" | "quarterly" | "semiannual">("monthly");
 
   // Preset configurations with images from constants (memoized to prevent re-creation)
   const presets = useMemo(() => ({
@@ -389,43 +388,26 @@ export function PieChartCreator({
     setAllocations(newAllocations);
   }, [allocations, totalPercentage, totalInvestment]);
 
-  // Calculate projected value for autoinvest
-  const projectedValue = useMemo(() => {
-    if (investmentType !== "autoinvest") return 0;
-    const expectedReturn =
-      presetType === "aggressive" ? 0.2 : 0.1; // 20% or 10% annual return
-    const monthlyRate = expectedReturn / 12;
-    const totalMonths = investmentYears * 12;
-
-    // Future value of initial deposit
-    const initialFV =
-      initialDeposit *
-      Math.pow(1 + expectedReturn, investmentYears);
-
-    // Future value of monthly payments (annuity)
-    const monthlyFV =
-      (monthlyInvestment *
-        (Math.pow(1 + monthlyRate, totalMonths) - 1)) /
-      monthlyRate;
-
-    return initialFV + monthlyFV;
-  }, [
-    initialDeposit,
-    monthlyInvestment,
-    investmentYears,
-    presetType,
-    investmentType,
-  ]);
+  // Get rebalancing frequency display text
+  const getFrequencyText = (frequency: string) => {
+    switch (frequency) {
+      case "weekly": return "Weekly";
+      case "monthly": return "Monthly";
+      case "quarterly": return "Quarterly";
+      case "semiannual": return "Semiannual";
+      default: return "Monthly";
+    }
+  };
 
   // Handle create portfolio button click
   const handleCreatePortfolio = useCallback(() => {
     if (isValid) {
-      setShowInvestmentModal(true);
+      setShowRebalancingModal(true);
     }
   }, [isValid]);
 
-  // Handle investment type completion
-  const handleInvestmentComplete = useCallback(() => {
+  // Handle rebalancing type completion
+  const handleRebalancingComplete = useCallback(() => {
     setShowSaveWalletModal(true);
   }, []);
 
@@ -452,13 +434,15 @@ export function PieChartCreator({
       isPublic: false, // Default to private
       strategy: undefined, // Can be added later
       createdAt: new Date().toISOString(),
-      investmentType: investmentType!,
-      investmentConfig:
-        investmentType === "autoinvest"
+      rebalancingType: rebalancingType!,
+      rebalancingConfig:
+        rebalancingType === "drift"
           ? {
-              initialDeposit,
-              monthlyInvestment,
-              years: investmentYears,
+              driftPercentage,
+            }
+          : rebalancingType === "time"
+          ? {
+              frequency: timeFrequency,
             }
           : undefined,
     };
@@ -474,7 +458,7 @@ export function PieChartCreator({
       const legacyWallet: Portfolio = {
         id: portfolioData.id,
         name: portfolioData.name,
-        type: investmentType!,
+        type: rebalancingType!,
         presetType: presetType || undefined,
         allocations: allocations.map(allocation => ({
           symbol: allocation.symbol,
@@ -485,13 +469,14 @@ export function PieChartCreator({
           amount: allocation.amount
         })),
         totalInvestment,
-        autoinvestConfig:
-          investmentType === "autoinvest"
+        rebalancingConfig:
+          rebalancingType === "drift"
             ? {
-                initialDeposit,
-                monthlyInvestment,
-                years: investmentYears,
-                projectedValue,
+                driftPercentage,
+              }
+            : rebalancingType === "time"
+            ? {
+                frequency: timeFrequency,
               }
             : undefined,
         createdAt: new Date().toISOString(),
@@ -521,14 +506,12 @@ export function PieChartCreator({
   }, [
     isNameValid,
     walletName,
-    investmentType,
+    rebalancingType,
     presetType,
     allocations,
     totalInvestment,
-    initialDeposit,
-    monthlyInvestment,
-    investmentYears,
-    projectedValue,
+    driftPercentage,
+    timeFrequency,
     onBack,
   ]);
 
@@ -1036,13 +1019,13 @@ export function PieChartCreator({
         </div>
       </div>
 
-      {/* Investment Type Modal */}
-      <Dialog open={showInvestmentModal} onOpenChange={setShowInvestmentModal}>
+      {/* Rebalancing Type Modal */}
+      <Dialog open={showRebalancingModal} onOpenChange={setShowRebalancingModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Choose Investment Type</DialogTitle>
+            <DialogTitle>Choose Rebalancing Strategy</DialogTitle>
             <DialogDescription>
-              Select how you want to manage this portfolio
+              Select when your portfolio should be rebalanced
             </DialogDescription>
           </DialogHeader>
           
@@ -1051,19 +1034,19 @@ export function PieChartCreator({
               variant="outline"
               className="w-full justify-start h-auto p-4 border-2"
               onClick={() => {
-                setInvestmentType("autoinvest");
-                setShowInvestmentModal(false);
-                setShowAutoinvestModal(true);
+                setRebalancingType("drift");
+                setShowRebalancingModal(false);
+                setShowDriftModal(true);
               }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold">Autoinvest</div>
+                  <div className="font-semibold">Drift</div>
                   <div className="text-sm text-muted-foreground">
-                    Set up recurring investments
+                    Rebalance when allocation drifts by percentage
                   </div>
                 </div>
               </div>
@@ -1073,19 +1056,19 @@ export function PieChartCreator({
               variant="outline"
               className="w-full justify-start h-auto p-4 border-2"
               onClick={() => {
-                setInvestmentType("manual");
-                setShowInvestmentModal(false);
-                handleInvestmentComplete();
+                setRebalancingType("time");
+                setShowRebalancingModal(false);
+                setShowTimeModal(true);
               }}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <Settings className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold">Manual</div>
+                  <div className="font-semibold">Time</div>
                   <div className="text-sm text-muted-foreground">
-                    Manage investments yourself
+                    Rebalance at scheduled intervals
                   </div>
                 </div>
               </div>
@@ -1094,27 +1077,27 @@ export function PieChartCreator({
         </DialogContent>
       </Dialog>
 
-      {/* Autoinvest Configuration Modal */}
-      <Dialog open={showAutoinvestModal} onOpenChange={setShowAutoinvestModal}>
+      {/* Drift Configuration Modal */}
+      <Dialog open={showDriftModal} onOpenChange={setShowDriftModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Configure Autoinvest</DialogTitle>
+            <DialogTitle>Configure Drift Rebalancing</DialogTitle>
             <DialogDescription>
-              Set up your recurring investment parameters
+              Set the percentage drift threshold for automatic rebalancing
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Initial Deposit */}
+            {/* Drift Percentage */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
-                Initial Deposit
+                Drift Threshold Percentage
               </label>
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setInitialDeposit(Math.max(100, initialDeposit - 500))}
+                  onClick={() => setDriftPercentage(Math.max(1, driftPercentage - 1))}
                   className="w-8 h-8 rounded-full p-0"
                 >
                   <Minus className="w-3 h-3" />
@@ -1122,117 +1105,132 @@ export function PieChartCreator({
                 <div className="flex-1">
                   <Input
                     type="number"
-                    value={initialDeposit}
-                    onChange={(e) => setInitialDeposit(Math.max(100, parseInt(e.target.value) || 100))}
+                    value={driftPercentage}
+                    onChange={(e) => setDriftPercentage(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
                     className="text-center"
+                    min="1"
+                    max="50"
                   />
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setInitialDeposit(initialDeposit + 500)}
+                  onClick={() => setDriftPercentage(Math.min(50, driftPercentage + 1))}
                   className="w-8 h-8 rounded-full p-0"
                 >
                   <Plus className="w-3 h-3" />
                 </Button>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Portfolio will rebalance when any asset allocation drifts by {driftPercentage}% from target
+              </p>
             </div>
 
-            {/* Monthly Investment */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Monthly Investment
-              </label>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setMonthlyInvestment(Math.max(10, monthlyInvestment - 100))}
-                  className="w-8 h-8 rounded-full p-0"
-                >
-                  <Minus className="w-3 h-3" />
-                </Button>
-                <div className="flex-1">
-                  <Input
-                    type="number"
-                    value={monthlyInvestment}
-                    onChange={(e) => setMonthlyInvestment(Math.max(10, parseInt(e.target.value) || 10))}
-                    className="text-center"
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setMonthlyInvestment(monthlyInvestment + 100)}
-                  className="w-8 h-8 rounded-full p-0"
-                >
-                  <Plus className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Investment Years */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">
-                Investment Years
-              </label>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setInvestmentYears(Math.max(1, investmentYears - 1))}
-                  className="w-8 h-8 rounded-full p-0"
-                >
-                  <Minus className="w-3 h-3" />
-                </Button>
-                <div className="flex-1">
-                  <Input
-                    type="number"
-                    value={investmentYears}
-                    onChange={(e) => setInvestmentYears(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="text-center"
-                  />
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setInvestmentYears(investmentYears + 1)}
-                  className="w-8 h-8 rounded-full p-0"
-                >
-                  <Plus className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Projection */}
-            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-4 rounded-lg border border-green-500/20">
+            {/* Visual Indicator */}
+            <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 p-4 rounded-lg border border-orange-500/20">
               <div className="text-center">
                 <div className="text-sm text-muted-foreground mb-1">
-                  Projected Value ({investmentYears} years)
+                  Rebalancing Trigger
                 </div>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  ${projectedValue.toLocaleString()}
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  ±{driftPercentage}%
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
-                  Assumes {presetType === "aggressive" ? "20%" : "10%"} annual return
+                  Automatic rebalancing when allocation drifts beyond threshold
                 </div>
               </div>
             </div>
 
             <Button
               onClick={() => {
-                setShowAutoinvestModal(false);
-                handleInvestmentComplete();
+                setShowDriftModal(false);
+                handleRebalancingComplete();
               }}
               className="w-full"
               style={{
                 background: isDark
-                  ? "var(--gradient-primary)"
-                  : "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  ? "linear-gradient(135deg, #f97316, #dc2626)"
+                  : "linear-gradient(135deg, #ea580c, #dc2626)",
                 color: "white",
               }}
             >
-              Confirm Configuration
+              Confirm Drift Configuration
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Time Configuration Modal */}
+      <Dialog open={showTimeModal} onOpenChange={setShowTimeModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configure Time Rebalancing</DialogTitle>
+            <DialogDescription>
+              Set the schedule for automatic rebalancing
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Time Frequency */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Rebalancing Frequency
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {["weekly", "monthly", "quarterly", "semiannual"].map((frequency) => (
+                  <Button
+                    key={frequency}
+                    variant={timeFrequency === frequency ? "default" : "outline"}
+                    onClick={() => setTimeFrequency(frequency as any)}
+                    className={`h-auto p-4 ${
+                      timeFrequency === frequency
+                        ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white"
+                        : ""
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="font-medium capitalize">{frequency}</div>
+                      <div className="text-xs opacity-70 mt-1">
+                        {frequency === "weekly" && "Every week"}
+                        {frequency === "monthly" && "Every month"}
+                        {frequency === "quarterly" && "Every 3 months"}
+                        {frequency === "semiannual" && "Every 6 months"}
+                      </div>
+                    </div>
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Visual Indicator */}
+            <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 p-4 rounded-lg border border-blue-500/20">
+              <div className="text-center">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Rebalancing Schedule
+                </div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {getFrequencyText(timeFrequency)}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Portfolio will be automatically rebalanced on schedule
+                </div>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => {
+                setShowTimeModal(false);
+                handleRebalancingComplete();
+              }}
+              className="w-full"
+              style={{
+                background: isDark
+                  ? "linear-gradient(135deg, #3b82f6, #06b6d4)"
+                  : "linear-gradient(135deg, #2563eb, #0891b2)",
+                color: "white",
+              }}
+            >
+              Confirm Time Configuration
             </Button>
           </div>
         </DialogContent>
@@ -1277,7 +1275,7 @@ export function PieChartCreator({
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Type:</span>
                 <span className="font-medium text-foreground capitalize">
-                  {investmentType} • {presetType || 'Custom'}
+                  {rebalancingType || 'Not Set'} • {presetType || 'Custom'}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
