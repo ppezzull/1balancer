@@ -1,6 +1,3 @@
 [submodule "packages/hardhat/contracts/foundation/limit-order-protocol"]
 	path = packages/hardhat/contracts/foundation/limit-order-protocol
 	url = https://github.com/1inch/limit-order-protocol
-[submodule "packages/hardhat/contracts/foundation/fusion-protocol"]
-	path = packages/hardhat/contracts/foundation/fusion-protocol
-	url = https://github.com/1inch/fusion-protocol
