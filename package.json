@@ -66,6 +66,7 @@
     "proxy:deploy": "node scripts/setup-proxy.js",
     "proxy:test": "node scripts/test-proxy.js",
     "create:envs": "node scripts/create-env-files.js",
+    "update:envs": "node scripts/create-env-files.js --force",
     "check:deps": "node scripts/check-dependencies.js",
     "deploy:all": "yarn deploy && yarn near:deploy",
     "clean:all": "yarn hardhat:clean && yarn next:clean && rm -rf 1balancer-near/node_modules 1balancer-near/target || true",

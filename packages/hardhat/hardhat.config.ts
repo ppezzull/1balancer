@@ -1,7 +1,6 @@
-import * as dotenv from "dotenv";
-import * as path from "path";
-// Load environment variables from project root
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+// Load environment variables from root .env using automatic inheritance
+require('./env.config');
+
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";

@@ -1,17 +1,20 @@
-# Environment Configuration Guide
+# Environment Configuration System
 
 ## Overview
 
-1Balancer uses a centralized environment configuration system that ensures consistency across all packages while maintaining flexibility for different deployment environments.
+1balancer uses an **automatic environment variable inheritance system** that allows all packages to share configuration from a single root `.env` file. This eliminates the need for manual copying and ensures consistency across the monorepo.
 
-## Key Principles
+## Key Features
 
-1. **Single Source of Truth**: All environment variables are defined in `.env.example`
-2. **No Hardcoded Values**: Scripts read from `.env`, never contain hardcoded secrets
-3. **Inheritance Model**: Package-specific env files inherit from the root `.env`
-4. **Clear Documentation**: Every variable is documented in `.env.example`
+1. **Automatic Inheritance**: Packages automatically load variables from root `.env`
+2. **No Manual Copying**: Variables are read directly at runtime
+3. **Single Source of Truth**: Root `.env` contains all configuration
+4. **Local Overrides**: Each package can override specific values when needed
+5. **Zero Configuration**: Works automatically with `yarn start`, `yarn chain`, etc.
 
-## Configuration Structure
+## How Automatic Inheritance Works
+
+### Configuration Structure
 
 ```
 1balancer/
@@ -19,12 +22,40 @@
 ├── .env                # Your actual configuration (git ignored)
 ├── packages/
 │   ├── nextjs/
-│   │   └── .env.local  # Frontend-specific overrides
+│   │   ├── env.config.js    # Automatic loader (NEW)
+│   │   ├── next.config.ts   # Imports env.config.js
+│   │   └── .env.local       # Local overrides only
 │   └── hardhat/
-│       └── .env        # Smart contract-specific overrides
+│       ├── env.config.js    # Automatic loader (NEW)
+│       ├── hardhat.config.ts # Imports env.config.js
+│       └── .env             # Local overrides only
 └── 1balancer-near/
-    └── .env            # NEAR-specific overrides
+    └── .env                 # NEAR-specific overrides
 ```
+
+### The Magic: env.config.js
+
+Each package has an `env.config.js` file that automatically loads the root `.env`:
+
+```javascript
+// packages/nextjs/env.config.js
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Load root .env first
+const rootEnvPath = path.resolve(__dirname, '../../.env');
+dotenv.config({ path: rootEnvPath });
+
+// Then load local overrides
+const localEnvPath = path.resolve(__dirname, '.env.local');
+dotenv.config({ path: localEnvPath });
+```
+
+### Automatic Triggering
+
+- **Next.js**: When you run `yarn start`, `next.config.ts` imports `env.config.js`
+- **Hardhat**: When you run `yarn chain` or `yarn deploy`, `hardhat.config.ts` imports `env.config.js`
+- **No manual steps required!**
 
 ## Setup Process
 
@@ -58,43 +89,87 @@ nano .env
 yarn create:envs
 ```
 
-## Environment Variables
+## Environment Variables by Package
 
-### API Keys & Authentication
+### Variables Required by Next.js
+
+These variables are used by the frontend application:
 
 ```env
-# 1inch API - Required for DeFi operations
-ONEINCH_API_KEY=your-key-here
+# Authentication & APIs
+NEXT_PUBLIC_PRIVY_APP_ID=            # Privy authentication (required)
+NEXT_PUBLIC_ALCHEMY_API_KEY=         # Alchemy RPC access
+ONEINCH_API_KEY=                     # 1inch API for swaps
 
-# Social Auth - Required for user login
-NEXT_PUBLIC_PRIVY_APP_ID=your-privy-id
+# URLs & Endpoints
+NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+NEXT_PUBLIC_ORCHESTRATOR_URL=http://localhost:8080
+NEXT_PUBLIC_NEAR_BRIDGE_URL=http://localhost:8090
+NEXT_PUBLIC_PROXY_URL=               # Your 1inch proxy URL
+NEXT_PUBLIC_ONE_INCH_API_URL=        # Your 1inch API proxy
 
-# Blockchain Access (Optional for local dev)
-ALCHEMY_API_KEY=your-alchemy-key
-INFURA_API_KEY=your-infura-key
+# Configuration
+CHAIN_ID=8453                        # Base mainnet
+NEXT_PUBLIC_ENABLE_TESTNETS=true
+NEXT_PUBLIC_ENABLE_BURNER_WALLET=true
 ```
 
-### Network Configuration
+### Variables Required by Hardhat
+
+These variables are used for smart contract development:
 
 ```env
-# Service Ports
-FRONTEND_PORT=3000
-HARDHAT_PORT=8545
-ORCHESTRATOR_PORT=8080
-NEAR_BRIDGE_PORT=8090
+# API Keys
+ALCHEMY_API_KEY=                     # For contract deployment
+ETHERSCAN_V2_API_KEY=               # For contract verification
+BASESCAN_API_KEY=                   # Base network verification
 
-# RPC Endpoints
+# Deployment
+DEPLOYER_PRIVATE_KEY=               # Dev only - use test key
+DEPLOYER_PRIVATE_KEY_ENCRYPTED=     # Production - encrypted key
+
+# RPC URLs
 BASE_RPC_URL=https://mainnet.base.org
+BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
 LOCALHOST_RPC_URL=http://localhost:8545
+
+# Configuration
+REPORT_GAS=true
+HARDHAT_PORT=8545
 ```
 
-### NEAR Protocol
+### Shared Variables
+
+These are used by multiple packages:
+
+```env
+# 1inch Integration
+ONEINCH_API_KEY=                    # Used by both frontend and contracts
+
+# Alchemy
+ALCHEMY_API_KEY=                    # Base key
+NEXT_PUBLIC_ALCHEMY_API_KEY=        # Same value, frontend access
+
+# Chain Configuration
+CHAIN_ID=8453                       # Default to Base mainnet
+```
+
+### NEAR Protocol Variables
 
 ```env
 # NEAR Environment
 NEAR_ENV=localnet
+NEAR_NETWORK_ID=localnet
+
+# Contract Names
 NEAR_HTLC_CONTRACT_NAME=fusion-plus-htlc.test.near
 NEAR_SOLVER_CONTRACT_NAME=solver-registry.test.near
+NEAR_MASTER_ACCOUNT_ID=test.near
+
+# Service Ports
+NEAR_BRIDGE_PORT=8090
+SOLVER_PORT=8091
+NEAR_LOCAL_PORT=3030
 ```
 
 ## Security Best Practices

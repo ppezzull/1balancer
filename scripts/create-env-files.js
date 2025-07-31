@@ -8,6 +8,12 @@ const dotenv = require('dotenv');
 
 console.log(chalk.blue.bold('\n📄 Setting up environment configuration...\n'));
 
+// Check for force flag
+const forceUpdate = process.argv.includes('--force') || process.argv.includes('-f');
+if (forceUpdate) {
+  console.log(chalk.yellow('⚠️  Force update mode - will overwrite existing files\n'));
+}
+
 // First, check if .env.example exists
 const envExamplePath = path.join(process.cwd(), '.env.example');
 if (!fs.existsSync(envExamplePath)) {
@@ -47,37 +53,14 @@ const env = envConfig.parsed || {};
 const packageEnvConfigs = [
   {
     path: 'packages/nextjs/.env.local',
-    description: 'Next.js frontend configuration',
-    getContent: (env) => `# Next.js Environment Variables
-# This file inherits from root .env
-# Only override values here if needed for local development
+    description: 'Next.js local overrides only',
+    getContent: (env) => `# Next.js Local Environment Overrides
+# This file is for local overrides only
+# All values are inherited from root .env automatically via env.config.js
+# Only add values here if you need to override the root configuration
 
-# Frontend URLs
-NEXT_PUBLIC_FRONTEND_URL=${env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}
-NEXT_PUBLIC_ORCHESTRATOR_URL=${env.NEXT_PUBLIC_ORCHESTRATOR_URL || 'http://localhost:8080'}
-NEXT_PUBLIC_NEAR_BRIDGE_URL=${env.NEXT_PUBLIC_NEAR_BRIDGE_URL || 'http://localhost:8090'}
-
-# 1inch Proxy
-NEXT_PUBLIC_PROXY_URL=${env.NEXT_PUBLIC_PROXY_URL || 'https://your-proxy.vercel.app'}
-NEXT_PUBLIC_ONE_INCH_API_URL=${env.NEXT_PUBLIC_ONE_INCH_API_URL || 'https://your-proxy.vercel.app/api'}
-
-# API Keys (Frontend access)
-NEXT_PUBLIC_ALCHEMY_API_KEY=${env.NEXT_PUBLIC_ALCHEMY_API_KEY || env.ALCHEMY_API_KEY || ''}
-ONEINCH_API_KEY=${env.ONEINCH_API_KEY || ''}
-
-# Authentication
-NEXT_PUBLIC_PRIVY_APP_ID=${env.NEXT_PUBLIC_PRIVY_APP_ID || 'your-privy-app-id-here'}
-
-# Feature Flags
-NEXT_PUBLIC_ENABLE_TESTNETS=${env.NEXT_PUBLIC_ENABLE_TESTNETS || 'true'}
-NEXT_PUBLIC_ENABLE_BURNER_WALLET=${env.NEXT_PUBLIC_ENABLE_BURNER_WALLET || 'true'}
-
-# Chain Configuration
-NEXT_PUBLIC_CHAIN_ID=${env.LOCALHOST_CHAIN_ID || '31337'}
-CHAIN_ID=${env.CHAIN_ID || '8453'}
-
-# Analytics (Optional)
-NEXT_PUBLIC_VERCEL_ANALYTICS_ID=${env.NEXT_PUBLIC_VERCEL_ANALYTICS_ID || ''}
+# Example override (uncomment to use):
+# NEXT_PUBLIC_FRONTEND_URL=http://localhost:3001
 `
   },
   {
@@ -151,8 +134,8 @@ for (const config of packageEnvConfigs) {
 
   try {
     // Check if file already exists
-    if (fs.existsSync(fullPath)) {
-      spinner.warn(chalk.yellow(`${config.path} already exists, skipping`));
+    if (fs.existsSync(fullPath) && !forceUpdate) {
+      spinner.warn(chalk.yellow(`${config.path} already exists, skipping (use --force to overwrite)`));
       skippedCount++;
       continue;
     }
