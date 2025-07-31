@@ -21,7 +21,7 @@ That's it! The bootstrap command will:
 2. Initialize the 1balancer-near submodule
 3. Install all dependencies (main app + NEAR)
 4. Setup Rust 1.86.0 for NEAR contracts
-5. Configure the 1inch proxy
+5. Deploy 1inch proxy to Vercel automatically
 6. Create all environment files
 7. Start all services
 
@@ -158,7 +158,7 @@ This will:
 
 ### Key Environment Variables
 
-- **API Keys**: `ONE_INCH_API_KEY`, `NEXT_PUBLIC_PRIVY_APP_ID`
+- **API Keys**: `ONEINCH_API_KEY`, `NEXT_PUBLIC_PRIVY_APP_ID`
 - **Network Configuration**: RPC URLs, Chain IDs
 - **Service Ports**: Frontend (3000), Hardhat (8545), NEAR Bridge (8090)
 - **Deployment Keys**: Only for development, production uses secure key management
@@ -176,12 +176,40 @@ After bootstrap, services are available at:
 
 ## 1inch Proxy Setup
 
-The proxy handles CORS for 1inch API calls:
+The proxy handles CORS for 1inch API calls and is deployed automatically:
 
+### Automated Deployment (Included in Bootstrap)
+
+The proxy deployment is **automatically included** when you run:
+
+```bash
+yarn bootstrap
+```
+
+Or you can deploy it separately:
+
+```bash
+yarn setup:proxy
+```
+
+Both commands will:
+1. Check/install Vercel CLI
+2. Generate the exact official 1inch proxy project
+3. Deploy to Vercel automatically with your API key
+4. Update environment files with the deployed proxy URL
+5. Test the deployment for compatibility
+
+**Prerequisites**: Make sure you have `ONEINCH_API_KEY` set in your root `.env` file before running bootstrap.
+
+### Manual Deployment
+
+If you prefer manual setup:
 1. Clone proxy repo: `git clone https://github.com/Tanz0rz/1inch-vercel-proxy`
 2. Deploy to Vercel: `vercel`
 3. Add API key in Vercel dashboard
 4. Update NEXT_PUBLIC_PROXY_URL in .env.local
+
+See [PROXY-DEPLOYMENT.md](./PROXY-DEPLOYMENT.md) for detailed instructions.
 
 ## Troubleshooting
 
