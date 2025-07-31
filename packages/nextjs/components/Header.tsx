@@ -365,6 +365,38 @@ export function Header({
     { id: 'profile', label: 'Profile', icon: <User className="w-4 h-4" /> }
   ];
 
+  // Get thematic color for each wallet tab
+  const getWalletTabColor = (tabId: string) => {
+    const colors = {
+      'home': {
+        text: 'text-blue-400',
+        hover: 'hover:bg-blue-500/20 hover:shadow-lg hover:shadow-blue-500/25',
+        active: 'from-blue-500 to-cyan-500 shadow-blue-500/25'
+      },
+      'portfolio': {
+        text: 'text-emerald-400', 
+        hover: 'hover:bg-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/25',
+        active: 'from-emerald-500 to-teal-500 shadow-emerald-500/25'
+      },
+      'trade': {
+        text: 'text-orange-400',
+        hover: 'hover:bg-orange-500/20 hover:shadow-lg hover:shadow-orange-500/25', 
+        active: 'from-orange-500 to-red-500 shadow-orange-500/25'
+      },
+      'social': {
+        text: 'text-pink-400',
+        hover: 'hover:bg-pink-500/20 hover:shadow-lg hover:shadow-pink-500/25',
+        active: 'from-pink-500 to-purple-500 shadow-pink-500/25'
+      },
+      'profile': {
+        text: 'text-indigo-400',
+        hover: 'hover:bg-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/25',
+        active: 'from-indigo-500 to-blue-500 shadow-indigo-500/25'
+      }
+    };
+    return colors[tabId as keyof typeof colors] || colors.home;
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     if (!showDropdown) return;
@@ -491,53 +523,199 @@ export function Header({
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
             {shouldShowWalletNavigation ? (
               // Wallet Navigation
-              walletNavItems.map((item) => (
-                <button
+              walletNavItems.map((item) => {
+                const colors = getWalletTabColor(item.id);
+                return (
+                <motion.button
                   key={item.id}
                   onClick={() => handleWalletNavClick(item.id as any)}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm lg:text-base transition-colors duration-200 ${
+                  className={`relative flex items-center gap-2 px-4 py-3 text-sm lg:text-base font-medium rounded-lg transition-all duration-300 ${
                     activeWalletTab === item.id
-                      ? 'text-foreground border-b-2 border-cyan-400'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? `text-white bg-gradient-to-r ${colors.active} shadow-lg`
+                      : `${colors.text} hover:text-white ${colors.hover}`
                   }`}
+                  whileHover={{ 
+                    scale: 1.05,
+                    y: -2
+                  }}
+                  whileTap={{ 
+                    scale: 0.95,
+                    y: 0
+                  }}
+                  initial={false}
+                  animate={activeWalletTab === item.id ? {
+                    boxShadow: [
+                      `0 4px 14px 0 ${item.id === 'home' ? 'rgba(59, 130, 246, 0.25)' : 
+                                     item.id === 'portfolio' ? 'rgba(16, 185, 129, 0.25)' :
+                                     item.id === 'trade' ? 'rgba(249, 115, 22, 0.25)' :
+                                     item.id === 'social' ? 'rgba(236, 72, 153, 0.25)' :
+                                     'rgba(99, 102, 241, 0.25)'}`,
+                      `0 6px 20px 0 ${item.id === 'home' ? 'rgba(59, 130, 246, 0.4)' : 
+                                     item.id === 'portfolio' ? 'rgba(16, 185, 129, 0.4)' :
+                                     item.id === 'trade' ? 'rgba(249, 115, 22, 0.4)' :
+                                     item.id === 'social' ? 'rgba(236, 72, 153, 0.4)' :
+                                     'rgba(99, 102, 241, 0.4)'}`,
+                      `0 4px 14px 0 ${item.id === 'home' ? 'rgba(59, 130, 246, 0.25)' : 
+                                     item.id === 'portfolio' ? 'rgba(16, 185, 129, 0.25)' :
+                                     item.id === 'trade' ? 'rgba(249, 115, 22, 0.25)' :
+                                     item.id === 'social' ? 'rgba(236, 72, 153, 0.25)' :
+                                     'rgba(99, 102, 241, 0.25)'}`
+                    ]
+                  } : {}}
+                  transition={{
+                    boxShadow: { duration: 2, repeat: Infinity },
+                    layout: { duration: 0.3 }
+                  }}
                 >
-                  {item.icon}
+                  <motion.div
+                    animate={activeWalletTab === item.id ? {
+                      rotate: [0, 5, -5, 0]
+                    } : {}}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {item.icon}
+                  </motion.div>
                   {item.label}
-                </button>
-              ))
+                  {activeWalletTab === item.id && (
+                    <motion.div
+                      className={`absolute -bottom-1 left-1/2 w-1 h-1 rounded-full ${
+                        item.id === 'home' ? 'bg-blue-400' : 
+                        item.id === 'portfolio' ? 'bg-emerald-400' :
+                        item.id === 'trade' ? 'bg-orange-400' :
+                        item.id === 'social' ? 'bg-pink-400' :
+                        'bg-indigo-400'
+                      }`}
+                      layoutId="activeWalletTab"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+                );
+              })
             ) : (
               // Regular Navigation
               <>
-                <button
+                <motion.button
                   onClick={() => handleNavClick('about')}
-                  className={`px-3 py-2 text-sm lg:text-base transition-colors duration-200 ${
+                  className={`relative px-4 py-3 text-sm lg:text-base font-medium rounded-lg transition-all duration-300 ${
                     activeTab === 'about'
-                      ? 'text-foreground border-b-2 border-cyan-400'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'text-white bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/25'
+                      : 'text-cyan-400 hover:text-white hover:bg-cyan-500/20 hover:shadow-lg hover:shadow-cyan-500/25'
                   }`}
+                  whileHover={{ 
+                    scale: 1.05,
+                    y: -2
+                  }}
+                  whileTap={{ 
+                    scale: 0.95,
+                    y: 0
+                  }}
+                  initial={false}
+                  animate={activeTab === 'about' ? {
+                    boxShadow: [
+                      "0 4px 14px 0 rgba(6, 182, 212, 0.25)",
+                      "0 6px 20px 0 rgba(6, 182, 212, 0.4)",
+                      "0 4px 14px 0 rgba(6, 182, 212, 0.25)"
+                    ]
+                  } : {}}
+                  transition={{
+                    boxShadow: { duration: 2, repeat: Infinity },
+                    layout: { duration: 0.3 }
+                  }}
                 >
                   About
-                </button>
-                <button
+                  {activeTab === 'about' && (
+                    <motion.div
+                      className="absolute -bottom-1 left-1/2 w-1 h-1 bg-cyan-400 rounded-full"
+                      layoutId="activeMainTab"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+
+                <motion.button
                   onClick={() => handleNavClick('rebalance')}
-                  className={`px-3 py-2 text-sm lg:text-base transition-colors duration-200 ${
+                  className={`relative px-4 py-3 text-sm lg:text-base font-medium rounded-lg transition-all duration-300 ${
                     activeTab === 'rebalance'
-                      ? 'text-foreground border-b-2 border-cyan-400'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'text-white bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/25'
+                      : 'text-emerald-400 hover:text-white hover:bg-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/25'
                   }`}
+                  whileHover={{ 
+                    scale: 1.05,
+                    y: -2
+                  }}
+                  whileTap={{ 
+                    scale: 0.95,
+                    y: 0
+                  }}
+                  initial={false}
+                  animate={activeTab === 'rebalance' ? {
+                    boxShadow: [
+                      "0 4px 14px 0 rgba(6, 182, 212, 0.25)",
+                      "0 6px 20px 0 rgba(6, 182, 212, 0.4)",
+                      "0 4px 14px 0 rgba(6, 182, 212, 0.25)"
+                    ]
+                  } : {}}
+                  transition={{
+                    boxShadow: { duration: 2, repeat: Infinity },
+                    layout: { duration: 0.3 }
+                  }}
                 >
                   Rebalance
-                </button>
-                <button
+                  {activeTab === 'rebalance' && (
+                    <motion.div
+                      className="absolute -bottom-1 left-1/2 w-1 h-1 bg-cyan-400 rounded-full"
+                      layoutId="activeMainTab"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
+
+                <motion.button
                   onClick={() => handleNavClick('top-performers')}
-                  className={`px-3 py-2 text-sm lg:text-base transition-colors duration-200 ${
+                  className={`relative px-4 py-3 text-sm lg:text-base font-medium rounded-lg transition-all duration-300 ${
                     activeTab === 'top-performers'
-                      ? 'text-foreground border-b-2 border-cyan-400'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'text-white bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/25'
+                      : 'text-amber-400 hover:text-white hover:bg-amber-500/20 hover:shadow-lg hover:shadow-amber-500/25'
                   }`}
+                  whileHover={{ 
+                    scale: 1.05,
+                    y: -2
+                  }}
+                  whileTap={{ 
+                    scale: 0.95,
+                    y: 0
+                  }}
+                  initial={false}
+                  animate={activeTab === 'top-performers' ? {
+                    boxShadow: [
+                      "0 4px 14px 0 rgba(6, 182, 212, 0.25)",
+                      "0 6px 20px 0 rgba(6, 182, 212, 0.4)",
+                      "0 4px 14px 0 rgba(6, 182, 212, 0.25)"
+                    ]
+                  } : {}}
+                  transition={{
+                    boxShadow: { duration: 2, repeat: Infinity },
+                    layout: { duration: 0.3 }
+                  }}
                 >
                   Top Performers
-                </button>
+                  {activeTab === 'top-performers' && (
+                    <motion.div
+                      className="absolute -bottom-1 left-1/2 w-1 h-1 bg-cyan-400 rounded-full"
+                      layoutId="activeMainTab"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
               </>
             )}
           </nav>
@@ -775,53 +953,199 @@ export function Header({
               <nav className="flex flex-col space-y-2">
                 {shouldShowWalletNavigation ? (
                   // Mobile Wallet Navigation
-                  walletNavItems.map((item) => (
-                    <button
+                  walletNavItems.map((item) => {
+                    const colors = getWalletTabColor(item.id);
+                    return (
+                    <motion.button
                       key={item.id}
                       onClick={() => handleWalletNavClick(item.id as any)}
-                      className={`flex items-center gap-3 px-4 py-3 text-base transition-colors duration-200 text-left ${
+                      className={`relative flex items-center gap-3 px-4 py-4 mx-2 text-base font-medium rounded-xl transition-all duration-300 text-left ${
                         activeWalletTab === item.id
-                          ? 'text-foreground bg-accent/50 border-l-4 border-cyan-400'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent/30'
+                          ? `text-white bg-gradient-to-r ${colors.active} shadow-lg`
+                          : `${colors.text} hover:text-white ${colors.hover}`
                       }`}
+                      whileHover={{ 
+                        scale: 1.02,
+                        x: 5
+                      }}
+                      whileTap={{ 
+                        scale: 0.98,
+                        x: 0
+                      }}
+                      initial={false}
+                      animate={activeWalletTab === item.id ? {
+                        boxShadow: [
+                          `0 4px 14px 0 ${item.id === 'home' ? 'rgba(59, 130, 246, 0.25)' : 
+                                         item.id === 'portfolio' ? 'rgba(16, 185, 129, 0.25)' :
+                                         item.id === 'trade' ? 'rgba(249, 115, 22, 0.25)' :
+                                         item.id === 'social' ? 'rgba(236, 72, 153, 0.25)' :
+                                         'rgba(99, 102, 241, 0.25)'}`,
+                          `0 6px 20px 0 ${item.id === 'home' ? 'rgba(59, 130, 246, 0.4)' : 
+                                         item.id === 'portfolio' ? 'rgba(16, 185, 129, 0.4)' :
+                                         item.id === 'trade' ? 'rgba(249, 115, 22, 0.4)' :
+                                         item.id === 'social' ? 'rgba(236, 72, 153, 0.4)' :
+                                         'rgba(99, 102, 241, 0.4)'}`,
+                          `0 4px 14px 0 ${item.id === 'home' ? 'rgba(59, 130, 246, 0.25)' : 
+                                         item.id === 'portfolio' ? 'rgba(16, 185, 129, 0.25)' :
+                                         item.id === 'trade' ? 'rgba(249, 115, 22, 0.25)' :
+                                         item.id === 'social' ? 'rgba(236, 72, 153, 0.25)' :
+                                         'rgba(99, 102, 241, 0.25)'}`
+                        ]
+                      } : {}}
+                      transition={{
+                        boxShadow: { duration: 2, repeat: Infinity },
+                        layout: { duration: 0.3 }
+                      }}
                     >
-                      {item.icon}
+                      <motion.div
+                        animate={activeWalletTab === item.id ? {
+                          rotate: [0, 5, -5, 0]
+                        } : {}}
+                        transition={{ duration: 0.5 }}
+                      >
+                        {item.icon}
+                      </motion.div>
                       {item.label}
-                    </button>
-                  ))
+                      {activeWalletTab === item.id && (
+                        <motion.div
+                          className={`absolute left-0 top-1/2 w-1 h-8 rounded-r-full ${
+                            item.id === 'home' ? 'bg-blue-400' : 
+                            item.id === 'portfolio' ? 'bg-emerald-400' :
+                            item.id === 'trade' ? 'bg-orange-400' :
+                            item.id === 'social' ? 'bg-pink-400' :
+                            'bg-indigo-400'
+                          }`}
+                          layoutId="activeMobileWalletTab"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                    </motion.button>
+                    );
+                  })
                 ) : (
                   // Mobile Regular Navigation
                   <>
-                    <button
+                    <motion.button
                       onClick={() => handleNavClick('about')}
-                      className={`flex items-center px-4 py-3 text-base transition-colors duration-200 text-left ${
+                      className={`relative flex items-center px-4 py-4 mx-2 text-base font-medium rounded-xl transition-all duration-300 text-left ${
                         activeTab === 'about'
-                          ? 'text-foreground bg-accent/50 border-l-4 border-cyan-400'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent/30'
+                          ? 'text-white bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/25'
+                          : 'text-cyan-400 hover:text-white hover:bg-cyan-500/20 hover:shadow-lg hover:shadow-cyan-500/25'
                       }`}
+                      whileHover={{ 
+                        scale: 1.02,
+                        x: 5
+                      }}
+                      whileTap={{ 
+                        scale: 0.98,
+                        x: 0
+                      }}
+                      initial={false}
+                      animate={activeTab === 'about' ? {
+                        boxShadow: [
+                          "0 4px 14px 0 rgba(6, 182, 212, 0.25)",
+                          "0 6px 20px 0 rgba(6, 182, 212, 0.4)",
+                          "0 4px 14px 0 rgba(6, 182, 212, 0.25)"
+                        ]
+                      } : {}}
+                      transition={{
+                        boxShadow: { duration: 2, repeat: Infinity },
+                        layout: { duration: 0.3 }
+                      }}
                     >
                       About
-                    </button>
-                    <button
+                      {activeTab === 'about' && (
+                        <motion.div
+                          className="absolute left-0 top-1/2 w-1 h-8 bg-cyan-400 rounded-r-full"
+                          layoutId="activeMobileMainTab"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                    </motion.button>
+
+                    <motion.button
                       onClick={() => handleNavClick('rebalance')}
-                      className={`flex items-center px-4 py-3 text-base transition-colors duration-200 text-left ${
+                      className={`relative flex items-center px-4 py-4 mx-2 text-base font-medium rounded-xl transition-all duration-300 text-left ${
                         activeTab === 'rebalance'
-                          ? 'text-foreground bg-accent/50 border-l-4 border-cyan-400'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent/30'
+                          ? 'text-white bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/25'
+                          : 'text-emerald-400 hover:text-white hover:bg-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/25'
                       }`}
+                      whileHover={{ 
+                        scale: 1.02,
+                        x: 5
+                      }}
+                      whileTap={{ 
+                        scale: 0.98,
+                        x: 0
+                      }}
+                      initial={false}
+                      animate={activeTab === 'rebalance' ? {
+                        boxShadow: [
+                          "0 4px 14px 0 rgba(6, 182, 212, 0.25)",
+                          "0 6px 20px 0 rgba(6, 182, 212, 0.4)",
+                          "0 4px 14px 0 rgba(6, 182, 212, 0.25)"
+                        ]
+                      } : {}}
+                      transition={{
+                        boxShadow: { duration: 2, repeat: Infinity },
+                        layout: { duration: 0.3 }
+                      }}
                     >
                       Rebalance
-                    </button>
-                    <button
+                      {activeTab === 'rebalance' && (
+                        <motion.div
+                          className="absolute left-0 top-1/2 w-1 h-8 bg-cyan-400 rounded-r-full"
+                          layoutId="activeMobileMainTab"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                    </motion.button>
+
+                    <motion.button
                       onClick={() => handleNavClick('top-performers')}
-                      className={`flex items-center px-4 py-3 text-base transition-colors duration-200 text-left ${
+                      className={`relative flex items-center px-4 py-4 mx-2 text-base font-medium rounded-xl transition-all duration-300 text-left ${
                         activeTab === 'top-performers'
-                          ? 'text-foreground bg-accent/50 border-l-4 border-cyan-400'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-accent/30'
+                          ? 'text-white bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg shadow-cyan-500/25'
+                          : 'text-amber-400 hover:text-white hover:bg-amber-500/20 hover:shadow-lg hover:shadow-amber-500/25'
                       }`}
+                      whileHover={{ 
+                        scale: 1.02,
+                        x: 5
+                      }}
+                      whileTap={{ 
+                        scale: 0.98,
+                        x: 0
+                      }}
+                      initial={false}
+                      animate={activeTab === 'top-performers' ? {
+                        boxShadow: [
+                          "0 4px 14px 0 rgba(6, 182, 212, 0.25)",
+                          "0 6px 20px 0 rgba(6, 182, 212, 0.4)",
+                          "0 4px 14px 0 rgba(6, 182, 212, 0.25)"
+                        ]
+                      } : {}}
+                      transition={{
+                        boxShadow: { duration: 2, repeat: Infinity },
+                        layout: { duration: 0.3 }
+                      }}
                     >
                       Top Performers
-                    </button>
+                      {activeTab === 'top-performers' && (
+                        <motion.div
+                          className="absolute left-0 top-1/2 w-1 h-8 bg-cyan-400 rounded-r-full"
+                          layoutId="activeMobileMainTab"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                    </motion.button>
                   </>
                 )}
 
