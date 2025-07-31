@@ -51,6 +51,7 @@ export function LayoutContent({ children }: LayoutContentProps) {
         <Header 
           activeTab={getActiveTab()}
           onTabChange={handleTabChange}
+          router={router}
         />
       )}
       

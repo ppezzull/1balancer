@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useIsMobile } from "./ui/use-mobile";
@@ -17,6 +18,7 @@ interface HeaderProps {
   onWalletTabChange?: (tab: 'home' | 'portfolio' | 'trade' | 'social' | 'profile') => void;
   isWalletConnected?: boolean;
   showWalletNavigation?: boolean; // New prop to control wallet navigation visibility
+  router?: AppRouterInstance; // Router for direct navigation
 }
 
 export function Header({ 
@@ -25,7 +27,8 @@ export function Header({
   activeWalletTab = 'home', 
   onWalletTabChange = () => {}, 
   isWalletConnected: propIsWalletConnected = false,
-  showWalletNavigation = false // Default to false
+  showWalletNavigation = false, // Default to false
+  router
 }: Partial<HeaderProps> = {}) {
   const [isWalletConnected, setIsWalletConnected] = useState(propIsWalletConnected || false);
   const [walletAddress, setWalletAddress] = useState<string>("");
@@ -96,8 +99,15 @@ export function Header({
     // Emit disconnection event
     emitWalletConnectionEvent(false);
     
+    // Navigate back to home when disconnecting wallet
+    if (router) {
+      router.push('/');
+    } else {
+      onTabChange('home');
+    }
+    
     toast.info("Wallet disconnected", {
-      description: "Your wallet has been disconnected successfully",
+      description: "You've been redirected to the homepage",
       duration: 2000,
     });
   };
@@ -316,7 +326,25 @@ export function Header({
 
   // Handle navigation clicks
   const handleNavClick = (tab: 'home' | 'about' | 'rebalance' | 'top-performers') => {
-    onTabChange(tab);
+    if (router) {
+      // Use router directly for more reliable navigation
+      switch (tab) {
+        case 'home':
+          router.push('/');
+          break;
+        case 'about':
+          router.push('/about');
+          break;
+        case 'rebalance':
+          router.push('/rebalance');
+          break;
+        case 'top-performers':
+          router.push('/top-performers');
+          break;
+      }
+    } else {
+      onTabChange(tab);
+    }
     setShowMobileMenu(false);
   };
 

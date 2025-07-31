@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { WalletHomeSection } from "./WalletHomeSection";
 import { Header } from "./Header";
 
@@ -11,18 +12,25 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ portfolioData, marketData, userData }: DashboardClientProps) {
+  const router = useRouter();
   const [activeWalletTab, setActiveWalletTab] = useState<'home' | 'portfolio' | 'trade' | 'social' | 'profile'>('home');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   // Listen for wallet connection events
   useEffect(() => {
     const handleWalletConnection = (event: CustomEvent) => {
-      setIsWalletConnected(event.detail.connected);
+      const isConnected = event.detail.connected;
+      setIsWalletConnected(isConnected);
+      
+      // If wallet is disconnected while in dashboard, navigate to root
+      if (!isConnected) {
+        router.push('/');
+      }
     };
 
     window.addEventListener('wallet-connection-changed', handleWalletConnection as EventListener);
     return () => window.removeEventListener('wallet-connection-changed', handleWalletConnection as EventListener);
-  }, []);
+  }, [router]);
 
   // Check initial wallet connection state
   useEffect(() => {
@@ -50,6 +58,7 @@ export function DashboardClient({ portfolioData, marketData, userData }: Dashboa
         onWalletTabChange={handleWalletTabChange}
         isWalletConnected={isWalletConnected}
         showWalletNavigation={true} // Show wallet navigation in dashboard
+        router={router} // Pass router for wallet disconnection navigation
       />
       
       {/* Main Dashboard Content */}
