@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const http = require('http');
-const chalk = require('chalk');
-const ora = require('ora');
+const chalk = require('chalk').default;
+const ora = require('ora').default;
 
 console.log(chalk.blue.bold('\n📊 Checking service status...\n'));
 
