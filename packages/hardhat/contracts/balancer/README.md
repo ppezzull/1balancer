@@ -1,80 +1,95 @@
 # Portfolio Management Contracts
 
-This directory contains the 1Balancer core business logic for portfolio management.
+This directory contains the 1Balancer core business logic for portfolio management. The system is designed for modularity, capital efficiency, and high composability using inheritance and separation of concerns.
+
+---
 
 ## Contracts Description
 
 ### BalancerFactory
 
-The factory contract that enables users to create their own balancer instances tailored to their preferred asset-management strategies.
-Main functions:
-- createBalancer -> create a new balancer instance and fund it with the specified tokens and percentages
-- getBalancer -> get a balancer instance by address
-- getBalancers -> get all balancer instances
-- getBalancerCount -> get the number of balancer instances
-- getBalancersByOwner -> get all balancer instances owned by the specified address
-- getBalancersByOwnerAndName -> get all balancer instances owned by the specified address and with the specified name
+The `BalancerFactory` contract is responsible for creating user-owned balancer instances. Each instance represents a distinct portfolio management strategy, either time-based or drift-based.
 
+#### Functions:
+- `createBalancer(...)` → Deploys and initializes a new TimeBalancer or DriftBalancer instance.
+- `getBalancer(address)` → Returns a specific balancer instance.
+- `getBalancers()` → Returns all deployed balancer instances.
+- `getBalancerCount()` → Returns the total number of balancers created.
+- `getBalancersByOwner(address)` → Returns all balancers owned by a specific user.
+- `getBalancersByOwnerAndName(address, string)` → Returns all balancers for an owner with the specified name.
 
-### StableLimit Module is LimitOrder
+---
 
-The StableLimit module implements a sophisticated stablecoin trading strategy based on limit orders to capitalize on minor price deviations from their peg. This allows for automated profit generation from the natural volatility of stablecoins.
+### StableLimit (inherits: `IERC1271`, `AutomationCompatibleInterface`)
 
-#### Use Case: Stablecoin Arbitrage
+A self-contained limit order engine that operates as a "micro-balancer" for stablecoins. This module is embedded in every balancer instance to manage stablecoin sub-allocations (e.g., USDC/USDT/DAI within a 30% stablecoin slice).
 
-**Scenario 1: Buying at a Discount (Purchase at 0.998)**
+It automatically detects deviations in peg values using the 1inch Price Feed Aggregator and places signed limit orders (via EIP-1271) accordingly. It is periodically triggered by Chainlink Automation to minimize gas usage and operator overhead.
 
-In this scenario, a limit order is set to buy a stablecoin (e.g., USDC) when its price drops slightly below its peg (e.g., 1 USD). This is based on the expectation that the price will return to its pegged value, allowing for a profit.
+#### Stored Data:
+- `USDC`, `USDT`, `DAI` → Stablecoin addresses
+- `PRICE_FEED` → 1inch price feed aggregator address
+- `validOrders` → Map of signed order hashes to active status
+- `expiration` → Order hash expiry timestamps
+- `lastCheck`, `interval` → Chainlink Automation scheduling
 
--   **Action**: Set a limit buy order for USDC at 0.998 USD, using another stablecoin like USDT or DAI as the purchasing currency.
--   **Example**: An order is set to buy 10,000 USDC at a price of 0.998 USDT per USDC. When the order is executed, 9,980 USDT are spent to obtain 10,000 USDC.
--   **Objective**: Once the price of USDC returns to 1.000 USDT, the 10,000 USDC can be sold for 10,000 USDT, realizing a profit of 20 USDT.
+#### Functions:
+- `checkUpkeep()` → Chainlink Automation: determine if rebalancing is due
+- `performUpkeep()` → Called periodically to check price drift and place limit orders
+- `isValidSignature(bytes32 hash, bytes)` → Implements EIP-1271 for 1inch Limit Order Protocol validation
+- `_placeLimitOrder(...)` → Internal helper to compute, hash, and store signed limit orders
 
-**Scenario 2: Selling at a Premium (Sale at 1.001)**
+---
 
-In this scenario, a limit order is set to sell a stablecoin (e.g., USDC) when its price rises slightly above its peg. This is based on the expectation that the price will return to its pegged value, allowing the stablecoin to be repurchased at a lower price, thus realizing a profit.
+### BaseBalancer (inherits: `StableLimit`)
 
--   **Action**: Set a limit sell order for USDC at 1.001 USD, using another stablecoin like USDT or DAI as the purchasing currency.
--   **Example**: An order is set to sell 10,000 USDC at a price of 1.001 USDT per USDC. When the order is executed, 10,010 USDT are received.
--   **Objective**: Once the price of USDC returns to 1.000 USDT, the 10,000 USDC can be repurchased for 10,000 USDT, realizing a profit of 10 USDT.
+This abstract base contract defines shared portfolio logic for percentage-based allocations. It delegates stablecoin rebalancing to `StableLimit` and focuses on overall portfolio-wide token value tracking.
 
-**Simultaneous Implementation:**
+#### Stored Data:
+- `name`, `description` → Metadata
+- `owner` → Creator/owner of this balancer
+- `tokens[]` → List of all assets in the portfolio
+- `percentages[]` → Target allocation per token
+- `wallet` → Token-holding address (usually the contract itself)
+- `priceFeed` → 1inch Price Aggregator
+- `totalValue` → Total portfolio valuation in a common unit
 
-The true power of this strategy lies in the simultaneous implementation of both scenarios. Limit orders are set to both buy at a discount and sell at a premium. This way, one is positioned to profit from any small deviation from the peg, regardless of the direction.
+#### Functions:
+- `setPercentages(address[] tokens, uint256[] percentages)` → Configure target distribution
+- `fundWallet()` → Add funds in correct proportions
+- `withdrawFunds()` → Extract assets proportionally
+- `comparePercentages()` → Check current balance vs. target and return imbalance report
 
-**Advanced Strategies and Optimizations**
+---
 
-The basic strategy can be further optimized through several advanced techniques:
+### DriftBalancer (inherits: `BaseBalancer`)
 
--   **Dynamic Scaling**: Instead of using fixed prices (e.g., 0.998 and 1.002), a dynamic scaling system can be implemented that adapts the target prices based on recent historical volatility. In periods of higher volatility, the spreads can be widened to capture larger movements.
--   **Multiple Orders**: Instead of setting a single limit order for each direction, a "ladder" of orders can be created at progressively more advantageous prices, with decreasing volumes. For example:
-    -   **Buy**: 40% of capital at 0.998, 30% at 0.997, 20% at 0.996, 10% at 0.995
-    -   **Sell**: 40% of capital at 1.002, 30% at 1.003, 20% at 1.004, 10% at 1.005
+Implements value-based rebalancing. When token allocations drift beyond a set threshold, it generates limit orders via the embedded `StableLimit` module.
 
-### BaseBalancer Module is StableLimit
+#### Characteristics:
+- Passive, price-sensitive strategy
+- Suitable for volatile markets with auto-correction needs
+- Relies on 1inch for trade execution and on-chain oracles for drift detection
 
-The shared foundational module providing basic percentage-based allocation functionality. This module integrates directly with the 1inch Price Feed Aggregator Contract to fetch tokens' real-time values, comparing them to current balances and ensuring precise allocation logic. It has a name and a description and it is owned by the user that deployed it.
-Main functions:
-- setPercentages -> set the percentages of the tokens
-- fundWallet -> fund the wallet with the specified tokens and percentages
-- withdrawFunds -> withdraw the specified amount of funds from the wallet
-- constructor -> name, description, owner, tokens, percentages, priceFeed address. Tokens and percentages are arrays of the same length and a minimum of 2 tokens are required. 
-- comparePercentages -> fetch the values of the tokens and compare them to the percentages and returns if the portfolio is rebalanced or not and returns imbalance amounts for each token
+---
 
-Attributes:
-- name
-- description
-- owner
-- tokens
-- percentages
-- priceFeed
-- wallet
-- totalValue
+### TimeBalancer (inherits: `BaseBalancer`)
 
-### DriftBalancer is BaseBalancer + LimitOrder
+Implements time-based rebalancing logic using Chainlink Automation. Rebalancing occurs at regular intervals, regardless of market movement.
 
-The DriftBalancer contract combines the functionalities of the BaseBalancer and LimitOrder modules. It is designed for automated, drift-based rebalancing of a diversified crypto asset portfolio. When the portfolio's composition deviates from the target percentages beyond a specified threshold, this contract automatically executes the necessary trades to restore the desired balance.
+#### Characteristics:
+- Predictable and consistent schedule
+- Less sensitive to volatility, more user-configurable
+- Optionally uses 1inch Fusion or Limit Orders for rebalancing
 
-### TimeBalancer is BaseBalancer + Chainlink Automation + 1inch Fusion
+---
 
-The TimeBalancer contract integrates the BaseBalancer's logic with Chainlink Automation and the 1inch Fusion protocol. This combination allows for scheduled, time-based portfolio rebalancing. Users can set specific intervals (e.g., daily, weekly) at which the contract will automatically execute swaps to maintain the desired asset distribution, ensuring the portfolio stays aligned with the user's strategy without manual intervention.
+## System Inheritance Overview
+
+```mermaid
+graph TD
+    BalancerFactory --> DriftBalancer
+    BalancerFactory --> TimeBalancer
+    DriftBalancer --> BaseBalancer
+    TimeBalancer --> BaseBalancer
+    BaseBalancer --> StableLimit
