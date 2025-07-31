@@ -14,14 +14,11 @@ const deployFusionPlusHub: DeployFunction = async function (hre: HardhatRuntimeE
 
   console.log("🚀 Deploying FusionPlusHub to BASE testnet...");
 
-  // Get deployed contract addresses
-  const htlcManagerDeployment = await get("HTLCManager");
-  const orchestrationDeployment = await get("OrchestrationCoordinator");
-
   // For hackathon demo, we'll use placeholder addresses for 1inch contracts
   // These will be replaced with actual addresses when 1inch deploys to BASE testnet
   const PLACEHOLDER_LIMIT_ORDER_PROTOCOL = "0x0000000000000000000000000000000000000001";
   const PLACEHOLDER_AGGREGATION_ROUTER = "0x0000000000000000000000000000000000000002";
+  const PLACEHOLDER_ESCROW_FACTORY = "0x0000000000000000000000000000000000000003";
 
   console.log("⚠️  Note: Using placeholder addresses for 1inch contracts (not yet deployed to BASE testnet)");
 
@@ -37,8 +34,7 @@ const deployFusionPlusHub: DeployFunction = async function (hre: HardhatRuntimeE
           args: [
             PLACEHOLDER_LIMIT_ORDER_PROTOCOL,
             PLACEHOLDER_AGGREGATION_ROUTER,
-            htlcManagerDeployment.address,
-            orchestrationDeployment.address,
+            PLACEHOLDER_ESCROW_FACTORY,
           ],
         },
       },
@@ -56,8 +52,7 @@ const deployFusionPlusHub: DeployFunction = async function (hre: HardhatRuntimeE
   console.log("📋 FusionPlusHub Configuration:");
   console.log("   - Implementation:", fusionPlusHubDeployment.implementation);
   console.log("   - Proxy Admin:", await fusionPlusHubDeployment.owner);
-  console.log("   - HTLCManager:", htlcManagerDeployment.address);
-  console.log("   - OrchestrationCoordinator:", orchestrationDeployment.address);
+  console.log("   - Escrow Factory:", PLACEHOLDER_ESCROW_FACTORY, "(placeholder)");
   console.log("   - Limit Order Protocol:", PLACEHOLDER_LIMIT_ORDER_PROTOCOL, "(placeholder)");
   console.log("   - Aggregation Router:", PLACEHOLDER_AGGREGATION_ROUTER, "(placeholder)");
   
@@ -97,10 +92,8 @@ const deployFusionPlusHub: DeployFunction = async function (hre: HardhatRuntimeE
     }
   }
 
-  console.log("\n🎉 Ethereum Hub deployment complete!");
-  console.log("📍 Contract Addresses:");
-  console.log("   - HTLCManager:", htlcManagerDeployment.address);
-  console.log("   - OrchestrationCoordinator:", orchestrationDeployment.address);
+  console.log("\n🎉 FusionPlusHub deployment complete!");
+  console.log("📍 Contract Address:");
   console.log("   - FusionPlusHub:", fusionPlusHubDeployment.address);
   console.log("\n🔗 Ready for cross-chain atomic swaps with NEAR!");
 };
@@ -110,5 +103,5 @@ export default deployFusionPlusHub;
 // Tags for selective deployment
 deployFusionPlusHub.tags = ["FusionPlusHub", "EthereumHub", "BASE"];
 
-// Dependencies - ensure other contracts are deployed first
-deployFusionPlusHub.dependencies = ["HTLCManager", "OrchestrationCoordinator"];
+// No dependencies - FusionPlusHub is the main contract
+deployFusionPlusHub.dependencies = [];

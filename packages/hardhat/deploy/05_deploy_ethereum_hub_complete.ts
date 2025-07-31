@@ -28,17 +28,18 @@ const deployEthereumHubComplete: DeployFunction = async function (hre: HardhatRu
 
   console.log("\n=== Deployment Summary ===");
   console.log("This script will deploy:");
-  console.log("1. HTLCManager - Atomic swap implementation");
-  console.log("2. OrchestrationCoordinator - Cross-chain coordination");
-  console.log("3. FusionPlusHub - Main integration hub (upgradeable)");
+  console.log("1. FusionPlusHub - Main integration hub (upgradeable)");
+  console.log("   - Integrates with 1inch Limit Order Protocol");
+  console.log("   - Manages cross-chain coordination via events");
+  console.log("   - Uses EscrowFactory for atomic swaps");
   console.log("========================\n");
 
   // The actual deployment is handled by the individual scripts
   // This script just provides a convenient entry point
   console.log("📦 Deploying contracts...");
   
-  // Note: Dependencies are handled automatically by hardhat-deploy
-  // HTLCManager -> OrchestrationCoordinator -> FusionPlusHub
+  // Note: FusionPlusHub is the main contract
+  // Orchestration is handled off-chain via event monitoring
 };
 
 export default deployEthereumHubComplete;
@@ -46,8 +47,8 @@ export default deployEthereumHubComplete;
 // This tag allows deploying all Ethereum Hub contracts at once
 deployEthereumHubComplete.tags = ["EthereumHub"];
 
-// Ensure all sub-deployments run
-deployEthereumHubComplete.dependencies = ["HTLCManager", "OrchestrationCoordinator", "FusionPlusHub"];
+// Ensure FusionPlusHub deploys
+deployEthereumHubComplete.dependencies = ["FusionPlusHub"];
 
 /**
  * DEPLOYMENT INSTRUCTIONS:
@@ -60,9 +61,7 @@ deployEthereumHubComplete.dependencies = ["HTLCManager", "OrchestrationCoordinat
  * 2. Deploy to BASE testnet:
  *    yarn deploy --network baseSepolia --tags EthereumHub
  * 
- * 3. Or deploy individual contracts:
- *    yarn deploy --network baseSepolia --tags HTLCManager
- *    yarn deploy --network baseSepolia --tags OrchestrationCoordinator
+ * 3. Or deploy FusionPlusHub directly:
  *    yarn deploy --network baseSepolia --tags FusionPlusHub
  * 
  * 4. Verify contracts (if BASESCAN_API_KEY is set):
@@ -71,4 +70,9 @@ deployEthereumHubComplete.dependencies = ["HTLCManager", "OrchestrationCoordinat
  * 5. Check deployment:
  *    - Contract addresses are saved in deployments/baseSepolia/
  *    - Frontend automatically uses deployed addresses
+ * 
+ * 6. Next steps:
+ *    - Deploy NEAR HTLC contract (see 1balancer-near repo)
+ *    - Start orchestration service (Task 5)
+ *    - Configure event monitoring bridge (Task 15)
  */
