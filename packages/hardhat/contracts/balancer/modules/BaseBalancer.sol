@@ -5,13 +5,14 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./StableLimit.sol";
 
 /**
  * @title Balancer
  * @author @ppezzull
  * @notice Manages a portfolio of assets, ensuring they are balanced according to specified percentages.
  */
-contract Balancer is Ownable, ReentrancyGuard {
+contract BaseBalancer is Ownable, ReentrancyGuard, StableLimit {
     using SafeERC20 for IERC20;
 
     // -- Constants --
@@ -55,8 +56,15 @@ contract Balancer is Ownable, ReentrancyGuard {
         address[] memory _assetAddresses,
         uint256[] memory _percentages,
         uint256 _driftPercentage,
-        uint256 _updatePeriodicity
-    ) Ownable(initialOwner) {
+        uint256 _updatePeriodicity,
+        address _stableToken,
+        address _stablePriceFeed,
+        uint256 _lowerBound,
+        uint256 _upperBound
+    )
+        Ownable(initialOwner)
+        StableLimit(_stableToken, _stablePriceFeed, _lowerBound, _upperBound)
+    {
         _updateAssetMapping(_assetAddresses, _percentages);
         driftPercentage = _driftPercentage;
         updatePeriodicity = _updatePeriodicity;
