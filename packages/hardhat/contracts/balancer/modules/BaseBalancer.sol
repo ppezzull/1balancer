@@ -151,13 +151,15 @@ contract BaseBalancer is Ownable, ReentrancyGuard, StableLimit {
      * @param _percentages The list of percentages to validate.
      */
     function _validateAssetPercentages(uint256[] memory _percentages) internal pure {
-        uint256 totalPercentage = 0;
-        for (uint256 i = 0; i < _percentages.length; i++) {
-            totalPercentage += _percentages[i];
-        }
+        if (_percentages.length > 0) {
+            uint256 totalPercentage = 0;
+            for (uint256 i = 0; i < _percentages.length; i++) {
+                totalPercentage += _percentages[i];
+            }
 
-        if (totalPercentage != MAX_BASIS_POINTS) {
-            revert Balancer__InvalidPercentagesSum();
+            if (totalPercentage != MAX_BASIS_POINTS) {
+                revert Balancer__InvalidPercentagesSum();
+            }
         }
     }
 
