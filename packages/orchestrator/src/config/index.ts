@@ -17,6 +17,10 @@ interface Config {
       networkId: string;
       accountId: string;
       privateKey?: string;
+      contracts?: {
+        htlc: string;
+        solverRegistry: string;
+      };
     };
     ethereum: {
       rpcUrl: string;
@@ -105,6 +109,10 @@ function getConfig(): Config {
         networkId: process.env.NEAR_NETWORK_ID || 'testnet',
         accountId: process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || '',
         privateKey: process.env.NEAR_PRIVATE_KEY,
+        contracts: {
+          htlc: process.env.NEAR_HTLC_CONTRACT || 'fusion-htlc.testnet',
+          solverRegistry: process.env.NEAR_SOLVER_REGISTRY || 'solver-registry.testnet',
+        },
       },
       ethereum: {
         rpcUrl: process.env.ETHEREUM_RPC_URL || '',

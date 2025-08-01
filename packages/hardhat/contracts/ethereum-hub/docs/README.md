@@ -13,9 +13,8 @@ The Ethereum Hub is the core component of 1Balancer's cross-chain atomic swap in
 5. [Cross-Chain Coordination](./05-cross-chain-coordination.md)
 6. [Orchestration Service Interface](./06-orchestration-interface.md)
 7. [Security Architecture](./07-security-architecture.md)
-8. [1inch Foundation Alignment](./08-1inch-alignment.md)
-9. [Testing Strategy](./09-testing-strategy.md)
-10. [Deployment Guide](./10-deployment-guide.md)
+8. [Testing Guide](./08-testing-guide.md)
+9. [NEAR Protocol Integration](./09-near-integration.md)
 
 ## Quick Start
 
@@ -99,6 +98,9 @@ yarn test:fork
 - Compatible HTLC implementation
 - Cross-chain message verification
 - Coordinated timeout management
+- TEE solver integration
+
+For detailed NEAR documentation, see [NEAR Protocol Integration](./09-near-integration.md)
 
 ## Security Features
 
