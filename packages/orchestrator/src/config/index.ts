@@ -1,4 +1,6 @@
 import { ethers } from 'ethers';
+import * as fs from 'fs';
+import * as path from 'path';
 
 interface Config {
   env: string;
@@ -90,6 +92,30 @@ interface Config {
   };
 }
 
+// Helper function to read NEAR contract address from deployment file
+function getNearContractAddress(): string {
+  // First check environment variable
+  if (process.env.NEAR_HTLC_CONTRACT) {
+    return process.env.NEAR_HTLC_CONTRACT;
+  }
+  
+  // Then check deployment file
+  try {
+    const deployPath = path.join(__dirname, '../../../../1balancer-near/.near-credentials/testnet/deploy.json');
+    if (fs.existsSync(deployPath)) {
+      const deployData = JSON.parse(fs.readFileSync(deployPath, 'utf8'));
+      if (deployData.contractId) {
+        return deployData.contractId;
+      }
+    }
+  } catch (error) {
+    // Ignore errors, fall back to default
+  }
+  
+  // Default fallback
+  return 'fusion-htlc.testnet';
+}
+
 function getConfig(): Config {
   const env = process.env.NODE_ENV || 'development';
   const isDevelopment = env === 'development';
@@ -112,7 +138,7 @@ function getConfig(): Config {
         accountId: process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || '',
         privateKey: process.env.NEAR_PRIVATE_KEY,
         contracts: {
-          htlc: process.env.NEAR_HTLC_CONTRACT || 'fusion-htlc.testnet',
+          htlc: getNearContractAddress(),
           solverRegistry: process.env.NEAR_SOLVER_REGISTRY || 'solver-registry.testnet',
         },
       },

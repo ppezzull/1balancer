@@ -33,6 +33,15 @@ export interface SwapSession {
       [chain: string]: string;
     };
   };
+  // NEAR-specific fields
+  nearHTLCId?: string;
+  revealedSecret?: string;
+  // Additional fields for cross-chain coordination
+  id: string;
+  sourceAddress: string;
+  destinationAddress: string;
+  sourceAsset: string;
+  destinationAsset: string;
 }
 
 export interface SessionStep {
@@ -59,7 +68,13 @@ export type SessionStatus =
   | 'failed'
   | 'timeout'
   | 'refunding'
-  | 'refunded';
+  | 'refunded'
+  | 'htlc_created_near'
+  | 'secret_revealed_near'
+  | 'secret_revealed_base'
+  | 'withdrawing_base'
+  | 'withdrawing_near'
+  | 'refunded_near';
 
 interface CreateSessionParams {
   sourceChain: string;
@@ -103,6 +118,7 @@ export class SessionManager {
 
     const session: SwapSession = {
       sessionId,
+      id: sessionId, // Add id field for compatibility
       status: 'initialized',
       ...params,
       hashlockHash,
@@ -111,6 +127,11 @@ export class SessionManager {
       updatedAt: now,
       expirationTime: now + (config.session.timeoutSeconds * 1000),
       estimatedCompletionTime: 180, // 3 minutes estimate
+      // Map fields for cross-chain coordination
+      sourceAddress: params.maker,
+      destinationAddress: params.taker,
+      sourceAsset: params.sourceToken,
+      destinationAsset: params.destinationToken,
       steps: [
         {
           step: 'initialize',
@@ -358,6 +379,12 @@ export class SessionManager {
       'timeout': 'timeout',
       'refunding': 'refunding',
       'refunded': 'refunded',
+      'htlc_created_near': 'htlc_created_near',
+      'secret_revealed_near': 'secret_revealed_near',
+      'secret_revealed_base': 'secret_revealed_base',
+      'withdrawing_base': 'withdrawing_base',
+      'withdrawing_near': 'withdrawing_near',
+      'refunded_near': 'refunded_near',
     };
 
     return phaseMap[status] || 'unknown';
@@ -369,7 +396,7 @@ export class SessionManager {
 
     for (const [sessionId, session] of this.sessions) {
       if (now > session.expirationTime && 
-          ['completed', 'cancelled', 'failed', 'refunded'].includes(session.status)) {
+          ['completed', 'cancelled', 'failed', 'refunded', 'refunded_near'].includes(session.status)) {
         this.sessions.delete(sessionId);
         if (session.orderHash) {
           this.sessionsByOrderHash.delete(session.orderHash);
@@ -381,5 +408,43 @@ export class SessionManager {
     if (cleaned > 0) {
       logger.info(`Cleaned up ${cleaned} expired sessions`);
     }
+  }
+
+  // Helper methods for NEARChainCoordinator
+  async getActiveSessions(): Promise<SwapSession[]> {
+    const sessions = await this.listSessions({
+      limit: 1000,
+      offset: 0,
+    });
+    
+    // Filter for active sessions
+    const activeStatuses: SessionStatus[] = [
+      'initialized', 'executing', 'both_locked', 
+      'secret_revealed_near', 'secret_revealed_base',
+      'withdrawing_base', 'withdrawing_near'
+    ];
+    
+    return sessions.filter(s => activeStatuses.includes(s.status));
+  }
+
+  async updateSession(sessionId: string, session: Partial<SwapSession>): Promise<void> {
+    const existingSession = await this.getSession(sessionId);
+    if (!existingSession) {
+      throw new Error(`Session ${sessionId} not found`);
+    }
+    
+    // Update session in storage
+    const updatedSession = {
+      ...existingSession,
+      ...session,
+      updatedAt: Date.now(),
+    };
+    
+    this.sessions.set(sessionId, updatedSession);
+    if (updatedSession.orderHash) {
+      this.sessionsByOrderHash.set(updatedSession.orderHash, sessionId);
+    }
+    
+    logger.info('Session updated', { sessionId, updates: Object.keys(session) });
   }
 }
