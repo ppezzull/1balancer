@@ -25,6 +25,7 @@ const etherscanApiKey = process.env.ETHERSCAN_V2_API_KEY || "DNXJA8RX2Q3VZ4URQIW
 // You can get your own at https://dashboard.alchemyapi.io
 const providerApiKey = process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
 
+
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [
@@ -36,6 +37,7 @@ const config: HardhatUserConfig = {
             // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
             runs: 1000000, // Optimize for deployment size as per BASE deployment guide
           },
+          viaIR: true,
         },
       },
     ],
@@ -51,10 +53,9 @@ const config: HardhatUserConfig = {
     // View the networks that are pre-configured.
     // If the network you are looking for is not here you can add new network settings
     hardhat: {
-      forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
-        enabled: process.env.MAINNET_FORKING_ENABLED === "true",
-      },
+      // Hardhat network can be configured to fork any network
+      // Use: npx hardhat node --fork <network-name>
+      // Or: HARDHAT_NETWORK=<network-name> yarn fork
     },
     // BASE mainnet fork for testing
     baseFork: {
@@ -68,7 +69,7 @@ const config: HardhatUserConfig = {
       accounts: [deployerPrivateKey],
     },
     mainnet: {
-      url: "https://mainnet.rpc.buidlguidl.com",
+      url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
       accounts: [deployerPrivateKey],
     },
     sepolia: {

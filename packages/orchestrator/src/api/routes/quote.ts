@@ -87,7 +87,7 @@ export function quoteRouter(services: Services): Router {
   // Get supported pairs
   router.get(
     '/pairs',
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (_req, res) => {
       const pairs = await dutchAuctionSimulator.getSupportedPairs();
       
       res.json({

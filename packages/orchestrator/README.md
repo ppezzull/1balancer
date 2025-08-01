@@ -83,8 +83,17 @@ ONEINCH_API_KEY=your-1inch-api-key
 # Run in development mode with hot reload
 yarn dev
 
-# Run tests
+# Run unit tests
 yarn test
+
+# Run integration tests (recommended)
+npm run test:integration
+
+# Run all tests (unit + integration)
+npm run test:all
+
+# Run tests directly
+node tests/integration/orchestrator.test.js
 
 # Type checking
 yarn typecheck

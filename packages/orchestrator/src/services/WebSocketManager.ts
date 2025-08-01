@@ -42,7 +42,7 @@ export class WebSocketManager {
     }
 
     // Disconnect all clients
-    for (const [clientId, socket] of this.clients) {
+    for (const [_clientId, socket] of this.clients) {
       socket.disconnect(true);
     }
 

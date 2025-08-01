@@ -41,7 +41,7 @@ export class EventMonitor {
     });
 
     // Initialize Ethereum monitor if configured
-    if (config.chains.ethereum.rpcUrl) {
+    if (config.chains.ethereum.rpcUrl && config.chains.ethereum.rpcUrl.trim() !== '') {
       const ethProvider = new ethers.JsonRpcProvider(config.chains.ethereum.rpcUrl);
       this.chainMonitors.set('ethereum', {
         provider: ethProvider,
@@ -90,7 +90,7 @@ export class EventMonitor {
     this.isRunning = false;
 
     // Stop chain monitoring
-    for (const [chain, monitor] of this.chainMonitors) {
+    for (const [_chain, monitor] of this.chainMonitors) {
       if (monitor.pollInterval) {
         clearInterval(monitor.pollInterval);
       }
@@ -175,7 +175,7 @@ export class EventMonitor {
       monitor.lastBlock = currentBlock - config.eventMonitoring.maxReorgDepth;
 
       // Setup event listeners
-      for (const [address, contract] of monitor.contracts) {
+      for (const [_address, contract] of monitor.contracts) {
         this.setupEventListeners(chain, contract);
       }
 
@@ -388,7 +388,7 @@ export class EventMonitor {
     });
 
     return new Promise((resolve, reject) => {
-      operation.attempt(async (currentAttempt) => {
+      operation.attempt(async (currentAttempt: number) => {
         try {
           await fn();
           resolve();

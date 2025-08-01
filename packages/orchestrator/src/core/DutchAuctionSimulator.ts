@@ -1,4 +1,4 @@
-import axios from 'axios';
+// import axios from 'axios'; // TODO: Use for external price feeds
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 

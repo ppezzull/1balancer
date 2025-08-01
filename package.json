@@ -6,7 +6,8 @@
     "packages": [
       "packages/hardhat",
       "packages/nextjs",
-      "packages/proxy"
+      "packages/proxy",
+      "packages/orchestrator"
     ]
   },
   "scripts": {
@@ -18,6 +19,12 @@
     "compile": "yarn hardhat:compile",
     "deploy": "yarn hardhat:deploy",
     "fork": "yarn hardhat:fork",
+    "fork:mainnet": "yarn workspace @se-2/hardhat fork mainnet",
+    "fork:sepolia": "yarn workspace @se-2/hardhat fork sepolia",
+    "fork:base": "yarn workspace @se-2/hardhat fork base",
+    "fork:arbitrum": "yarn workspace @se-2/hardhat fork arbitrum",
+    "fork:optimism": "yarn workspace @se-2/hardhat fork optimism",
+    "fork:polygon": "yarn workspace @se-2/hardhat fork polygon",
     "format": "yarn next:format && yarn hardhat:format",
     "generate": "yarn account:generate",
     "hardhat:account": "yarn workspace @se-2/hardhat account",
@@ -74,20 +81,30 @@
     "next:clean": "yarn workspace @se-2/nextjs clean",
     "reset": "yarn clean:all && yarn install:all",
     "logs": "node scripts/show-logs.js",
-    "test:all": "yarn test && yarn near:test",
+    "test:all": "yarn test:unit && yarn test:integration && yarn test:fork",
+    "test:unit": "yarn hardhat:test && yarn orchestrator:test",
+    "test:integration": "./scripts/run-integration-tests.sh",
+    "test:fork": "node scripts/test-fork.js",
+    "test:health": "node scripts/test-health.js",
+    "test:coverage": "yarn hardhat:coverage && yarn orchestrator:coverage",
+    "hardhat:coverage": "yarn workspace @se-2/hardhat coverage",
+    "orchestrator:coverage": "yarn workspace @1balancer/orchestrator test -- --coverage",
     "b": "yarn bootstrap",
     "d": "yarn dev:all",
     "s": "yarn stop",
     "st": "yarn status",
     "proxy": "yarn workspace @1balancer/proxy start",
     "proxy:dev": "yarn workspace @1balancer/proxy dev",
-    "proxy:install": "yarn workspace @1balancer/proxy install"
+    "proxy:install": "yarn workspace @1balancer/proxy install",
+    "orchestrator:test:integration": "yarn workspace @1balancer/orchestrator test:integration",
+    "orchestrator:test:all": "yarn workspace @1balancer/orchestrator test:all"
   },
   "packageManager": "yarn@3.2.3",
   "devDependencies": {
     "@eslint/compat": "^1.1.0",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.5.0",
+    "@openzeppelin/contracts": "^5.4.0",
     "@stylistic/eslint-plugin": "^2.3.0",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.14.1",

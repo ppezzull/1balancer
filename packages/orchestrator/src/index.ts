@@ -52,16 +52,24 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/', rateLimiter);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
+  const connections = {
+    base: eventMonitor.isConnected('base'),
+    near: eventMonitor.isConnected('near'),
+    redis: sessionManager.isRedisConnected(),
+  };
+  
+  // Determine actual health status
+  const allConnected = Object.values(connections).every(Boolean);
+  const someConnected = Object.values(connections).some(Boolean);
+  
+  const status = allConnected ? 'healthy' : someConnected ? 'degraded' : 'unhealthy';
+  
   const health = {
-    status: 'healthy',
+    status,
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
-    connections: {
-      base: eventMonitor.isConnected('base'),
-      near: eventMonitor.isConnected('near'),
-      redis: sessionManager.isRedisConnected(),
-    },
+    connections,
     metrics: metricsCollector.getSnapshot(),
   };
   res.json(health);
@@ -81,7 +89,7 @@ setupRoutes(app, {
 app.use(errorHandler);
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 

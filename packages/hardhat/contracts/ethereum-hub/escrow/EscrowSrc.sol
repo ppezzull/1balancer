@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../libraries/ImmutablesLib.sol";
 import "../libraries/TimelocksLib.sol";
 
@@ -151,7 +151,9 @@ contract EscrowSrc is ReentrancyGuard {
 
     /**
      * @notice Gets the current escrow status
-     * @return status Current status of the escrow
+     * @return initialized Whether the escrow is initialized
+     * @return withdrawn Whether funds have been withdrawn
+     * @return cancelled Whether the escrow is cancelled
      */
     function getStatus() external view returns (
         bool initialized,

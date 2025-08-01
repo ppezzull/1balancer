@@ -53,6 +53,10 @@ This monorepo contains the complete 1Balancer implementation:
   - [Portfolio Management](packages/hardhat/contracts/portfolio/README.md)
   - [1inch Foundation](packages/hardhat/contracts/foundation/README.md)
 
+### Testing Documentation
+- **[Testing Strategy](TESTING-STRATEGY.md)** - Comprehensive testing approach
+- **[Fork Testing Guide](FORK-TESTING-GUIDE.md)** - Testing with mainnet forks
+
 ### Related Repositories
 - **[1balancer-near](https://github.com/your-org/1balancer-near)** - NEAR Protocol implementation
 - **[1balancer-docs](https://github.com/your-org/1balancer-docs)** - Extended documentation and analysis
@@ -169,6 +173,14 @@ yarn chain          # Start local blockchain
 yarn deploy         # Deploy contracts to local
 yarn start          # Start frontend only
 yarn backend        # Start backend only
+```
+
+#### Fork Testing
+```bash
+yarn fork:base      # Fork Base mainnet
+yarn fork:sepolia   # Fork Sepolia testnet
+yarn fork:mainnet   # Fork Ethereum mainnet
+yarn test:fork      # Run tests on fork
 ```
 
 #### Cross-Chain Operations

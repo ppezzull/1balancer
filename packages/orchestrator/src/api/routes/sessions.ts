@@ -83,7 +83,8 @@ export function sessionsRouter(services: Services): Router {
 
       const session = await sessionManager.getSession(sessionId);
       if (!session) {
-        return res.status(404).json({ error: 'Session not found' });
+        res.status(404).json({ error: 'Session not found' });
+        return;
       }
 
       const status = await sessionManager.getSessionStatus(sessionId);
@@ -103,14 +104,16 @@ export function sessionsRouter(services: Services): Router {
 
       const session = await sessionManager.getSession(sessionId);
       if (!session) {
-        return res.status(404).json({ error: 'Session not found' });
+        res.status(404).json({ error: 'Session not found' });
+        return;
       }
 
       if (session.status !== 'initialized') {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           error: 'Invalid session state', 
           currentStatus: session.status 
         });
+        return;
       }
 
       // Start cross-chain coordination
@@ -144,15 +147,17 @@ export function sessionsRouter(services: Services): Router {
 
       const session = await sessionManager.getSession(sessionId);
       if (!session) {
-        return res.status(404).json({ error: 'Session not found' });
+        res.status(404).json({ error: 'Session not found' });
+        return;
       }
 
       const canCancel = ['initialized', 'executing', 'source_locked'].includes(session.status);
       if (!canCancel) {
-        return res.status(400).json({ 
+        res.status(400).json({ 
           error: 'Cannot cancel session in current state', 
           currentStatus: session.status 
         });
+        return;
       }
 
       // Initiate cancellation

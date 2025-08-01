@@ -259,9 +259,8 @@ export class SessionManager {
   }
 
   isRedisConnected(): boolean {
-    // For demo, we're using in-memory storage
-    // In production, this would check Redis connection
-    return true;
+    // Currently using in-memory storage - no Redis connection
+    return false;
   }
 
   async shutdown(): Promise<void> {

@@ -102,11 +102,13 @@ contract MockFusionPlusResolver {
             token: order.srcToken,
             amount: order.srcAmount,
             safetyDeposit: order.srcAmount / 100, // 1% safety deposit
-            secretHash: order.secretHash,
-            timelocks: order.timelocks
+            hashlockHash: order.secretHash,
+            timelocks: order.timelocks,
+            orderHash: orderHash,
+            chainId: block.chainid
         });
 
-        address srcEscrow = _deployEscrow(salt, srcImmutables.encode());
+        address srcEscrow = _deployEscrow(salt, ImmutablesLib.encode(srcImmutables));
 
         // 2. Simulate destination chain escrow deployment
         // In real scenario, this would be on another chain
