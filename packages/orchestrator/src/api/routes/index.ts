@@ -30,7 +30,7 @@ export function setupRoutes(app: Express, services: Services): void {
   app.use(`${apiV1}/quote`, quoteRouter(services));
   
   // Version endpoint
-  app.get(`${apiV1}/version`, (req, res) => {
+  app.get(`${apiV1}/version`, (_req, res) => {
     res.json({
       version: '1.0.0',
       service: 'orchestrator',

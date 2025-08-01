@@ -19,8 +19,10 @@ interface ChainProviders {
 
 export class CrossChainCoordinator {
   private providers: ChainProviders;
-  private escrowFactoryAbi: any[];
-  private fusionResolverAbi: any[];
+  // @ts-expect-error - Reserved for future contract interactions
+  private _escrowFactoryAbi: any[]; // TODO: Use in production contract interactions
+  // @ts-expect-error - Reserved for future contract interactions
+  private _fusionResolverAbi: any[]; // TODO: Use in production contract interactions
   private escrowSrcAbi: any[];
 
   constructor(
@@ -37,12 +39,12 @@ export class CrossChainCoordinator {
     }
 
     // Initialize ABIs (simplified for demo)
-    this.escrowFactoryAbi = [
+    this._escrowFactoryAbi = [
       'function createSrcEscrow(tuple(address maker, address taker, address token, uint256 amount, uint256 safetyDeposit, bytes32 hashlockHash, tuple(uint32 srcWithdrawal, uint32 srcPublicWithdrawal, uint32 srcCancellation, uint32 srcDeployedAt, uint32 dstWithdrawal, uint32 dstCancellation, uint32 dstDeployedAt) timelocks, bytes32 orderHash, uint256 chainId) immutables) payable returns (address)',
       'event SrcEscrowCreated(address indexed escrow, bytes32 indexed orderHash, address indexed maker)',
     ];
 
-    this.fusionResolverAbi = [
+    this._fusionResolverAbi = [
       'function deploySrc(tuple(address maker, address taker, address token, uint256 amount, uint256 safetyDeposit, bytes32 hashlockHash, tuple(uint32 srcWithdrawal, uint32 srcPublicWithdrawal, uint32 srcCancellation, uint32 srcDeployedAt, uint32 dstWithdrawal, uint32 dstCancellation, uint32 dstDeployedAt) timelocks, bytes32 orderHash, uint256 chainId) immutables, tuple(uint256 salt, address maker, address receiver, address makerAsset, address takerAsset, uint256 makingAmount, uint256 takingAmount, bytes makerTraits) order, bytes32 r, bytes32 vs, uint256 amount, uint256 takerTraits, bytes args) payable',
     ];
 
@@ -145,7 +147,7 @@ export class CrossChainCoordinator {
     }
   }
 
-  private async lockSourceChain(session: SwapSession, limitOrder: LimitOrder): Promise<void> {
+  private async lockSourceChain(session: SwapSession, _limitOrder: LimitOrder): Promise<void> {
     logger.info('Locking tokens on source chain', { 
       sessionId: session.sessionId,
       chain: session.sourceChain 

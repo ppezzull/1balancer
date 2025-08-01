@@ -47,7 +47,7 @@ library ImmutablesLib {
      * @param immutables The parameters to validate
      * @return valid True if parameters are valid
      */
-    function validate(Immutables memory immutables) internal view returns (bool valid) {
+    function validate(Immutables calldata immutables) internal view returns (bool valid) {
         valid = immutables.maker != address(0) &&
                 immutables.taker != address(0) &&
                 immutables.token != address(0) &&
@@ -155,21 +155,43 @@ library ImmutablesLib {
      * @return immutables The decoded immutables
      */
     function decode(bytes memory encoded) internal pure returns (Immutables memory immutables) {
+        // Decode in two steps to avoid stack too deep
+        address maker;
+        address taker;
+        address token;
+        uint256 amount;
+        uint256 safetyDeposit;
+        
+        (maker, taker, token, amount, safetyDeposit) = abi.decode(
+            encoded, 
+            (address, address, address, uint256, uint256)
+        );
+        
+        // Decode remaining fields
+        bytes32 hashlockHash;
         bytes32 timelocksEncoded;
+        bytes32 orderHash;
+        uint256 chainId;
         
-        (
-            immutables.maker,
-            immutables.taker,
-            immutables.token,
-            immutables.amount,
-            immutables.safetyDeposit,
-            immutables.hashlockHash,
-            timelocksEncoded,
-            immutables.orderHash,
-            immutables.chainId
-        ) = abi.decode(encoded, (address, address, address, uint256, uint256, bytes32, bytes32, bytes32, uint256));
+        assembly {
+            let dataPtr := add(encoded, 0x20)
+            hashlockHash := mload(add(dataPtr, 0xA0))
+            timelocksEncoded := mload(add(dataPtr, 0xC0))
+            orderHash := mload(add(dataPtr, 0xE0))
+            chainId := mload(add(dataPtr, 0x100))
+        }
         
-        immutables.timelocks = TimelocksLib.decode(timelocksEncoded);
+        immutables = Immutables({
+            maker: maker,
+            taker: taker,
+            token: token,
+            amount: amount,
+            safetyDeposit: safetyDeposit,
+            hashlockHash: hashlockHash,
+            timelocks: TimelocksLib.decode(timelocksEncoded),
+            orderHash: orderHash,
+            chainId: chainId
+        });
     }
 
     /**

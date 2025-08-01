@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "../interfaces/IEscrowFactory.sol";
 import "../interfaces/ILimitOrderProtocol.sol";
 import "../libraries/ImmutablesLib.sol";
@@ -62,10 +62,10 @@ abstract contract BaseEscrowFactory is IEscrowFactory, AccessControl, Pausable {
      * @return escrow Address of created escrow
      */
     function createSrcEscrow(
-        Immutables calldata immutables
+        ImmutablesLib.Immutables calldata immutables
     ) external payable override onlyRole(ORCHESTRATOR_ROLE) whenNotPaused returns (address escrow) {
         // Validate immutables
-        if (!immutables.validate()) {
+        if (!ImmutablesLib.validate(immutables)) {
             revert InvalidImmutables();
         }
         
@@ -75,7 +75,7 @@ abstract contract BaseEscrowFactory is IEscrowFactory, AccessControl, Pausable {
         }
         
         // Check if escrow already exists for this order
-        bytes32 immutablesHash = immutables.hash();
+        bytes32 immutablesHash = ImmutablesLib.hash(immutables);
         if (escrows[immutablesHash] != address(0)) {
             revert EscrowAlreadyExists();
         }
@@ -109,11 +109,11 @@ abstract contract BaseEscrowFactory is IEscrowFactory, AccessControl, Pausable {
      * @return escrow Address of created escrow
      */
     function createDstEscrow(
-        Immutables calldata immutables,
+        ImmutablesLib.Immutables calldata immutables,
         uint256 srcCancellationTimestamp
     ) external payable override onlyRole(ORCHESTRATOR_ROLE) whenNotPaused returns (address escrow) {
         // Validate immutables
-        if (!immutables.validate()) {
+        if (!ImmutablesLib.validate(immutables)) {
             revert InvalidImmutables();
         }
         
@@ -129,7 +129,7 @@ abstract contract BaseEscrowFactory is IEscrowFactory, AccessControl, Pausable {
         );
         
         // Check if escrow already exists
-        bytes32 immutablesHash = immutables.hash();
+        bytes32 immutablesHash = ImmutablesLib.hash(immutables);
         if (escrows[immutablesHash] != address(0)) {
             revert EscrowAlreadyExists();
         }
@@ -165,9 +165,9 @@ abstract contract BaseEscrowFactory is IEscrowFactory, AccessControl, Pausable {
      * @return escrowAddress Computed escrow address
      */
     function addressOfEscrowSrc(
-        Immutables calldata immutables
+        ImmutablesLib.Immutables calldata immutables
     ) external view override returns (address escrowAddress) {
-        bytes32 immutablesHash = immutables.hash();
+        bytes32 immutablesHash = ImmutablesLib.hash(immutables);
         escrowAddress = Clones.predictDeterministicAddress(
             escrowSrcImplementation,
             immutablesHash
@@ -181,9 +181,9 @@ abstract contract BaseEscrowFactory is IEscrowFactory, AccessControl, Pausable {
      * @return escrowAddress Computed escrow address
      */
     function addressOfEscrowDst(
-        Immutables calldata immutables
+        ImmutablesLib.Immutables calldata immutables
     ) external view override returns (address escrowAddress) {
-        bytes32 immutablesHash = immutables.hash();
+        bytes32 immutablesHash = ImmutablesLib.hash(immutables);
         escrowAddress = Clones.predictDeterministicAddress(
             escrowDstImplementation,
             immutablesHash

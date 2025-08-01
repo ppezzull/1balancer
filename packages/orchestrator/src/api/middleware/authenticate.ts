@@ -23,7 +23,8 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
         return next();
       } else {
         logger.warn('Invalid API key attempted', { apiKey: apiKey.substring(0, 8) + '...' });
-        return res.status(401).json({ error: 'Invalid API key' });
+        res.status(401).json({ error: 'Invalid API key' });
+        return;
       }
     }
 
@@ -39,7 +40,8 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
         return next();
       } catch (error) {
         logger.warn('Invalid JWT token', { error });
-        return res.status(401).json({ error: 'Invalid token' });
+        res.status(401).json({ error: 'Invalid token' });
+        return;
       }
     }
 
