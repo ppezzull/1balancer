@@ -346,37 +346,14 @@ export class EventMonitor {
   private async startNearMonitoring(): Promise<void> {
     logger.info('Starting NEAR monitoring');
 
-    // Poll NEAR RPC for events
-    this.nearPollInterval = setInterval(
-      () => this.pollNear(),
-      10000 // Poll every 10 seconds
-    );
-  }
-
-  private async pollNear(): Promise<void> {
-    try {
-      // In production, this would use NEAR RPC to query contract state
-      // For demo, we'll simulate NEAR monitoring
-      const response = await axios.post(config.chains.near.rpcUrl, {
-        jsonrpc: '2.0',
-        id: Date.now(),
-        method: 'query',
-        params: {
-          request_type: 'view_state',
-          finality: 'final',
-          account_id: config.chains.near.accountId,
-          prefix_base64: '',
-        },
-      });
-
-      // Process NEAR state changes
-      if (response.data.result) {
-        logger.debug('NEAR state update received');
-        // Process state changes
-      }
-    } catch (error) {
-      logger.error('NEAR polling error', { error });
-    }
+    // Use the CrossChainCoordinator's NEAR monitoring
+    await this.coordinator.startNEARMonitoring();
+    
+    // Mark as running for status checks
+    this.nearPollInterval = setInterval(() => {
+      // Just a heartbeat to indicate NEAR monitoring is active
+      logger.debug('NEAR monitoring heartbeat');
+    }, 30000); // Every 30 seconds
   }
 
   private async handleWithRetry(fn: () => Promise<void>): Promise<void> {

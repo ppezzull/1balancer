@@ -4,6 +4,7 @@ import { config } from '../config';
 import { SessionManager, SwapSession } from './SessionManager';
 import { SecretManager } from './SecretManager';
 import { ApiErrorFactory } from '../api/middleware/errorHandler';
+import { NEARChainCoordinator } from './NEARChainCoordinator';
 
 const logger = createLogger('CrossChainCoordinator');
 
@@ -24,6 +25,7 @@ export class CrossChainCoordinator {
   // @ts-expect-error - Reserved for future contract interactions
   private _fusionResolverAbi: any[]; // TODO: Use in production contract interactions
   private escrowSrcAbi: any[];
+  private nearCoordinator: NEARChainCoordinator;
 
   constructor(
     private sessionManager: SessionManager,
@@ -54,6 +56,9 @@ export class CrossChainCoordinator {
       'event Withdrawn(bytes32 secret)',
       'event Cancelled()',
     ];
+
+    // Initialize NEAR coordinator
+    this.nearCoordinator = new NEARChainCoordinator(sessionManager, secretManager);
   }
 
   async executeSwap(sessionId: string, limitOrder: LimitOrder): Promise<void> {
@@ -123,20 +128,26 @@ export class CrossChainCoordinator {
       // Get the secret
       const secret = await this.sessionManager.revealSecret(sessionId);
 
-      // Call withdraw on the escrow
-      const provider = this.providers.base;
-      const wallet = new ethers.Wallet(process.env.ORCHESTRATOR_PRIVATE_KEY || '', provider);
-      
-      const escrow = new ethers.Contract(escrowAddress, this.escrowSrcAbi, wallet);
-      const tx = await escrow.withdraw(secret);
-      
-      logger.info('Revealing secret on escrow', { 
-        sessionId, 
-        escrowAddress,
-        txHash: tx.hash 
-      });
+      // Check if this is a NEAR escrow
+      if (escrowAddress.endsWith('.near') || session.destinationChain === 'near') {
+        // Handle NEAR secret reveal
+        await this.nearCoordinator.revealSecret(sessionId, escrowAddress, secret);
+      } else {
+        // Handle EVM chain secret reveal
+        const provider = this.providers.base;
+        const wallet = new ethers.Wallet(process.env.ORCHESTRATOR_PRIVATE_KEY || '', provider);
+        
+        const escrow = new ethers.Contract(escrowAddress, this.escrowSrcAbi, wallet);
+        const tx = await escrow.withdraw(secret);
+        
+        logger.info('Revealing secret on escrow', { 
+          sessionId, 
+          escrowAddress,
+          txHash: tx.hash 
+        });
 
-      await tx.wait();
+        await tx.wait();
+      }
 
       // Update session status
       await this.sessionManager.updateSessionStatus(sessionId, 'completed');
@@ -204,25 +215,35 @@ export class CrossChainCoordinator {
     // Update status
     await this.sessionManager.updateSessionStatus(session.sessionId, 'destination_locking');
 
-    // In production, this would trigger NEAR HTLC creation
-    // For demo, we'll simulate it
-    const dstEscrowAddress = 'htlc.' + session.sessionId.substring(5) + '.near';
-    
-    await this.sessionManager.updateSessionWithEscrow(
-      session.sessionId,
-      'dst',
-      dstEscrowAddress
-    );
+    // Handle different destination chains
+    if (session.destinationChain === 'near') {
+      // Use NEAR coordinator for NEAR chain
+      const htlcId = await this.nearCoordinator.lockOnNEAR(session);
+      
+      logger.info('NEAR HTLC created', {
+        sessionId: session.sessionId,
+        htlcId,
+      });
+    } else {
+      // For other chains (demo mode)
+      const dstEscrowAddress = 'htlc.' + session.sessionId.substring(5) + '.demo';
+      
+      await this.sessionManager.updateSessionWithEscrow(
+        session.sessionId,
+        'dst',
+        dstEscrowAddress
+      );
 
-    // Simulate some delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+      // Simulate some delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
 
     // Update status
     await this.sessionManager.updateSessionStatus(session.sessionId, 'both_locked');
 
     logger.info('Destination chain locked', {
       sessionId: session.sessionId,
-      escrowAddress: dstEscrowAddress,
+      chain: session.destinationChain,
     });
   }
 
@@ -367,5 +388,54 @@ export class CrossChainCoordinator {
     
     // Update session status
     await this.sessionManager.updateSessionStatus(session.sessionId, 'revealing_secret');
+  }
+
+  // NEAR-specific event handlers
+  async handleNEARHTLCCreated(event: any): Promise<void> {
+    await this.nearCoordinator.handleHTLCCreated(event);
+  }
+
+  async handleNEARSecretRevealed(event: any): Promise<void> {
+    await this.nearCoordinator.handleSecretRevealed(event);
+    
+    // After NEAR secret is revealed, we need to propagate to BASE
+    const { htlc_id, secret } = event;
+    
+    // Find session by NEAR HTLC ID
+    const sessions = await this.sessionManager.listSessions({
+      status: 'both_locked',
+      limit: 1000,
+      offset: 0,
+    });
+
+    const session = sessions.find(s => s.dstEscrowAddress === htlc_id);
+    if (session && session.srcEscrowAddress) {
+      // Reveal secret on BASE chain
+      await this.revealSecret(session.sessionId, session.srcEscrowAddress);
+    }
+  }
+
+  async handleNEARHTLCRefunded(event: any): Promise<void> {
+    await this.nearCoordinator.handleHTLCRefunded(event);
+  }
+
+  // Method to start NEAR event monitoring
+  async startNEARMonitoring(): Promise<void> {
+    await this.nearCoordinator.monitorEvents((event) => {
+      // Route events to appropriate handlers
+      switch (event.eventName) {
+        case 'HTLCCreated':
+          this.handleNEARHTLCCreated(event.args);
+          break;
+        case 'SecretRevealed':
+          this.handleNEARSecretRevealed(event.args);
+          break;
+        case 'HTLCRefunded':
+          this.handleNEARHTLCRefunded(event.args);
+          break;
+        default:
+          logger.warn('Unknown NEAR event', { event });
+      }
+    });
   }
 }
