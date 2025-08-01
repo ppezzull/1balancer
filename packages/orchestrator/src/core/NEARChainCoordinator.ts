@@ -1,7 +1,7 @@
-import { connect, KeyPair, Account } from '@near-js/client';
-import { UnencryptedFileSystemKeyStore, InMemoryKeyStore } from '@near-js/keystores-node';
-import { JsonRpcProvider, FailoverRpcProvider } from '@near-js/providers';
-import { SignedTransaction } from '@near-js/transactions';
+import { connect, KeyPair, Account, providers, keyStores, transactions } from 'near-api-js';
+const { JsonRpcProvider } = providers;
+const { UnencryptedFileSystemKeyStore, InMemoryKeyStore } = keyStores;
+const { SignedTransaction } = transactions;
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 import { SessionManager, SwapSession } from './SessionManager';
@@ -44,7 +44,7 @@ interface HTLCEvent {
 }
 
 export class NEARChainCoordinator {
-  private provider: FailoverRpcProvider;
+  private provider: providers.JsonRpcProvider;
   private masterAccount?: Account;
   private htlcContract: string;
   private nearConfig: NEARConfig;
@@ -78,32 +78,8 @@ export class NEARChainCoordinator {
   }
 
   private initializeProvider(): void {
-    // Create multiple providers for failover
-    const providers = [
-      new JsonRpcProvider({ 
-        url: this.nearConfig.nodeUrl 
-      }, {
-        retries: 3,
-        backoff: 2,
-        wait: 500
-      }),
-    ];
-
-    // Add backup provider if available
-    if (this.nearConfig.backupNodeUrl) {
-      providers.push(
-        new JsonRpcProvider({ 
-          url: this.nearConfig.backupNodeUrl 
-        }, {
-          retries: 3,
-          backoff: 2,
-          wait: 500
-        })
-      );
-    }
-
-    // Create failover provider
-    this.provider = new FailoverRpcProvider(providers);
+    // Create JSON RPC provider
+    this.provider = new providers.JsonRpcProvider({ url: this.nearConfig.nodeUrl });
   }
 
   private async initializeNear(): Promise<void> {
