@@ -258,10 +258,8 @@ export class SessionManager {
     return session.secret;
   }
 
-  isRedisConnected(): boolean {
-    // Currently using in-memory storage - no Redis connection
-    return false;
-  }
+  // Redis methods removed - using in-memory storage only
+  // If Redis is needed in the future, implement connection logic here
 
   async shutdown(): Promise<void> {
     logger.info('Shutting down SessionManager');

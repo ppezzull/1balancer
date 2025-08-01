@@ -117,12 +117,13 @@ health:
 metrics:
 	watch -n 5 'curl -s http://localhost:8080/metrics | grep orchestrator_'
 
-# Development database setup (Redis)
-redis-start:
-	docker run -d --name orchestrator-redis -p 6379:6379 redis:alpine
-
-redis-stop:
-	docker stop orchestrator-redis && docker rm orchestrator-redis
+# Redis targets removed - using in-memory storage
+# Uncomment below if Redis is needed in the future
+# redis-start:
+# 	docker run -d --name orchestrator-redis -p 6379:6379 redis:alpine
+#
+# redis-stop:
+# 	docker stop orchestrator-redis && docker rm orchestrator-redis
 
 # Production deployment helpers
 deploy-staging:

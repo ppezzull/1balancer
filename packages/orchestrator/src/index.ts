@@ -56,7 +56,7 @@ app.get('/health', (_req, res) => {
   const connections = {
     base: eventMonitor.isConnected('base'),
     near: eventMonitor.isConnected('near'),
-    redis: sessionManager.isRedisConnected(),
+    storage: 'in-memory',  // Redis removed - using in-memory storage
   };
   
   // Determine actual health status

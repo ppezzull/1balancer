@@ -147,7 +147,8 @@ CORS_ORIGIN=http://localhost:3000
 # External Services (Test Mode)
 ONEINCH_API_KEY=${env.ONEINCH_API_KEY || 'test-api-key'}
 ONEINCH_API_URL=https://api.1inch.dev
-REDIS_URL=redis://localhost:6379
+# Session storage uses in-memory by default (Redis not required)
+# REDIS_URL=redis://localhost:6379  # Uncomment if Redis is needed in the future
 
 # Test Contract Addresses (Zero addresses for testing)
 ESCROW_FACTORY_ADDRESS=0x0000000000000000000000000000000000000000

@@ -60,9 +60,7 @@ cp packages/orchestrator/.env.test.example packages/orchestrator/.env.test
 ### 3. Start Test Infrastructure
 
 ```bash
-# Start Redis (required for orchestrator tests)
-redis-server
-
+# No external services required - using in-memory storage
 # For integration tests, services will be started automatically
 ```
 

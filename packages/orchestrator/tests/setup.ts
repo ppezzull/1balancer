@@ -9,18 +9,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'error'; // Reduce log noise in tests
 
-// Mock Redis if not available
-jest.mock('redis', () => ({
-  createClient: jest.fn(() => ({
-    connect: jest.fn(),
-    disconnect: jest.fn(),
-    get: jest.fn(),
-    set: jest.fn(),
-    del: jest.fn(),
-    exists: jest.fn(),
-    on: jest.fn(),
-  })),
-}));
+// Redis removed - using in-memory storage
+// No mocking needed for Redis
 
 // Global test timeout
 jest.setTimeout(10000);
