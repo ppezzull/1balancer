@@ -1,5 +1,4 @@
 import { ethers } from 'ethers';
-import axios from 'axios';
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 import { CrossChainCoordinator } from '../core/CrossChainCoordinator';

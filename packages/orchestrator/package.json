@@ -38,7 +38,6 @@
     "@near-js/transactions": "^1.2.3",
     "p-queue": "^8.0.1",
     "rate-limiter-flexible": "^3.0.6",
-    "redis": "^4.6.10",
     "retry": "^0.13.1",
     "socket.io": "^4.6.1",
     "uuid": "^9.0.1",

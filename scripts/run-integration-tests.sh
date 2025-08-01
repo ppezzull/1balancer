@@ -40,14 +40,15 @@ if ! curl -s http://localhost:8545 > /dev/null; then
 fi
 echo -e "${GREEN}✓ Hardhat node running${NC}"
 
-# Start Redis if not running
-if ! pgrep -x "redis-server" > /dev/null; then
-  echo "Starting Redis..."
-  redis-server > redis.log 2>&1 &
-  REDIS_PID=$!
-  sleep 2
-fi
-echo -e "${GREEN}✓ Redis running${NC}"
+# Redis is not currently used - using in-memory storage
+# Uncomment below if Redis is needed in the future
+# if ! pgrep -x "redis-server" > /dev/null; then
+#   echo "Starting Redis..."
+#   redis-server > redis.log 2>&1 &
+#   REDIS_PID=$!
+#   sleep 2
+# fi
+echo -e "${GREEN}✓ Using in-memory session storage${NC}"
 
 # Start orchestrator
 echo "Starting Orchestrator service..."
@@ -130,12 +131,13 @@ fi
 # Cleanup
 echo -e "\n${BLUE}🧹 Cleaning up...${NC}"
 kill $CHAIN_PID $ORCHESTRATOR_PID 2>/dev/null
-if [ -n "$REDIS_PID" ]; then
-  kill $REDIS_PID 2>/dev/null
-fi
+# Redis cleanup not needed (not using Redis)
+# if [ -n "$REDIS_PID" ]; then
+#   kill $REDIS_PID 2>/dev/null
+# fi
 
 # Remove log files
-rm -f hardhat.log orchestrator.log redis.log
+rm -f hardhat.log orchestrator.log
 
 # Report results
 echo -e "\n${BLUE}📊 Test Results:${NC}"

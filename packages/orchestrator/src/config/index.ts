@@ -59,9 +59,11 @@ interface Config {
       apiKey: string;
       apiUrl: string;
     };
-    redis?: {
-      url: string;
-    };
+    // Redis configuration removed - using in-memory storage
+    // Uncomment below if Redis is needed in the future
+    // redis?: {
+    //   url: string;
+    // };
   };
   
   monitoring: {
@@ -154,9 +156,11 @@ function getConfig(): Config {
         apiKey: process.env.ONEINCH_API_KEY || '',
         apiUrl: process.env.ONEINCH_API_URL || 'https://api.1inch.dev',
       },
-      redis: process.env.REDIS_URL ? {
-        url: process.env.REDIS_URL,
-      } : undefined,
+      // Redis configuration removed - using in-memory storage
+      // Uncomment below if Redis is needed in the future
+      // redis: process.env.REDIS_URL ? {
+      //   url: process.env.REDIS_URL,
+      // } : undefined,
     },
     
     monitoring: {
