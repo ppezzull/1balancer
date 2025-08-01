@@ -1,84 +1,95 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
-import {Balancer} from "../modules/BaseBalancer.sol";
-
-/**
- * @title BalancerFactory
- * @author @ppezzull
- * @notice A factory for creating and managing Balancer contracts.
+/*
+ * BalancerFactory
+ *
+ * A simple factory contract that deploys DriftBalancer or TimeBalancer
+ * instances. Each user may create multiple balancers depending on their
+ * strategy. The factory keeps track of created balancers and emits an event
+ * upon deployment. Deployed balancers are owned by the caller and can be
+ * initialized with custom portfolio parameters post‑deployment.
  */
+
+import "../balancers/DriftBalancer.sol";
+import "../balancers/TimeBalancer.sol";
+
 contract BalancerFactory {
-    // -- State --
+    /// @dev Lists of deployed drift and time balancers per user
+    mapping(address => address[]) public userDriftBalancers;
+    mapping(address => address[]) public userTimeBalancers;
 
-    address[] public allBalancers;
-    mapping(address => address[]) public balancersByOwner;
-    mapping(address => bool) public isBalancer;
-
-    // -- Events --
-
-    event BalancerCreated(address indexed newBalancer, address indexed owner);
-
-    // -- Errors --
-
-    error BalancerFactory__InvalidPercentagesSum();
-
-    // -- External Functions --
+    /// @dev Emitted when a new balancer is created
+    event BalancerCreated(address indexed user, address balancer, bool isTimeBased);
 
     /**
-     * @notice Creates a new Balancer contract.
-     * @param _assetAddresses The list of asset addresses.
-     * @param _percentages The list of percentages for each asset.
-     * @param _driftPercentage The drift percentage.
-     * @param _updatePeriodicity The update periodicity.
-     * @return newBalancer The address of the newly created Balancer contract.
+     * @notice Create a new DriftBalancer
+     * @param stableToken The address of the stablecoin used for peg monitoring
+     * @param stablePriceFeed The price feed for the stablecoin (8 decimals)
+     * @param lowerBound Lower bound for acceptable price (1e8 representation)
+     * @param upperBound Upper bound for acceptable price (1e8 representation)
      */
-    /**
-     * @notice Validates that the sum of percentages equals 100.
-     * @param _percentages The list of percentages to validate.
-     */
-    function _validateAssetPercentages(uint256[] memory _percentages) internal pure {
-        uint256 totalPercentage = 0;
-        for (uint256 i = 0; i < _percentages.length; i++) {
-            totalPercentage += _percentages[i];
-        }
-
-        if (totalPercentage != 100) {
-            revert BalancerFactory__InvalidPercentagesSum();
-        }
-    }
-
-    function createBalancer(
+    function createDriftBalancer(
+        address _owner,
+        address stableToken,
+        address stablePriceFeed,
+        uint256 lowerBound,
+        uint256 upperBound,
         address[] memory _assetAddresses,
         uint256[] memory _percentages,
         uint256 _driftPercentage,
         uint256 _updatePeriodicity
-    ) external returns (address newBalancer) {
-        _validateAssetPercentages(_percentages);
-        Balancer balancer = new Balancer(msg.sender, _assetAddresses, _percentages, _driftPercentage, _updatePeriodicity);
-        newBalancer = address(balancer);
-
-        allBalancers.push(newBalancer);
-        balancersByOwner[msg.sender].push(newBalancer);
-        isBalancer[newBalancer] = true;
-
-        emit BalancerCreated(newBalancer, msg.sender);
-    }
-
-    // -- View Functions --
-
-    /**
-     * @notice Returns the list of all created Balancer contracts.
-     */
-    function getAllBalancers() external view returns (address[] memory) {
-        return allBalancers;
+    ) external returns (address balancer) {
+        balancer = address(new DriftBalancer(
+            _owner,
+            _assetAddresses,
+            _percentages,
+            _driftPercentage,
+            _updatePeriodicity,
+            stableToken,
+            stablePriceFeed,
+            lowerBound,
+            upperBound
+        ));
+        userDriftBalancers[_owner].push(balancer);
+        emit BalancerCreated(_owner, balancer, false);
     }
 
     /**
-     * @notice Returns the list of Balancer contracts created by a specific owner.
-     * @param _owner The address of the owner.
+     * @notice Create a new TimeBalancer
+     * @param stableToken The address of the stablecoin used for peg monitoring
+     * @param stablePriceFeed The price feed for the stablecoin (8 decimals)
+     * @param lowerBound Lower bound for acceptable price (1e8 representation)
+     * @param upperBound Upper bound for acceptable price (1e8 representation)
+     * @param interval Rebalance interval in seconds
      */
-    function getBalancersByOwner(address _owner) external view returns (address[] memory) {
-        return balancersByOwner[_owner];
+    function createTimeBalancer(
+        address _owner,
+        address stableToken,
+        address stablePriceFeed,
+        uint256 lowerBound,
+        uint256 upperBound,
+        address[] memory _assetAddresses,
+        uint256[] memory _percentages,
+        uint256 _driftPercentage,
+        uint256 _updatePeriodicity,
+        uint256 interval
+    ) external returns (address balancer) {
+        balancer = address(
+            new TimeBalancer(
+                _owner,
+                _assetAddresses,
+                _percentages,
+                _driftPercentage,
+                _updatePeriodicity,
+                stableToken,
+                stablePriceFeed,
+                lowerBound,
+                upperBound,
+                interval    
+            )
+        );
+        userTimeBalancers[_owner].push(balancer);
+        emit BalancerCreated(_owner, balancer, true);
     }
 }
