@@ -16,17 +16,17 @@ async function testProxy(proxyUrl) {
   const tests = [
     {
       name: 'Token List (Ethereum)',
-      endpoint: '/tokens/v1.1/1',
+      endpoint: '/swap/v6.0/1/tokens',
       description: 'Fetch ERC20 token list on Ethereum mainnet'
     },
     {
-      name: 'Chain Status',
-      endpoint: '/status/v1.0/1',
-      description: 'Check 1inch API status for Ethereum'
+      name: 'Swap Quote (ETH to USDC)',
+      endpoint: '/swap/v6.0/1/quote?src=0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE&dst=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48&amount=1000000000000000000&from=0x0000000000000000000000000000000000000000&origin=https://app.1inch.io',
+      description: 'Get swap quote for 1 ETH to USDC'
     },
     {
       name: 'Protocol List',
-      endpoint: '/liquidity-sources/v1.2/1',
+      endpoint: '/swap/v6.0/1/liquidity-sources',
       description: 'Get available DEX protocols'
     },
     {
@@ -83,7 +83,7 @@ async function testProxy(proxyUrl) {
   console.log(chalk.cyan('\n🔒 Testing CORS Headers...'));
   
   try {
-    const corsResponse = await fetch(`${proxyUrl}/status/v1.0/1`, {
+    const corsResponse = await fetch(`${proxyUrl}/swap/v6.0/1/tokens`, {
       method: 'OPTIONS',
       headers: {
         'Origin': 'http://localhost:3000',

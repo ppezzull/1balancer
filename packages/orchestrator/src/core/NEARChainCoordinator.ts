@@ -1,13 +1,10 @@
-import { connect, KeyPair, Account, providers, keyStores, transactions } from 'near-api-js';
-const { JsonRpcProvider } = providers;
+import { connect, KeyPair, Account, providers, keyStores } from 'near-api-js';
 const { UnencryptedFileSystemKeyStore, InMemoryKeyStore } = keyStores;
-const { SignedTransaction } = transactions;
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 import { SessionManager, SwapSession } from './SessionManager';
 import { SecretManager } from './SecretManager';
 import { ApiErrorFactory } from '../api/middleware/errorHandler';
-import { NearTransaction, EventData } from '../types';
 
 const logger = createLogger('NEARChainCoordinator');
 
@@ -44,7 +41,7 @@ interface HTLCEvent {
 }
 
 export class NEARChainCoordinator {
-  private provider: providers.JsonRpcProvider;
+  private provider!: providers.JsonRpcProvider;
   private masterAccount?: Account;
   private htlcContract: string;
   private nearConfig: NEARConfig;
@@ -52,7 +49,7 @@ export class NEARChainCoordinator {
 
   constructor(
     private sessionManager: SessionManager,
-    private secretManager: SecretManager
+    _secretManager: SecretManager
   ) {
     // Initialize NEAR config
     this.nearConfig = {
@@ -85,12 +82,12 @@ export class NEARChainCoordinator {
   private async initializeNear(): Promise<void> {
     try {
       // Setup key store
-      let keyStore: InMemoryKeyStore | UnencryptedFileSystemKeyStore;
+      let keyStore: keyStores.KeyStore;
       
       if (this.nearConfig.privateKey && this.nearConfig.masterAccount) {
         // Use in-memory key store for server environment
         keyStore = new InMemoryKeyStore();
-        const keyPair = KeyPair.fromString(this.nearConfig.privateKey);
+        const keyPair = KeyPair.fromString(this.nearConfig.privateKey as any);
         await keyStore.setKey(this.nearConfig.networkId, this.nearConfig.masterAccount, keyPair);
       } else {
         // Use unencrypted file system key store (for development)
@@ -101,7 +98,7 @@ export class NEARChainCoordinator {
       // Initialize NEAR connection using modern API
       this.nearConnection = await connect({
         networkId: this.nearConfig.networkId,
-        provider: this.provider,
+        nodeUrl: this.nearConfig.nodeUrl,
         keyStore,
       });
 
@@ -116,6 +113,7 @@ export class NEARChainCoordinator {
           networkId: this.nearConfig.networkId,
           htlcContract: this.htlcContract,
           masterAccount: this.nearConfig.masterAccount,
+          contractSource: this.htlcContract.includes('fusion-htlc.testnet') ? 'default' : 'configured',
         });
       } else {
         logger.warn('NEAR initialized without master account - limited functionality');
@@ -244,8 +242,8 @@ export class NEARChainCoordinator {
         args_base64: Buffer.from(JSON.stringify({ htlc_id: htlcId })).toString('base64'),
       });
 
-      if (result.result) {
-        const htlc = JSON.parse(Buffer.from(result.result).toString());
+      if ((result as any).result) {
+        const htlc = JSON.parse(Buffer.from((result as any).result).toString());
         return htlc;
       }
 
@@ -269,8 +267,8 @@ export class NEARChainCoordinator {
         })).toString('base64'),
       });
 
-      if (result.result) {
-        const htlcs = JSON.parse(Buffer.from(result.result).toString());
+      if ((result as any).result) {
+        const htlcs = JSON.parse(Buffer.from((result as any).result).toString());
         return htlcs;
       }
 
@@ -307,8 +305,8 @@ export class NEARChainCoordinator {
         })).toString('base64'),
       });
 
-      if (result.result) {
-        const events = JSON.parse(Buffer.from(result.result).toString());
+      if ((result as any).result) {
+        const events = JSON.parse(Buffer.from((result as any).result).toString());
         for (const event of events) {
           await this.handleNearEvent(event);
         }
@@ -332,41 +330,6 @@ export class NEARChainCoordinator {
     }
   }
 
-  private async handleSecretRevealed(event: HTLCEvent): Promise<void> {
-    const { htlc_id, secret } = event;
-    
-    if (!htlc_id || !secret) {
-      logger.warn('Invalid secret revealed event', { event });
-      return;
-    }
-
-    logger.info('Secret revealed on NEAR', { htlc_id, secret });
-
-    // Find session by NEAR HTLC ID
-    const sessions = this.sessionManager.getActiveSessions();
-    const session = sessions.find(s => 
-      s.nearHTLCId === htlc_id && 
-      s.status === 'secret_revealed_near'
-    );
-
-    if (session) {
-      // Update session with revealed secret
-      session.revealedSecret = secret;
-      session.status = 'withdrawing_base';
-      this.sessionManager.updateSession(session.id, session);
-
-      // Trigger BASE withdrawal
-      logger.info('Triggering BASE withdrawal with revealed secret', {
-        sessionId: session.id,
-        secret,
-      });
-    }
-  }
-
-  private async handleHTLCCreated(event: HTLCEvent): Promise<void> {
-    logger.info('HTLC created on NEAR', { event });
-    // Handle HTLC creation if needed
-  }
 
   private extractHTLCId(result: any): string {
     // Try to extract HTLC ID from transaction result
@@ -407,8 +370,153 @@ export class NEARChainCoordinator {
     } else if (error.type === 'InvalidTxError') {
       return ApiErrorFactory.badRequest('Invalid NEAR transaction');
     } else {
-      return ApiErrorFactory.internal('NEAR operation failed', { 
-        error: error.message || error.toString() 
+      return ApiErrorFactory.internal(`NEAR operation failed: ${error.message || error.toString()}`);
+    }
+  }
+
+  // Add missing methods that are called from CrossChainCoordinator
+  async revealSecret(sessionId: string, escrowAddress: string, secret: string): Promise<void> {
+    try {
+      logger.info('Revealing secret on NEAR', { sessionId, escrowAddress, secret });
+      
+      // Find the HTLC associated with this session
+      const session = await this.sessionManager.getSession(sessionId);
+      if (!session || !session.nearHTLCId) {
+        throw new Error('Session or NEAR HTLC ID not found');
+      }
+      
+      // Withdraw using the secret
+      await this.withdrawHTLC(session.nearHTLCId, secret, escrowAddress);
+      
+      logger.info('Secret revealed on NEAR successfully', { sessionId });
+    } catch (error) {
+      logger.error('Failed to reveal secret on NEAR', { error, sessionId });
+      throw this.handleNearError(error);
+    }
+  }
+
+  async lockOnNEAR(session: SwapSession): Promise<string> {
+    try {
+      logger.info('Locking assets on NEAR', { sessionId: session.id });
+      
+      // Create HTLC on NEAR
+      const htlcId = await this.createHTLC({
+        receiver: session.destinationAddress || session.taker,
+        token: session.destinationAsset || session.destinationToken,
+        amount: session.destinationAmount,
+        hashlock: session.orderHash || session.hashlockHash,
+        timelock: Math.floor(Date.now() / 1000) + 3600, // 1 hour timeout
+        orderHash: session.orderHash || session.hashlockHash,
+      });
+      
+      // Update session with NEAR HTLC ID
+      session.nearHTLCId = htlcId;
+      session.status = 'htlc_created_near';
+      await this.sessionManager.updateSession(session.id, session);
+      
+      return htlcId;
+    } catch (error) {
+      logger.error('Failed to lock assets on NEAR', { error, sessionId: session.id });
+      throw this.handleNearError(error);
+    }
+  }
+
+  async handleHTLCRefunded(event: HTLCEvent): Promise<void> {
+    logger.info('HTLC refunded on NEAR', { event });
+    
+    const { htlc_id } = event;
+    if (!htlc_id) {
+      logger.warn('Invalid refund event - missing HTLC ID', { event });
+      return;
+    }
+    
+    // Find session by NEAR HTLC ID
+    const sessions = await this.sessionManager.getActiveSessions();
+    const session = sessions.find(s => s.nearHTLCId === htlc_id);
+    
+    if (session) {
+      // Update session status
+      session.status = 'refunded_near';
+      await this.sessionManager.updateSession(session.id, session);
+      
+      logger.info('Session marked as refunded on NEAR', {
+        sessionId: session.id,
+        htlcId: htlc_id,
+      });
+    }
+  }
+
+  async monitorEvents(callback: (event: any) => void): Promise<void> {
+    logger.info('Starting NEAR event monitoring with callback');
+    
+    // Poll for events and call the callback
+    setInterval(async () => {
+      try {
+        const result = await this.provider.query({
+          request_type: 'call_function',
+          finality: 'final',
+          account_id: this.htlcContract,
+          method_name: 'get_recent_events',
+          args_base64: Buffer.from(JSON.stringify({
+            from_timestamp: Date.now() - 60000 // Last minute
+          })).toString('base64'),
+        });
+
+        if ((result as any).result) {
+          const events = JSON.parse(Buffer.from((result as any).result).toString());
+          for (const event of events) {
+            // Add event name based on event data
+            if (event.secret) {
+              event.eventName = 'secret_revealed';
+            } else if (event.htlc_id && event.sender && event.receiver) {
+              event.eventName = 'htlc_created';
+            } else if (event.htlc_id && event.refunded) {
+              event.eventName = 'htlc_refunded';
+            }
+            
+            // Call the provided callback
+            callback(event);
+          }
+        }
+      } catch (error) {
+        logger.error('Error monitoring NEAR events', { error });
+      }
+    }, 5000);
+  }
+
+  // Make these methods public so CrossChainCoordinator can call them
+  public async handleHTLCCreated(event: HTLCEvent): Promise<void> {
+    logger.info('HTLC created on NEAR', { event });
+    // Handle HTLC creation if needed
+  }
+
+  public async handleSecretRevealed(event: HTLCEvent): Promise<void> {
+    const { htlc_id, secret } = event;
+    
+    if (!htlc_id || !secret) {
+      logger.warn('Invalid secret revealed event', { event });
+      return;
+    }
+
+    logger.info('Secret revealed on NEAR', { htlc_id, secret });
+
+    // Find session by NEAR HTLC ID
+    const sessions = await this.sessionManager.getActiveSessions();
+    const session = sessions.find(s => 
+      s.nearHTLCId === htlc_id && 
+      s.status === 'secret_revealed_near'
+    );
+
+    if (session) {
+      // Update session with revealed secret
+      session.revealedSecret = secret;
+      session.status = 'withdrawing_base';
+      await this.sessionManager.updateSession(session.id, session);
+
+      // Trigger BASE withdrawal
+      logger.info('Triggering BASE withdrawal with revealed secret', {
+        sessionId: session.id,
+        secret,
       });
     }
   }

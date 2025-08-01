@@ -95,6 +95,7 @@ async function setupProxy() {
   if (apiKey) {
     console.log(chalk.green(`✓ Using 1inch API key from environment`));
     console.log(chalk.gray(`  Key length: ${apiKey.length} characters`));
+    console.log(chalk.gray(`  Key prefix: ${apiKey.substring(0, 8)}...`));
   }
   
   if (!apiKey) {

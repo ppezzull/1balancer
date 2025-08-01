@@ -399,7 +399,7 @@ export class CrossChainCoordinator {
     await this.nearCoordinator.handleSecretRevealed(event);
     
     // After NEAR secret is revealed, we need to propagate to BASE
-    const { htlc_id, secret } = event;
+    const { htlc_id } = event;
     
     // Find session by NEAR HTLC ID
     const sessions = await this.sessionManager.listSessions({
@@ -421,7 +421,7 @@ export class CrossChainCoordinator {
 
   // Method to start NEAR event monitoring
   async startNEARMonitoring(): Promise<void> {
-    await this.nearCoordinator.monitorEvents((event) => {
+    await this.nearCoordinator.monitorEvents((event: any) => {
       // Route events to appropriate handlers
       switch (event.eventName) {
         case 'HTLCCreated':
