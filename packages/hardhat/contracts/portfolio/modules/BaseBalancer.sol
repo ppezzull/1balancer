@@ -143,6 +143,176 @@ abstract contract BaseBalancer is Ownable, ReentrancyGuard, StableLimit {
         emit AssetMappingUpdated(_newAssetAddresses, _newPercentages);
     }
 
+    /**
+     * @dev Check if an asset's balance is within acceptable percentage range based on price
+     * @param token The token address to check
+     * @param currentBalance The current balance of the token
+     * @param currentPercentage The current percentage allocation of the token
+     * @param targetPercentage The target percentage allocation of the token
+     * @param price The current price of the token
+     * @return isWithinRange Whether the asset is within acceptable range
+     * @return deviation The percentage deviation from target
+     */
+    function checkAssetBalance(
+        address token,
+        uint256 currentBalance,
+        uint256 currentPercentage,
+        uint256 targetPercentage,
+        uint256 price
+    ) public pure override returns (bool isWithinRange, uint256 deviation) {
+        // Calculate the deviation from target percentage
+        if (currentPercentage > targetPercentage) {
+            deviation = currentPercentage - targetPercentage;
+        } else {
+            deviation = targetPercentage - currentPercentage;
+        }
+
+        // Check if deviation is within acceptable range (5% for now)
+        isWithinRange = deviation <= 5;
+
+        return (isWithinRange, deviation);
+    }
+
+    /**
+     * @notice Check stablecoin balances managed by StableLimit
+     * @return totalStablecoinValue Total value of all stablecoins in ETH
+     * @return stablecoinBalances Array of balances for each stablecoin
+     * @return stablecoinValues Array of values in ETH for each stablecoin
+     */
+    function checkStablecoinBalances() 
+        external 
+        view 
+        returns (
+            uint256 totalStablecoinValue,
+            uint256[] memory stablecoinBalances,
+            uint256[] memory stablecoinValues
+        ) 
+    {
+        uint256 stablecoinCount = stablecoins.length;
+        stablecoinBalances = new uint256[](stablecoinCount);
+        stablecoinValues = new uint256[](stablecoinCount);
+        totalStablecoinValue = 0;
+
+        for (uint256 i = 0; i < stablecoinCount; i++) {
+            address stablecoin = stablecoins[i];
+            uint256 balance = IERC20(stablecoin).balanceOf(address(this));
+            uint256 value = getPrice(stablecoin, balance);
+            
+            stablecoinBalances[i] = balance;
+            stablecoinValues[i] = value;
+            totalStablecoinValue += value;
+        }
+    }
+
+    /**
+     * @notice Check non-stablecoin token balances
+     * @return nonStablecoinTokens Array of non-stablecoin token addresses
+     * @return nonStablecoinBalances Array of balances for non-stablecoin tokens
+     * @return nonStablecoinValues Array of values in ETH for non-stablecoin tokens
+     * @return totalNonStablecoinValue Total value of all non-stablecoin tokens in ETH
+     */
+    function checkNonStablecoinBalances()
+        external
+        view
+        returns (
+            address[] memory nonStablecoinTokens,
+            uint256[] memory nonStablecoinBalances,
+            uint256[] memory nonStablecoinValues,
+            uint256 totalNonStablecoinValue
+        )
+    {
+        // Count non-stablecoin tokens
+        uint256 nonStablecoinCount = 0;
+        for (uint256 i = 0; i < assetAddresses.length; i++) {
+            if (!isStablecoin[assetAddresses[i]]) {
+                nonStablecoinCount++;
+            }
+        }
+
+        nonStablecoinTokens = new address[](nonStablecoinCount);
+        nonStablecoinBalances = new uint256[](nonStablecoinCount);
+        nonStablecoinValues = new uint256[](nonStablecoinCount);
+        totalNonStablecoinValue = 0;
+
+        uint256 index = 0;
+        for (uint256 i = 0; i < assetAddresses.length; i++) {
+            address token = assetAddresses[i];
+            if (!isStablecoin[token]) {
+                uint256 balance = IERC20(token).balanceOf(address(this));
+                uint256 value = getPrice(token, balance);
+                
+                nonStablecoinTokens[index] = token;
+                nonStablecoinBalances[index] = balance;
+                nonStablecoinValues[index] = value;
+                totalNonStablecoinValue += value;
+                index++;
+            }
+        }
+    }
+
+    /**
+     * @notice Get comprehensive portfolio analysis
+     * @return portfolioValue Total portfolio value in ETH
+     * @return stablecoinRatio Percentage of portfolio in stablecoins (basis points)
+     * @return isBalanced Whether the portfolio is balanced within acceptable ranges
+     * @return rebalanceNeeded Whether rebalancing is needed
+     */
+    function getPortfolioAnalysis()
+        external
+        view
+        returns (
+            uint256 portfolioValue,
+            uint256 stablecoinRatio,
+            bool isBalanced,
+            bool rebalanceNeeded
+        )
+    {
+        portfolioValue = getTotalValue();
+        
+        if (portfolioValue == 0) {
+            return (0, 0, true, false);
+        }
+
+        // Get stablecoin value
+        uint256 totalStablecoinValue = 0;
+        for (uint256 i = 0; i < stablecoins.length; i++) {
+            address stablecoin = stablecoins[i];
+            if (assets[stablecoin].percentage > 0) { // Only check if it's in portfolio
+                uint256 balance = IERC20(stablecoin).balanceOf(address(this));
+                totalStablecoinValue += getPrice(stablecoin, balance);
+            }
+        }
+
+        stablecoinRatio = (totalStablecoinValue * 10000) / portfolioValue; // Basis points
+
+        // Check if portfolio is balanced
+        isBalanced = true;
+        rebalanceNeeded = false;
+        
+        for (uint256 i = 0; i < assetAddresses.length; i++) {
+            address token = assetAddresses[i];
+            uint256 balance = IERC20(token).balanceOf(address(this));
+            uint256 currentValue = getPrice(token, balance);
+            uint256 currentPercentage = (currentValue * 100) / portfolioValue;
+            uint256 targetPercentage = assets[token].percentage;
+            
+            (bool withinRange, uint256 deviation) = checkAssetBalance(
+                token,
+                balance,
+                currentPercentage,
+                targetPercentage,
+                currentValue
+            );
+            
+            if (!withinRange) {
+                isBalanced = false;
+                if (deviation > 10) { // If deviation > 10%, rebalancing is needed
+                    rebalanceNeeded = true;
+                }
+            }
+        }
+    }
+
     // -- View Functions --
 
     /**
