@@ -252,4 +252,7 @@ terraform.tfvars
 
 # Allow specific files
 !packages/hardhat/contracts/**/*.sol
-!packages/nextjs/contracts/deployedContracts.ts.example.yarn-installed
+!packages/nextjs/contracts/deployedContracts.ts.example
+
+# Auto-generated contract deployments
+packages/nextjs/contracts/deployedContracts.ts
