@@ -1,84 +1,113 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.23;
 
-import {Balancer} from "../modules/Balancer.sol";
-
-/**
- * @title BalancerFactory
- * @author @ppezzull
- * @notice A factory for creating and managing Balancer contracts.
+/*
+ * BalancerFactory
+ *
+ * A simple factory contract that deploys DriftBalancer or TimeBalancer
+ * instances directly. Each user may create multiple balancers depending
+ * on their strategy. The factory keeps track of created balancers and
+ * emits an event upon deployment. Deployed balancers are owned by the
+ * caller and initialized with custom portfolio parameters during creation.
  */
-contract BalancerFactory {
-    // -- State --
 
-    address[] public allBalancers;
-    mapping(address => address[]) public balancersByOwner;
-    mapping(address => bool) public isBalancer;
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-    // -- Events --
+import "../balancers/DriftBalancer.sol";
+import "../balancers/TimeBalancer.sol";
 
-    event BalancerCreated(address indexed newBalancer, address indexed owner);
+contract BalancerFactory is Ownable {
+    address public priceFeed;
+    address[] public stablecoins;
 
-    // -- Errors --
-
-    error BalancerFactory__InvalidPercentagesSum();
-
-    // -- External Functions --
-
-    /**
-     * @notice Creates a new Balancer contract.
-     * @param _assetAddresses The list of asset addresses.
-     * @param _percentages The list of percentages for each asset.
-     * @param _driftPercentage The drift percentage.
-     * @param _updatePeriodicity The update periodicity.
-     * @return newBalancer The address of the newly created Balancer contract.
-     */
-    /**
-     * @notice Validates that the sum of percentages equals 100.
-     * @param _percentages The list of percentages to validate.
-     */
-    function _validateAssetPercentages(uint256[] memory _percentages) internal pure {
-        uint256 totalPercentage = 0;
-        for (uint256 i = 0; i < _percentages.length; i++) {
-            totalPercentage += _percentages[i];
-        }
-
-        if (totalPercentage != 100) {
-            revert BalancerFactory__InvalidPercentagesSum();
-        }
+    constructor(address _priceFeed, address[] memory _stablecoins) Ownable(msg.sender) {
+        priceFeed = _priceFeed;
+        stablecoins = _stablecoins;
     }
+    /// @dev Lists of deployed drift and time balancers per user
+    mapping(address => address[]) public userDriftBalancers;
+    mapping(address => address[]) public userTimeBalancers;
 
-    function createBalancer(
+    /// @dev Emitted when a new balancer is created
+    event BalancerCreated(address indexed owner, address indexed balancer, bool isTimeBased);
+
+    error NoStablecoin();
+
+    /**
+     * @notice Create a new DriftBalancer
+     * @param _assetAddresses The addresses of the assets in the portfolio
+     * @param _percentages The percentages of the assets in the portfolio
+     * @param _amounts The amounts of the assets to send to the balancer
+     * @param _driftPercentage The percentage of drift allowed
+     */
+    function createDriftBalancer(
         address[] memory _assetAddresses,
         uint256[] memory _percentages,
-        uint256 _driftPercentage,
-        uint256 _updatePeriodicity
-    ) external returns (address newBalancer) {
-        _validateAssetPercentages(_percentages);
-        Balancer balancer = new Balancer(msg.sender, _assetAddresses, _percentages, _driftPercentage, _updatePeriodicity);
-        newBalancer = address(balancer);
+        uint256[] memory _amounts,
+        uint256 _driftPercentage
+    ) external returns (address balancer) {
+        _checkUserTokenBalance(_assetAddresses, _amounts);
+        _requireAtLeastOneStablecoin(_assetAddresses);
 
-        allBalancers.push(newBalancer);
-        balancersByOwner[msg.sender].push(newBalancer);
-        isBalancer[newBalancer] = true;
+        balancer = address(new DriftBalancer(msg.sender, address(this), _assetAddresses, _percentages, _driftPercentage, stablecoins));
 
-        emit BalancerCreated(newBalancer, msg.sender);
-    }
-
-    // -- View Functions --
-
-    /**
-     * @notice Returns the list of all created Balancer contracts.
-     */
-    function getAllBalancers() external view returns (address[] memory) {
-        return allBalancers;
+        _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
+        userDriftBalancers[msg.sender].push(balancer);
+        emit BalancerCreated(msg.sender, balancer, false);
     }
 
     /**
-     * @notice Returns the list of Balancer contracts created by a specific owner.
-     * @param _owner The address of the owner.
+     * @notice Create a new TimeBalancer
+     * @param _assetAddresses The addresses of the assets in the portfolio
+     * @param _percentages The percentages of the assets in the portfolio
+     * @param _amounts The amounts of the assets to send to the balancer
+     * @param interval Rebalance interval in seconds
      */
-    function getBalancersByOwner(address _owner) external view returns (address[] memory) {
-        return balancersByOwner[_owner];
+    function createTimeBalancer(
+        address[] memory _assetAddresses,
+        uint256[] memory _percentages,
+        uint256[] memory _amounts,
+        uint256 interval
+    ) external returns (address balancer) {
+        _checkUserTokenBalance(_assetAddresses, _amounts);
+        _requireAtLeastOneStablecoin(_assetAddresses);
+
+        balancer = address(new TimeBalancer(msg.sender, address(this), _assetAddresses, _percentages, interval, stablecoins));
+
+        _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
+        userTimeBalancers[msg.sender].push(balancer);
+        emit BalancerCreated(msg.sender, balancer, true);
+    }
+
+    /**
+     * @notice Internal function to send tokens to a newly created balancer
+     * @param balancer The address of the balancer contract
+     * @param tokens The addresses of the tokens to send
+     * @param amounts The amounts of the tokens to send
+     */
+    function _sendTokensToBalancer(address balancer, address[] memory tokens, uint256[] memory amounts) internal {
+        require(tokens.length == amounts.length, "Tokens and amounts length mismatch");
+        for (uint256 i = 0; i < tokens.length; i++) {
+            IERC20(tokens[i]).transferFrom(msg.sender, balancer, amounts[i]);
+        }
+    }
+
+    function _requireAtLeastOneStablecoin(address[] memory _assetAddresses) internal view {
+        for (uint i = 0; i < _assetAddresses.length; i++) {
+            for (uint j = 0; j < stablecoins.length; j++) {
+                if (_assetAddresses[i] == stablecoins[j]) {
+                    return;
+                }
+            }
+        }
+        revert NoStablecoin();
+    }
+
+    function _checkUserTokenBalance(address[] memory tokens, uint256[] memory amounts) internal view {
+        require(tokens.length == amounts.length, "Tokens and amounts length mismatch");
+        for (uint256 i = 0; i < tokens.length; i++) {
+            require(IERC20(tokens[i]).balanceOf(msg.sender) >= amounts[i], "Insufficient token balance in factory");
+        }
     }
 }
