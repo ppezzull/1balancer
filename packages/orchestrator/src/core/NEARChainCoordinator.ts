@@ -1,5 +1,5 @@
 import { connect, KeyPair, Account, providers, keyStores } from 'near-api-js';
-const { UnencryptedFileSystemKeyStore, InMemoryKeyStore } = keyStores;
+const { InMemoryKeyStore } = keyStores;
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 import { SessionManager, SwapSession } from './SessionManager';
@@ -51,7 +51,7 @@ export class NEARChainCoordinator {
     private sessionManager: SessionManager,
     _secretManager: SecretManager
   ) {
-    // Initialize NEAR config
+    // Initialize NEAR config - prefer environment variables over config
     this.nearConfig = {
       networkId: config.chains.near?.networkId || 'testnet',
       nodeUrl: config.chains.near?.rpcUrl || 'https://rpc.testnet.near.org',
@@ -61,9 +61,17 @@ export class NEARChainCoordinator {
       explorerUrl: `https://explorer.${config.chains.near?.networkId || 'testnet'}.near.org`,
       htlcContract: config.chains.near?.contracts?.htlc || 'fusion-htlc.testnet',
       solverRegistry: config.chains.near?.contracts?.solverRegistry || 'solver-registry.testnet',
-      masterAccount: process.env.NEAR_MASTER_ACCOUNT,
-      privateKey: process.env.NEAR_PRIVATE_KEY,
+      masterAccount: process.env.NEAR_MASTER_ACCOUNT || config.chains.near?.accountId,
+      privateKey: process.env.NEAR_PRIVATE_KEY || config.chains.near?.privateKey,
     };
+    
+    // Log environment variables for debugging
+    logger.info('NEAR config initialized', {
+      hasAccount: !!this.nearConfig.masterAccount,
+      hasPrivateKey: !!this.nearConfig.privateKey,
+      accountId: this.nearConfig.masterAccount,
+      networkId: this.nearConfig.networkId,
+    });
 
     this.htlcContract = this.nearConfig.htlcContract;
 
@@ -71,7 +79,10 @@ export class NEARChainCoordinator {
     this.initializeProvider();
     
     // Initialize NEAR connection
-    this.initializeNear();
+    this.initializeNear().catch(error => {
+      logger.error('Failed to initialize NEAR coordinator', { error });
+      logger.warn('Continuing without NEAR functionality');
+    });
   }
 
   private initializeProvider(): void {
@@ -81,43 +92,67 @@ export class NEARChainCoordinator {
 
   private async initializeNear(): Promise<void> {
     try {
-      // Setup key store
-      let keyStore: keyStores.KeyStore;
+      // Check if we have valid credentials
+      if (!this.nearConfig.privateKey || !this.nearConfig.masterAccount || 
+          this.nearConfig.privateKey === '' || this.nearConfig.masterAccount === '') {
+        logger.warn('NEAR credentials not provided - limited functionality', {
+          hasAccount: !!this.nearConfig.masterAccount,
+          hasPrivateKey: !!this.nearConfig.privateKey,
+        });
+        
+        // Still create connection for read-only operations
+        const keyStore = new InMemoryKeyStore();
+        this.nearConnection = await connect({
+          networkId: this.nearConfig.networkId,
+          nodeUrl: this.nearConfig.nodeUrl,
+          keyStore,
+        });
+        
+        return;
+      }
       
-      if (this.nearConfig.privateKey && this.nearConfig.masterAccount) {
-        // Use in-memory key store for server environment
-        keyStore = new InMemoryKeyStore();
+      // Setup key store
+      let keyStore: keyStores.KeyStore = new InMemoryKeyStore();
+      let hasValidCredentials = false;
+      
+      try {
+        // Try to parse and set the private key
         const keyPair = KeyPair.fromString(this.nearConfig.privateKey as any);
         await keyStore.setKey(this.nearConfig.networkId, this.nearConfig.masterAccount, keyPair);
-      } else {
-        // Use unencrypted file system key store (for development)
-        const keyPath = process.env.NEAR_KEY_PATH || `${process.env.HOME}/.near-credentials`;
-        keyStore = new UnencryptedFileSystemKeyStore(keyPath);
+        hasValidCredentials = true;
+        logger.info('NEAR private key validated successfully');
+      } catch (keyError) {
+        logger.warn('Invalid NEAR private key format - continuing with read-only access', { 
+          error: keyError,
+          keyFormat: 'Expected format: ed25519:base58_encoded_key (88+ chars after prefix)'
+        });
+        // Continue with empty keystore for read-only operations
       }
 
-      // Initialize NEAR connection using modern API
+      // Initialize NEAR connection (works with or without credentials)
       this.nearConnection = await connect({
         networkId: this.nearConfig.networkId,
         nodeUrl: this.nearConfig.nodeUrl,
         keyStore,
       });
 
-      // Initialize master account if credentials provided
-      if (this.nearConfig.masterAccount) {
+      // Initialize master account only if we have valid credentials
+      if (hasValidCredentials) {
         this.masterAccount = new Account(
           this.nearConnection,
           this.nearConfig.masterAccount
         );
-        
-        logger.info('NEAR connection initialized', {
-          networkId: this.nearConfig.networkId,
-          htlcContract: this.htlcContract,
-          masterAccount: this.nearConfig.masterAccount,
-          contractSource: this.htlcContract.includes('fusion-htlc.testnet') ? 'default' : 'configured',
-        });
+        logger.info('NEAR master account initialized for write operations');
       } else {
-        logger.warn('NEAR initialized without master account - limited functionality');
+        logger.warn('NEAR running in read-only mode - write operations will fail');
       }
+      
+      logger.info('NEAR connection initialized with credentials', {
+        networkId: this.nearConfig.networkId,
+        htlcContract: this.htlcContract,
+        masterAccount: this.nearConfig.masterAccount,
+        contractSource: this.htlcContract.includes('fusion-htlc.testnet') ? 'default' : 'configured',
+      });
     } catch (error) {
       logger.error('Failed to initialize NEAR connection', { error });
       throw error;
@@ -129,7 +164,7 @@ export class NEARChainCoordinator {
       logger.info('Creating NEAR HTLC', { params });
 
       if (!this.masterAccount) {
-        throw new Error('NEAR master account not configured');
+        throw new Error('NEAR write operations unavailable - invalid private key format. Expected: ed25519:base58_key (88+ chars)');
       }
 
       // Convert amount to yoctoNEAR if native NEAR
@@ -311,9 +346,19 @@ export class NEARChainCoordinator {
           await this.handleNearEvent(event);
         }
       }
-    } catch (error) {
-      // Contract might not have get_recent_events method, use alternative approach
-      logger.debug('Using alternative event monitoring approach');
+    } catch (error: any) {
+      // Handle specific NEAR errors gracefully
+      if (error.type === 'AccountDoesNotExist') {
+        logger.debug('NEAR contract not deployed yet - expected in development', {
+          contract: this.htlcContract,
+          hint: 'Deploy NEAR contracts or use existing testnet contracts'
+        });
+      } else if (error.message?.includes('FunctionCallError')) {
+        // Contract might not have get_recent_events method
+        logger.debug('Contract does not support get_recent_events - using alternative monitoring');
+      } else {
+        logger.debug('Error polling NEAR events', { error });
+      }
     }
   }
 
@@ -478,8 +523,15 @@ export class NEARChainCoordinator {
             callback(event);
           }
         }
-      } catch (error) {
-        logger.error('Error monitoring NEAR events', { error });
+      } catch (error: any) {
+        // Handle specific NEAR errors gracefully
+        if (error.type === 'AccountDoesNotExist') {
+          logger.debug('NEAR contract account does not exist yet - this is expected in development', { 
+            contract: this.htlcContract 
+          });
+        } else {
+          logger.error('Error monitoring NEAR events', { error });
+        }
       }
     }, 5000);
   }

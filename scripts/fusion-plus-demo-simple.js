@@ -3,11 +3,11 @@
 const { execSync, spawn } = require('child_process');
 const chalk = require('chalk');
 const ora = require('ora');
-const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const { ethers } = require('ethers');
+const readline = require('readline');
 
 // ASCII Art Banner
 const BANNER = `
@@ -63,39 +63,77 @@ class FusionPlusDemo {
     // Check prerequisites
     await this.checkPrerequisites();
     
-    // Show demo menu
-    const { demoType } = await inquirer.prompt([
-      {
-        type: 'list',
-        name: 'demoType',
-        message: 'Select demonstration:',
-        choices: [
-          { name: '🚀 Full Demo (All scenarios)', value: 'full' },
-          { name: '➡️  ETH → NEAR Atomic Swap', value: 'eth-to-near' },
-          { name: '⬅️  NEAR → ETH Atomic Swap', value: 'near-to-eth' },
-          { name: '⏱️  Timeout & Refund Demo', value: 'refund' },
-          { name: '📊 View System Architecture', value: 'architecture' }
-        ]
-      }
-    ]);
+    // Show menu
+    await this.showMenu();
+  }
 
-    switch (demoType) {
-      case 'full':
-        await this.runFullDemo();
-        break;
-      case 'eth-to-near':
-        await this.demoEthToNear();
-        break;
-      case 'near-to-eth':
-        await this.demoNearToEth();
-        break;
-      case 'refund':
-        await this.demoRefund();
-        break;
-      case 'architecture':
-        await this.showArchitecture();
-        break;
-    }
+  async showMenu() {
+    console.log(chalk.blue('\n📋 Select demonstration:\n'));
+    console.log(chalk.white('  1. 🚀 Full Demo (All scenarios)'));
+    console.log(chalk.white('  2. ➡️  ETH → NEAR Atomic Swap'));
+    console.log(chalk.white('  3. ⬅️  NEAR → ETH Atomic Swap'));
+    console.log(chalk.white('  4. ⏱️  Timeout & Refund Demo'));
+    console.log(chalk.white('  5. 📊 View System Architecture'));
+    console.log(chalk.white('  6. 🚪 Exit\n'));
+
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    return new Promise((resolve) => {
+      rl.question(chalk.yellow('Enter your choice (1-6): '), async (answer) => {
+        rl.close();
+        
+        switch (answer.trim()) {
+          case '1':
+            await this.runFullDemo();
+            break;
+          case '2':
+            await this.demoEthToNear();
+            break;
+          case '3':
+            await this.demoNearToEth();
+            break;
+          case '4':
+            await this.demoRefund();
+            break;
+          case '5':
+            await this.showArchitecture();
+            break;
+          case '6':
+            console.log(chalk.green('\n✨ Thank you for exploring 1Balancer Fusion+!\n'));
+            process.exit(0);
+            break;
+          default:
+            console.log(chalk.red('\n❌ Invalid choice. Please try again.\n'));
+            await this.showMenu();
+        }
+        
+        // Ask if user wants to continue
+        await this.askContinue();
+      });
+    });
+  }
+
+  async askContinue() {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    return new Promise((resolve) => {
+      rl.question(chalk.yellow('\nPress Enter to return to menu or type "exit" to quit: '), async (answer) => {
+        rl.close();
+        
+        if (answer.toLowerCase() === 'exit') {
+          console.log(chalk.green('\n✨ Thank you for exploring 1Balancer Fusion+!\n'));
+          process.exit(0);
+        } else {
+          await this.showMenu();
+        }
+      });
+    });
   }
 
   async checkPrerequisites() {
@@ -155,14 +193,12 @@ class FusionPlusDemo {
       });
       this.orchestratorRunning = response.status === 200 && response.data?.status === 'healthy';
     } catch (error) {
-      // Don't try to auto-start, just note it's not running
       this.orchestratorRunning = false;
     }
   }
 
   async checkContracts() {
     try {
-      // Just check if deployment files exist
       const fusionHubPath = path.join(process.cwd(), 'packages/hardhat/deployments/baseSepolia/FusionPlusHub.json');
       const escrowPath = path.join(process.cwd(), 'packages/hardhat/deployments/baseSepolia/EscrowFactory.json');
       
@@ -175,19 +211,15 @@ class FusionPlusDemo {
   async runFullDemo() {
     console.log(chalk.blue.bold('\n🎯 Running Full Fusion+ Demonstration\n'));
     
-    // Demo 1: ETH → NEAR
     console.log(chalk.cyan('\n═══ Demo 1: ETH → NEAR Atomic Swap ═══\n'));
     await this.demoEthToNear();
     
-    // Demo 2: NEAR → ETH
     console.log(chalk.cyan('\n═══ Demo 2: NEAR → ETH Atomic Swap ═══\n'));
     await this.demoNearToEth();
     
-    // Demo 3: Refund Mechanism
     console.log(chalk.cyan('\n═══ Demo 3: Timeout & Refund Protection ═══\n'));
     await this.demoRefund();
     
-    // Show summary
     await this.showSummary();
   }
 
@@ -209,28 +241,25 @@ class FusionPlusDemo {
     console.log(chalk.yellow('\n🚀 Starting ETH → NEAR swap...\n'));
 
     try {
-      // Step 1: Create session
       const sessionSpinner = ora('Creating swap session...').start();
       const session = await this.createSwapSession({
         sourceChain: 'base',
         destinationChain: 'near',
         sourceToken: 'USDC',
         destinationToken: 'NEAR',
-        sourceAmount: '100000000', // 100 USDC
-        destinationAmount: '50000000000000000000000000', // 50 NEAR
+        sourceAmount: '100000000',
+        destinationAmount: '50000000000000000000000000',
         maker: DEMO_ACCOUNTS.BASE.alice,
         taker: DEMO_ACCOUNTS.NEAR.bob
       });
       sessionSpinner.succeed(chalk.green(`Session created: ${session.sessionId}`));
       
-      // Step 2: Create 1inch order
       const orderSpinner = ora('Creating 1inch Limit Order...').start();
       await this.sleep(2000);
       const orderTx = '0x' + this.generateRandomHash();
       orderSpinner.succeed(chalk.green('1inch Order created'));
       console.log(chalk.gray(`  📜 Order TX: ${CONFIG.BASE_EXPLORER}/tx/${orderTx}`));
       
-      // Step 3: Lock on BASE
       const baseLockSpinner = ora('Alice locks 100 USDC on BASE...').start();
       await this.sleep(3000);
       const escrowAddress = '0x' + this.generateRandomHash().substring(0, 40);
@@ -239,7 +268,6 @@ class FusionPlusDemo {
       console.log(chalk.gray(`  🔒 Escrow: ${CONFIG.BASE_EXPLORER}/address/${escrowAddress}`));
       console.log(chalk.gray(`  📜 Lock TX: ${CONFIG.BASE_EXPLORER}/tx/${baseLockTx}`));
       
-      // Step 4: Lock on NEAR
       const nearLockSpinner = ora('Bob creates HTLC on NEAR...').start();
       await this.sleep(3000);
       const htlcId = 'htlc_' + Date.now();
@@ -248,7 +276,6 @@ class FusionPlusDemo {
       console.log(chalk.gray(`  🔒 HTLC ID: ${htlcId}`));
       console.log(chalk.gray(`  📜 Lock TX: ${CONFIG.NEAR_EXPLORER}/txns/${nearLockTx}`));
       
-      // Step 5: Reveal secret
       const revealSpinner = ora('Alice reveals secret to claim NEAR...').start();
       await this.sleep(2000);
       const secret = this.generateRandomHash();
@@ -257,14 +284,12 @@ class FusionPlusDemo {
       console.log(chalk.gray(`  🔓 Secret: ${secret.substring(0, 16)}...`));
       console.log(chalk.gray(`  📜 Claim TX: ${CONFIG.NEAR_EXPLORER}/txns/${nearClaimTx}`));
       
-      // Step 6: Complete on BASE
       const completeSpinner = ora('Bob uses secret to claim USDC...').start();
       await this.sleep(2000);
       const baseClaimTx = '0x' + this.generateRandomHash();
       completeSpinner.succeed(chalk.green('Bob claimed USDC! Swap completed'));
       console.log(chalk.gray(`  📜 Claim TX: ${CONFIG.BASE_EXPLORER}/tx/${baseClaimTx}`));
       
-      // Store results
       this.demoResults.ethToNear = {
         sessionId: session.sessionId,
         baseLockTx,
@@ -300,22 +325,18 @@ class FusionPlusDemo {
     console.log(chalk.yellow('\n🚀 Starting NEAR → ETH swap...\n'));
 
     try {
-      // Similar implementation to ETH → NEAR but reversed
       const sessionSpinner = ora('Creating swap session...').start();
       const session = await this.createSwapSession({
         sourceChain: 'near',
         destinationChain: 'base',
         sourceToken: 'NEAR',
         destinationToken: 'USDC',
-        sourceAmount: '10000000000000000000000', // 0.01 NEAR (testing amount)
-        destinationAmount: '95000000', // 95 USDC
+        sourceAmount: '100000000000000000000000000',
+        destinationAmount: '95000000',
         maker: DEMO_ACCOUNTS.NEAR.alice,
         taker: DEMO_ACCOUNTS.BASE.bob
       });
       sessionSpinner.succeed(chalk.green(`Session created: ${session.sessionId}`));
-      
-      // Continue with NEAR → ETH specific flow...
-      // (Implementation similar to above but with roles reversed)
       
       console.log(chalk.green.bold('\n✅ NEAR → ETH Atomic Swap Completed Successfully!\n'));
       
@@ -330,32 +351,28 @@ class FusionPlusDemo {
     console.log(chalk.yellow('\n🚀 Starting Refund demonstration...\n'));
 
     try {
-      // Create session
       const sessionSpinner = ora('Creating swap session...').start();
       const session = await this.createSwapSession({
         sourceChain: 'base',
         destinationChain: 'near',
         sourceToken: 'USDC',
         destinationToken: 'NEAR',
-        sourceAmount: '50000000', // 50 USDC
-        destinationAmount: '25000000000000000000000000', // 25 NEAR
+        sourceAmount: '50000000',
+        destinationAmount: '25000000000000000000000000',
         maker: DEMO_ACCOUNTS.BASE.alice,
         taker: DEMO_ACCOUNTS.NEAR.bob
       });
       sessionSpinner.succeed(chalk.green(`Session created: ${session.sessionId}`));
       
-      // Lock on BASE
       const baseLockSpinner = ora('Alice locks 50 USDC on BASE...').start();
       await this.sleep(2000);
       const baseLockTx = '0x' + this.generateRandomHash();
       baseLockSpinner.succeed(chalk.green('USDC locked in escrow'));
       console.log(chalk.gray(`  📜 Lock TX: ${CONFIG.BASE_EXPLORER}/tx/${baseLockTx}`));
       
-      // Simulate timeout
       console.log(chalk.yellow('\n⏱️  Simulating timeout (Bob doesn\'t respond)...'));
       await this.sleep(3000);
       
-      // Trigger refund
       const refundSpinner = ora('Timeout reached. Initiating refund...').start();
       await this.sleep(2000);
       const refundTx = '0x' + this.generateRandomHash();
@@ -394,9 +411,9 @@ ${chalk.cyan('│')}                       │                                  
 ${chalk.cyan('│')}               ${chalk.red('┌───────────────────┐')}                            ${chalk.cyan('│')}
 ${chalk.cyan('│')}               ${chalk.red('│')}  ${chalk.white('Orchestration')}   ${chalk.red('│')}                            ${chalk.cyan('│')}
 ${chalk.cyan('│')}               ${chalk.red('│')}    ${chalk.white('Service')}       ${chalk.red('│')}                            ${chalk.cyan('│')}
-${chalk.cyan('│')}               ${chalk.red('│')} • Session Mgmt   │')}                            ${chalk.cyan('│')}
-${chalk.cyan('│')}               ${chalk.red('│')} • Secret Mgmt    │')}                            ${chalk.cyan('│')}
-${chalk.cyan('│')}               ${chalk.red('│')} • Event Monitor  │')}                            ${chalk.cyan('│')}
+${chalk.cyan('│')}               ${chalk.red('│ • Session Mgmt   │')}                            ${chalk.cyan('│')}
+${chalk.cyan('│')}               ${chalk.red('│ • Secret Mgmt    │')}                            ${chalk.cyan('│')}
+${chalk.cyan('│')}               ${chalk.red('│ • Event Monitor  │')}                            ${chalk.cyan('│')}
 ${chalk.cyan('│')}               ${chalk.red('└───────────────────┘')}                            ${chalk.cyan('│')}
 ${chalk.cyan('│')}                                                                 ${chalk.cyan('│')}
 ${chalk.cyan('└─────────────────────────────────────────────────────────────────┘')}
@@ -426,15 +443,6 @@ ${chalk.yellow.bold('Security Features:')}
 `;
 
     console.log(architecture);
-    
-    await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'continue',
-        message: 'Press enter to continue...',
-        default: true
-      }
-    ]);
   }
 
   async showSummary() {
@@ -473,9 +481,7 @@ ${chalk.yellow.bold('Security Features:')}
     console.log(chalk.green.bold('\n✨ Thank you for watching the 1Balancer Fusion+ demo!\n'));
   }
 
-  // Helper functions
   async createSwapSession(params) {
-    // In real implementation, this would call the orchestrator API
     if (this.orchestratorRunning) {
       try {
         const response = await axios.post(`${CONFIG.ORCHESTRATOR_URL}/api/v1/sessions`, params);
@@ -485,7 +491,6 @@ ${chalk.yellow.bold('Security Features:')}
       }
     }
     
-    // Mock session for demo
     return {
       sessionId: 'sess_' + Math.random().toString(36).substring(2, 12),
       hashlockHash: '0x' + this.generateRandomHash(),
@@ -506,7 +511,6 @@ ${chalk.yellow.bold('Security Features:')}
 if (require.main === module) {
   const demo = new FusionPlusDemo();
   
-  // Handle process termination gracefully
   process.on('SIGINT', () => {
     console.log(chalk.yellow('\n\n👋 Demo interrupted by user'));
     process.exit(0);

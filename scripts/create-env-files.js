@@ -2,8 +2,8 @@
 
 const fs = require('fs');
 const path = require('path');
-const chalk = require('chalk').default;
-const ora = require('ora').default;
+const chalk = require('chalk');
+const ora = require('ora');
 const dotenv = require('dotenv');
 
 console.log(chalk.blue.bold('\n📄 Setting up environment configuration...\n'));

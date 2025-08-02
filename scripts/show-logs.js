@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk').default;
+const { default: chalk } = require('chalk');
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
