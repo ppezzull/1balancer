@@ -16,16 +16,16 @@ We have successfully implemented a **complete, working Fusion+ protocol** that e
 
 ```bash
 # 1. Quick setup (one-time)
-make fusion+-setup
+make fusion-plus-setup
 
 # 2. Run the complete demonstration
-make fusion+
+make fusion-plus
 
 # 3. Run live integration tests
-make fusion+-test
+make fusion-plus-test
 
 # 4. Check deployment status
-make fusion+-status
+make fusion-plus-status
 ```
 
 ## 📊 System Architecture
@@ -216,7 +216,7 @@ Recent successful atomic swaps:
    make orchestrator-dev
    
    # In another terminal
-   make fusion+-test
+   make fusion-plus-test
    ```
 
 ## 🏆 Why We Win

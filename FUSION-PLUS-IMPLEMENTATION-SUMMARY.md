@@ -35,11 +35,11 @@ We have created a complete, production-ready implementation of the 1inch Fusion+
 
 #### Demo Commands
 ```bash
-make fusion+         # Run complete demonstration
-make fusion+-test    # Run integration tests
-make fusion+-setup   # Quick setup
-make fusion+-status  # Check deployment status
-make fusion+-arch    # View architecture
+make fusion-plus         # Run complete demonstration
+make fusion-plus-test    # Run integration tests
+make fusion-plus-setup   # Quick setup
+make fusion-plus-status  # Check deployment status
+make fusion-plus-arch    # View architecture
 ```
 
 #### Demo Features
@@ -103,7 +103,7 @@ make fusion+-arch    # View architecture
 
 ## Live Demo Walkthrough
 
-When judges run `make fusion+`, they will see:
+When judges run `make fusion-plus`, they will see:
 
 1. **Welcome Screen**
    - ASCII art banner
@@ -144,7 +144,7 @@ When judges run `make fusion+`, they will see:
 - Monitoring and logging
 
 ### 3. Developer Experience
-- One-command demo: `make fusion+`
+- One-command demo: `make fusion-plus`
 - Clear documentation
 - Easy deployment
 - Debugging tools
@@ -167,13 +167,13 @@ When judges run `make fusion+`, they will see:
 
 1. **Quick Demo** (5 minutes):
    ```bash
-   make fusion+
+   make fusion-plus
    ```
 
 2. **Deep Dive** (15 minutes):
    ```bash
-   make fusion+-test
-   make fusion+-status
+   make fusion-plus-test
+   make fusion-plus-status
    ```
 
 3. **Technical Review**:
