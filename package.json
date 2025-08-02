@@ -108,7 +108,7 @@
     "@stylistic/eslint-plugin": "^2.3.0",
     "@typescript-eslint/eslint-plugin": "^7.14.1",
     "@typescript-eslint/parser": "^7.14.1",
-    "chalk": "^5.4.1",
+    "chalk": "^4.1.2",
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "dotenv": "^17.2.1",
@@ -124,7 +124,7 @@
     "globals": "^15.6.0",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
-    "ora": "^8.2.0",
+    "ora": "^5.4.1",
     "prettier": "^3.3.2",
     "typescript": "^5.5.2"
   },
@@ -136,6 +136,10 @@
     "@1inch/eslint-config": "^3.0.7",
     "@1inch/limit-order-sdk": "latest",
     "@1inch/tsconfig": "^1.0.9",
+    "axios": "^1.6.7",
+    "ethers": "^6.11.1",
+    "inquirer": "^9.2.15",
+    "near-api-js": "^3.0.4",
     "tw-animate-css": "^1.3.6"
   }
 }
