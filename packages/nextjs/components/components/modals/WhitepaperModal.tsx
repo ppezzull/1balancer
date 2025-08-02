@@ -27,7 +27,7 @@ import {
 import { useIsMobile } from "../ui/use-mobile";
 import { useTheme } from "../ui/use-theme";
 import { toast } from "sonner";
-
+import logoImage from "figma:asset/4ec3ac8d40639284c043d1d5a8d06d0449713468.png";
 
 interface WhitepaperModalProps {
   isOpen: boolean;
@@ -802,10 +802,10 @@ export function WhitepaperModal({
             damping: 25,
             stiffness: 300,
           }}
-          className={`w-full overflow-hidden ${
+          className={`w-full ${
             isMobile
-              ? "h-full max-h-screen mx-0 my-0"
-              : "max-w-6xl max-h-[90vh] mx-4 my-8"
+              ? "h-screen max-h-screen mx-0 my-0"
+              : "max-w-6xl h-[85vh] max-h-[85vh] mx-4 my-8"
           }`}
           onClick={(e) => e.stopPropagation()}
         >
@@ -816,6 +816,7 @@ export function WhitepaperModal({
                 ? "linear-gradient(135deg, #1f2937 0%, #111827 50%, #0f172a 100%)"
                 : "linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)",
               backdropFilter: "blur(20px)",
+              maxHeight: isMobile ? "100vh" : "85vh",
             }}
           >
             {/* Header */}
@@ -900,31 +901,35 @@ export function WhitepaperModal({
             </CardHeader>
 
             <div
-              className={`flex ${isMobile ? "flex-col" : "flex-row"} flex-1 min-h-0`}
+              className={`flex ${isMobile ? "flex-col" : "flex-row"} flex-1 min-h-0 overflow-hidden`}
             >
               {/* Sidebar Navigation - Desktop */}
               {!isMobile && (
-                <div className="w-64 border-r border-border/30 p-4 flex-shrink-0">
-                  <nav className="space-y-2">
-                    {sections.map((section) => (
-                      <button
-                        key={section.id}
-                        onClick={() =>
-                          setActiveSection(section.id)
-                        }
-                        className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-all duration-200 ${
-                          activeSection === section.id
-                            ? "bg-gradient-to-r from-cyan-500/10 to-blue-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800"
-                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {section.icon}
-                        <span className="text-sm font-medium">
-                          {section.label}
-                        </span>
-                      </button>
-                    ))}
-                  </nav>
+                <div className="w-64 border-r border-border/30 flex-shrink-0 overflow-hidden">
+                  <ScrollArea className="h-full">
+                    <div className="p-4">
+                      <nav className="space-y-2">
+                        {sections.map((section) => (
+                          <button
+                            key={section.id}
+                            onClick={() =>
+                              setActiveSection(section.id)
+                            }
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-all duration-200 ${
+                              activeSection === section.id
+                                ? "bg-gradient-to-r from-cyan-500/10 to-blue-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-800"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                            }`}
+                          >
+                            {section.icon}
+                            <span className="text-sm font-medium">
+                              {section.label}
+                            </span>
+                          </button>
+                        ))}
+                      </nav>
+                    </div>
+                  </ScrollArea>
                 </div>
               )}
 
@@ -950,24 +955,22 @@ export function WhitepaperModal({
                 </div>
               )}
 
-              {/* Content Area with proper mobile scroll */}
+              {/* Content Area with improved scroll */}
               <div className="flex-1 min-h-0 overflow-hidden">
-                <ScrollArea
-                  className={`h-full ${isMobile ? "px-3 py-4" : "p-6"}`}
-                >
-                  <motion.div
-                    key={activeSection}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={
-                      isMobile ? "space-y-4" : "space-y-6"
-                    }
-                  >
-                    {renderContent()}
-                  </motion.div>
-                  {/* Add padding at bottom for mobile scroll */}
-                  {isMobile && <div className="h-8" />}
+                <ScrollArea className="h-full whitepaper-modal-content">
+                  <div className={`${isMobile ? "px-3 py-4" : "p-6"} modal-content-padding modal-card-container`}>
+                    <motion.div
+                      key={activeSection}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className={isMobile ? "space-y-4" : "space-y-6"}
+                    >
+                      {renderContent()}
+                    </motion.div>
+                    {/* Add bottom padding for safe scroll area */}
+                    <div className={isMobile ? "h-20" : "h-16"} />
+                  </div>
                 </ScrollArea>
               </div>
             </div>
