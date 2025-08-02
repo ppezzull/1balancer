@@ -5,23 +5,22 @@ import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { Toaster } from "react-hot-toast";
-import { Footer } from "~~/components/Footer";
-import { Header } from "~~/components/Header";
+
 import { useInitializeNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
 import scaffoldConfig from "~~/scaffold.config";
 import { privyConfig } from "~~/services/web3/privyConfig";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
+import App from "~~/components/App";
+
+
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   useInitializeNativeCurrencyPrice();
 
   return (
     <>
-      <div className={`flex flex-col min-h-screen `}>
-        <Header />
-        <main className="relative flex flex-col flex-1">{children}</main>
-        <Footer />
-      </div>
+      <App />
+      {children}
       <Toaster />
     </>
   );
