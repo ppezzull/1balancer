@@ -55,6 +55,13 @@ help:
 	@echo "    make near-status     - Check deployment status"
 	@echo "    make near-delete     - Show how to delete contracts"
 	@echo ""
+	@echo "  🏆 FUSION+ DEMO (HACKATHON):"
+	@echo "    make fusion+         - Run complete Fusion+ demonstration"
+	@echo "    make fusion+-test    - Run integration tests on testnet"
+	@echo "    make fusion+-setup   - Quick setup for demo"
+	@echo "    make fusion+-arch    - View system architecture"
+	@echo "    make fusion+-status  - Check deployment status"
+	@echo ""
 	@echo "  ADVANCED:"
 	@echo "    make help-dev        - Show more development commands"
 	@echo "    make help-all        - Show ALL available commands"
@@ -891,6 +898,166 @@ submodule-init:
 submodule-update:
 	@echo "🔄 Updating submodules..."
 	@yarn submodule:update
+
+# ============================================
+# FUSION+ DEMO COMMANDS (HACKATHON SHOWCASE)
+# ============================================
+
+# Complete Fusion+ demonstration for judges
+fusion+: .yarn-installed
+	@echo ""
+	@echo "🏆 1BALANCER FUSION+ DEMONSTRATION"
+	@echo "================================="
+	@echo ""
+	@echo "This demonstration showcases our complete implementation of the"
+	@echo "1inch Fusion+ protocol with cross-chain atomic swaps between"
+	@echo "BASE (Ethereum L2) and NEAR Protocol."
+	@echo ""
+	@echo "What you'll see:"
+	@echo "  ✅ Bidirectional atomic swaps (ETH ↔ NEAR)"
+	@echo "  ✅ HTLC with SHA-256 hashlocks"
+	@echo "  ✅ Timeout-protected refunds"
+	@echo "  ✅ Live testnet transactions"
+	@echo "  ✅ Complete orchestration system"
+	@echo ""
+	@read -p "Press Enter to begin the demonstration..." _
+	@node scripts/fusion-plus-demo.js
+
+# Run integration tests with live contracts
+fusion+-test: .yarn-installed
+	@echo ""
+	@echo "🧪 FUSION+ INTEGRATION TESTS"
+	@echo "==========================="
+	@echo ""
+	@echo "Running live integration tests on testnet..."
+	@echo "This will perform actual atomic swaps with real contracts."
+	@echo ""
+	@echo "Prerequisites:"
+	@echo "  - BASE Sepolia ETH (get from faucet)"
+	@echo "  - NEAR Testnet tokens"
+	@echo "  - Deployed contracts"
+	@echo ""
+	@read -p "Press Enter to start integration tests..." _
+	@node scripts/fusion-integration-tests.js
+
+# Quick demo setup for judges
+fusion+-setup: setup
+	@echo ""
+	@echo "⚡ FUSION+ QUICK SETUP"
+	@echo "===================="
+	@echo ""
+	@echo "Setting up everything needed for the demo..."
+	@echo ""
+	@# Deploy contracts if needed
+	@if [ ! -f "packages/hardhat/deployments/baseSepolia/FusionPlusHub.json" ]; then \
+		echo "📄 Deploying contracts to BASE Sepolia..."; \
+		yarn deploy --network baseSepolia || echo "⚠️  Deploy manually with 'make deploy-base'"; \
+	fi
+	@# Check NEAR deployment
+	@if [ ! -f "1balancer-near/.near-credentials/testnet/deploy.json" ]; then \
+		echo "📄 NEAR contracts need deployment. Run 'make near-deploy'"; \
+	fi
+	@# Start orchestrator if not running
+	@curl -s http://localhost:8080/health > /dev/null 2>&1 || { \
+		echo "🎯 Starting orchestrator..."; \
+		cd packages/orchestrator && yarn dev > ../../orchestrator.log 2>&1 & \
+		sleep 5; \
+	}
+	@echo ""
+	@echo "✅ Fusion+ demo environment ready!"
+	@echo ""
+	@echo "Run 'make fusion+' to start the demonstration"
+
+# Show Fusion+ architecture
+fusion+-arch:
+	@clear
+	@echo ""
+	@cat << 'EOF'
+
+    🏆 1BALANCER FUSION+ ARCHITECTURE
+    =================================
+
+    ┌─────────────────────────────────────────────────────────────────┐
+    │                    1BALANCER FUSION+ SYSTEM                     │
+    ├─────────────────────────────────────────────────────────────────┤
+    │                                                                 │
+    │  BASE Chain (Ethereum L2)              NEAR Protocol            │
+    │  ┌─────────────────────┐              ┌──────────────────┐     │
+    │  │  FusionPlusHub.sol  │              │ fusion-htlc.near │     │
+    │  │  ┌───────────────┐  │              │ ┌──────────────┐ │     │
+    │  │  │ Escrow System │  │◄────────────►│ │ HTLC System  │ │     │
+    │  │  └───────────────┘  │              │ └──────────────┘ │     │
+    │  │  ┌───────────────┐  │              │ ┌──────────────┐ │     │
+    │  │  │ 1inch LOP    │  │              │ │ Event Monitor│ │     │
+    │  │  └───────────────┘  │              │ └──────────────┘ │     │
+    │  └─────────────────────┘              └──────────────────┘     │
+    │           ▲                                    ▲                │
+    │           │                                    │                │
+    │           └────────────┬───────────────────────┘                │
+    │                       │                                         │
+    │               ┌───────────────────┐                            │
+    │               │  Orchestration    │                            │
+    │               │    Service        │                            │
+    │               │ • Session Mgmt    │                            │
+    │               │ • Secret Mgmt     │                            │
+    │               │ • Event Monitor   │                            │
+    │               └───────────────────┘                            │
+    │                                                                 │
+    └─────────────────────────────────────────────────────────────────┘
+
+    KEY FEATURES:
+    ✓ Atomic Cross-Chain Swaps    ✓ No KYC Requirements
+    ✓ SHA-256 Hashlocks          ✓ Timeout Protection
+    ✓ 1inch Protocol Integration  ✓ Bidirectional Swaps
+
+EOF
+	@echo ""
+	@echo "Press Enter to return to menu..."
+	@read _
+
+# View recent Fusion+ transactions
+fusion+-status:
+	@echo ""
+	@echo "📊 FUSION+ DEPLOYMENT STATUS"
+	@echo "==========================="
+	@echo ""
+	@# Check BASE contracts
+	@echo "BASE Sepolia Contracts:"
+	@if [ -f "packages/hardhat/deployments/baseSepolia/FusionPlusHub.json" ]; then \
+		HUB_ADDR=$$(jq -r .address packages/hardhat/deployments/baseSepolia/FusionPlusHub.json); \
+		echo "  ✅ FusionPlusHub: $$HUB_ADDR"; \
+		echo "     Explorer: https://sepolia.basescan.org/address/$$HUB_ADDR"; \
+	else \
+		echo "  ❌ FusionPlusHub: Not deployed"; \
+	fi
+	@if [ -f "packages/hardhat/deployments/baseSepolia/EscrowFactory.json" ]; then \
+		ESCROW_ADDR=$$(jq -r .address packages/hardhat/deployments/baseSepolia/EscrowFactory.json); \
+		echo "  ✅ EscrowFactory: $$ESCROW_ADDR"; \
+		echo "     Explorer: https://sepolia.basescan.org/address/$$ESCROW_ADDR"; \
+	else \
+		echo "  ❌ EscrowFactory: Not deployed"; \
+	fi
+	@echo ""
+	@# Check NEAR contracts
+	@echo "NEAR Testnet Contracts:"
+	@if [ -f "1balancer-near/.near-credentials/testnet/deploy.json" ]; then \
+		CONTRACT_ID=$$(grep -o '"contractId":"[^"]*' 1balancer-near/.near-credentials/testnet/deploy.json | cut -d'"' -f4); \
+		echo "  ✅ HTLC Contract: $$CONTRACT_ID"; \
+		echo "     Explorer: https://testnet.nearblocks.io/address/$$CONTRACT_ID"; \
+	else \
+		echo "  ❌ HTLC Contract: Not deployed"; \
+	fi
+	@echo ""
+	@# Check orchestrator
+	@echo "Orchestrator Service:"
+	@if curl -s http://localhost:8080/health > /dev/null 2>&1; then \
+		echo "  ✅ Status: Running on http://localhost:8080"; \
+		echo "     API Docs: http://localhost:8080/api-docs"; \
+		echo "     WebSocket: ws://localhost:8080/ws"; \
+	else \
+		echo "  ❌ Status: Not running (start with 'make orchestrator-dev')"; \
+	fi
+	@echo ""
 
 # ============================================
 # SHORTCUTS & ALIASES
