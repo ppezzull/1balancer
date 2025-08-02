@@ -5,7 +5,7 @@ import { Card, CardContent } from "./ui/card";
 import { useTheme } from "./ui/use-theme";
 import { useIsMobile } from "./ui/use-mobile";
 import { toast } from "sonner";
-import { X, TrendingUp, TrendingDown, Euro, DollarSign, Minus, Plus, ArrowLeftRight } from "lucide-react";
+import { X, TrendingUp, TrendingDown, Euro, DollarSign, Minus, Plus, ArrowLeftRight, RefreshCw, Settings, ChevronDown } from "lucide-react";
 
 interface BuyCryptoModalProps {
   crypto: {
@@ -20,6 +20,21 @@ interface BuyCryptoModalProps {
 }
 
 export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps) {
+  // Safe parsing functions for price and change that handle both string and number inputs
+  const parsePrice = (price: string | number): number => {
+    if (typeof price === 'number') return price;
+    if (typeof price === 'string') return parseFloat(price.replace(/[,$]/g, ''));
+    return 0;
+  };
+  
+  // Helper function to get token price safely
+  const getTokenPrice = (token: any): number => {
+    if (token.symbol === crypto.symbol) {
+      return parsePrice(crypto.price);
+    }
+    return typeof token.price === 'number' ? token.price : parsePrice(token.price || 0);
+  };
+
   const [orderType, setOrderType] = useState('market');
   const [amount, setAmount] = useState('0');
   const [cryptoAmount, setCryptoAmount] = useState('0');
@@ -39,21 +54,47 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
   const [stopLimitPrice, setStopLimitPrice] = useState('');
   const [stopLimitQuantity, setStopLimitQuantity] = useState('0');
   
+  // Available tokens for swapping
+  const availableTokens = [
+    { symbol: 'ETH', name: 'Ethereum', image: '/images/tokens/eth.png', price: 3200.00, gradient: 'from-purple-400 to-purple-600' },
+    { symbol: 'USDC', name: 'USD Coin', image: '/images/tokens/usdc.png', price: 1.00, gradient: 'from-blue-400 to-blue-600' },
+    // Add crypto token to available tokens if it's not already ETH or USDC
+    ...(crypto.symbol !== 'ETH' && crypto.symbol !== 'USDC' ? [{ 
+      symbol: crypto.symbol, 
+      name: crypto.name, 
+      image: crypto.image, 
+      price: parsePrice(crypto.price), 
+      gradient: 'from-teal-400 to-cyan-500' 
+    }] : [])
+  ];
+
+  // Swap specific states
+  const [fromToken, setFromToken] = useState(() => {
+    // Default to ETH if available, otherwise first token
+    const ethToken = availableTokens.find(token => token.symbol === 'ETH');
+    return ethToken || availableTokens[0];
+  });
+  const [toToken, setToToken] = useState({ 
+    symbol: crypto.symbol, 
+    name: crypto.name, 
+    price: parsePrice(crypto.price), 
+    gradient: 'from-teal-400 to-cyan-500' 
+  });
+  const [swapFromAmount, setSwapFromAmount] = useState('0');
+  const [swapToAmount, setSwapToAmount] = useState('0');
+  const [slippage, setSlippage] = useState('0.5');
+  const [swapRate, setSwapRate] = useState(0);
+  const [showFromTokenSelector, setShowFromTokenSelector] = useState(false);
+  
   const { isDark } = useTheme();
   const isMobile = useIsMobile();
   
   const orderTypes = [
     { id: 'market', label: 'Market' },
-    { id: 'limit', label: 'Limit' }
+    { id: 'limit', label: 'Limit' },
+    { id: 'swap', label: 'Swap' }
   ];
 
-  // Safe parsing functions for price and change that handle both string and number inputs
-  const parsePrice = (price: string | number): number => {
-    if (typeof price === 'number') return price;
-    if (typeof price === 'string') return parseFloat(price.replace(/[,$]/g, ''));
-    return 0;
-  };
-  
   const parseChange = (change: string | number): number => {
     if (typeof change === 'number') return change;
     if (typeof change === 'string') return parseFloat(change.replace(/[%+]/g, ''));
@@ -83,7 +124,62 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
     if (orderType === 'limit' && !limitPrice) {
       setLimitPrice(formattedPrice);
     }
-  }, [orderType]); // Only depend on orderType to prevent loops
+    if (orderType === 'swap') {
+      // Set default tokens: ETH -> crypto for supported pairs
+      const ethToken = { symbol: 'ETH', name: 'Ethereum', price: 3200.00, gradient: 'from-purple-400 to-purple-600' };
+      const cryptoToken = { 
+        symbol: crypto.symbol, 
+        name: crypto.name, 
+        price: parsePrice(crypto.price), 
+        gradient: 'from-teal-400 to-cyan-500' 
+      };
+      
+      // Set ETH as default fromToken if crypto is supported
+      const isSupported = crypto.symbol === '1INCH' || crypto.symbol === 'ETH';
+      if (isSupported && crypto.symbol !== 'ETH') {
+        setFromToken(ethToken);
+        setToToken(cryptoToken);
+      } else if (crypto.symbol === 'ETH') {
+        // If crypto is ETH, default to USDC -> ETH
+        const usdcToken = availableTokens.find(token => token.symbol === 'USDC') || availableTokens[0];
+        setFromToken(usdcToken);
+        setToToken(cryptoToken);
+      } else {
+        // For unsupported cryptos, set as default
+        setToToken(cryptoToken);
+      }
+      
+      // Initialize swap rate and calculate initial amounts
+      const currentFromToken = isSupported && crypto.symbol !== 'ETH' ? ethToken : 
+                              crypto.symbol === 'ETH' ? (availableTokens.find(token => token.symbol === 'USDC') || availableTokens[0]) : 
+                              fromToken;
+      calculateSwapRate(currentFromToken, cryptoToken);
+      
+      if (swapFromAmount && parseFloat(swapFromAmount) > 0) {
+        const fromPrice = getTokenPrice(currentFromToken);
+        const toPrice = getTokenPrice(cryptoToken);
+        if (fromPrice > 0 && toPrice > 0) {
+          const rate = fromPrice / toPrice;
+          const toAmount = parseFloat(swapFromAmount) / rate;
+          setSwapToAmount(toAmount.toFixed(6));
+        }
+      }
+    }
+  }, [orderType, crypto]); // Only depend on orderType and crypto to prevent loops
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showFromTokenSelector) {
+        setShowFromTokenSelector(false);
+      }
+    };
+
+    if (showFromTokenSelector) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showFromTokenSelector]);
 
   // Sync crypto amount when fiat amount changes (only in fiat mode)
   useEffect(() => {
@@ -135,6 +231,10 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
   const isAmountValid = () => {
     if (orderType === 'limit') {
       return limitQuantity && parseFloat(limitQuantity) > 0 && limitPrice && parsePrice(limitPrice) > 0;
+    }
+    
+    if (orderType === 'swap') {
+      return swapFromAmount && parseFloat(swapFromAmount) > 0 && swapToAmount && parseFloat(swapToAmount) > 0;
     }
     
     if (inputMode === 'fiat') {
@@ -206,9 +306,134 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
     }
   };
 
+  // Swap handlers
+  const handleSwapFromAmountChange = (value: string) => {
+    if (/^\d*\.?\d*$/.test(value)) {
+      setSwapFromAmount(value);
+      if (parseFloat(value) > 0) {
+        const fromPrice = getTokenPrice(fromToken);
+        const toPrice = getTokenPrice(toToken);
+        
+        if (fromPrice > 0 && toPrice > 0) {
+          const rate = fromPrice / toPrice;
+          const toAmount = parseFloat(value) / rate;
+          setSwapToAmount(toAmount.toFixed(6));
+        } else {
+          setSwapToAmount('0');
+        }
+      } else {
+        setSwapToAmount('0');
+      }
+    }
+  };
+
+  const handleSwapToAmountChange = (value: string) => {
+    if (/^\d*\.?\d*$/.test(value)) {
+      setSwapToAmount(value);
+      if (parseFloat(value) > 0) {
+        const fromPrice = getTokenPrice(fromToken);
+        const toPrice = getTokenPrice(toToken);
+        
+        if (fromPrice > 0 && toPrice > 0) {
+          const rate = fromPrice / toPrice;
+          const fromAmount = parseFloat(value) * rate;
+          setSwapFromAmount(fromAmount.toFixed(6));
+        } else {
+          setSwapFromAmount('0');
+        }
+      } else {
+        setSwapFromAmount('0');
+      }
+    }
+  };
+
+  const handleSwapTokens = () => {
+    const ethToken = { symbol: 'ETH', name: 'Ethereum', price: 3200.00, gradient: 'from-purple-400 to-purple-600' };
+    const cryptoToken = { 
+      symbol: crypto.symbol, 
+      name: crypto.name, 
+      price: parsePrice(crypto.price), 
+      gradient: 'from-teal-400 to-cyan-500' 
+    };
+    
+    // Check if swap is supported for this crypto
+    const isSupported = crypto.symbol === '1INCH' || crypto.symbol === 'ETH';
+    
+    if (isSupported) {
+      // Swap the tokens
+      const newFromToken = toToken;
+      const newToToken = fromToken;
+      
+      setFromToken(newFromToken);
+      setToToken(newToToken);
+      
+      // Swap the amounts
+      const tempFromAmount = swapFromAmount;
+      setSwapFromAmount(swapToAmount);
+      setSwapToAmount(tempFromAmount);
+      
+      // Update rate based on new token pair
+      calculateSwapRate(newFromToken, newToToken);
+    }
+  };
+
+  // Calculate swap rate between tokens
+  const calculateSwapRate = (from: any, to: any) => {
+    const fromPrice = getTokenPrice(from);
+    const toPrice = getTokenPrice(to);
+    
+    // Prevent division by zero
+    if (fromPrice <= 0 || toPrice <= 0) {
+      setSwapRate(0);
+      return;
+    }
+    
+    const rate = fromPrice / toPrice;
+    setSwapRate(rate);
+  };
+
+  const handleFromTokenSelect = (token: any) => {
+    setFromToken(token);
+    setShowFromTokenSelector(false);
+    calculateSwapRate(token, toToken);
+    
+    // Recalculate amounts if there's an existing amount
+    if (swapFromAmount && parseFloat(swapFromAmount) > 0) {
+      const fromPrice = getTokenPrice(token);
+      const toPrice = getTokenPrice(toToken);
+      
+      if (fromPrice > 0 && toPrice > 0) {
+        const newRate = fromPrice / toPrice;
+        const toAmount = parseFloat(swapFromAmount) / newRate;
+        setSwapToAmount(toAmount.toFixed(6));
+      } else {
+        setSwapToAmount('0');
+      }
+    }
+  };
+
+  // Removed handleToTokenSelect as toToken is now fixed to crypto
+
   const handleOrderSubmit = (orderTypeLabel: string) => {
     // Prevent multiple submissions
     if (!isAmountValid()) return;
+    
+    // Special validation for swap transactions
+    if (orderType === 'swap') {
+      // Check if this is a supported swap pair
+      const isETHCryptoPair = (fromToken.symbol === 'ETH' && toToken.symbol === crypto.symbol) ||
+                              (fromToken.symbol === crypto.symbol && toToken.symbol === 'ETH');
+      
+      const isSupported = crypto.symbol === '1INCH' || crypto.symbol === 'ETH';
+      
+      if (!isSupported || !isETHCryptoPair) {
+        toast.error('Swap Not Available Yet', {
+          description: `Swaps between ${fromToken.symbol} and ${toToken.symbol} will be implemented soon. Currently only ETH ↔ ${crypto.symbol === 'ETH' ? '1INCH' : crypto.symbol} swaps are supported.`,
+          duration: 4000,
+        });
+        return;
+      }
+    }
     
     // Emit event to adjust toast position
     window.dispatchEvent(new CustomEvent('modal-order-submitted', { 
@@ -225,6 +450,11 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
       case 'limit':
         toast.success(`Limit Order Placed!`, {
           description: `Order for ${limitQuantity} ${crypto.symbol} at ${limitPrice}`,
+        });
+        break;
+      case 'swap':
+        toast.success(`Swap Executed!`, {
+          description: `Successfully swapped ${swapFromAmount} ${fromToken.symbol} for ${swapToAmount} ${toToken.symbol}`,
         });
         break;
     }
@@ -370,7 +600,261 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
               {/* Scrollable Content Area - Universal for all order types */}
               <div className="flex-1 overflow-y-auto scrollbar-default" style={{ minHeight: 0 }}>
                 {/* Render different interfaces based on order type */}
-                {orderType === 'limit' ? (
+                {orderType === 'swap' ? (
+                  /* Swap Interface */
+                  <div className={`space-y-4 ${isMobile ? 'p-3 pb-6' : 'p-4 pb-6'}`}>
+                    {/* Swap Limitation Alert */}
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                      <div className={`text-blue-600 dark:text-blue-400 ${
+                        isMobile ? 'text-xs' : 'text-sm'
+                      }`}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-4 h-4 rounded-full bg-blue-500/20 flex items-center justify-center">
+                            <span className="text-blue-600 dark:text-blue-400 text-xs">ℹ</span>
+                          </div>
+                          <span className="font-medium">Swap Limitation</span>
+                        </div>
+                        <p className="text-xs leading-relaxed">
+                          Currently you can only swap between <strong>ETH</strong> and <strong>1INCH</strong>. 
+                          Other swap pairs will be available in upcoming versions.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* From Token Section */}
+                    <div className={`space-y-3 ${isMobile ? 'space-y-2' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <label className={`font-semibold text-foreground ${
+                          isMobile ? 'text-xs' : 'text-sm'
+                        }`}>
+                          From
+                        </label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <Settings className="w-3 h-3 mr-1" />
+                          <span className="text-xs">Slippage: {slippage}%</span>
+                        </Button>
+                      </div>
+                      
+                      <div className="bg-card/50 border border-border/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="relative">
+                            <button
+                              onClick={() => setShowFromTokenSelector(!showFromTokenSelector)}
+                              className="flex items-center gap-2 hover:bg-accent/30 rounded-lg p-1 -m-1 transition-colors"
+                            >
+                              <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${fromToken.gradient} flex items-center justify-center`}>
+                                <span className="text-white text-xs font-bold">{fromToken.symbol.slice(0, 2)}</span>
+                              </div>
+                              <span className="font-medium text-foreground">{fromToken.symbol}</span>
+                              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                            </button>
+
+                            {/* From Token Selector Dropdown */}
+                            {showFromTokenSelector && (
+                              <div className="absolute top-full left-0 mt-1 bg-card border border-border/30 rounded-lg shadow-lg z-50 min-w-[180px]">
+                                {availableTokens.map((token) => {
+                                  const isSupported = token.symbol === 'ETH' || token.symbol === crypto.symbol;
+                                  return (
+                                    <button
+                                      key={token.symbol}
+                                      onClick={() => handleFromTokenSelect(token)}
+                                      className="w-full flex items-center gap-3 p-3 hover:bg-accent/30 transition-colors first:rounded-t-lg last:rounded-b-lg relative"
+                                    >
+                                      <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${token.gradient} flex items-center justify-center`}>
+                                        <span className="text-white text-xs font-bold">{token.symbol.slice(0, 2)}</span>
+                                      </div>
+                                      <div className="text-left flex-1">
+                                        <div className="font-medium text-foreground flex items-center gap-1">
+                                          {token.symbol}
+                                          {!isSupported && (
+                                            <span className="text-xs bg-orange-500/10 text-orange-600 dark:text-orange-400 px-1 py-0.5 rounded">Soon</span>
+                                          )}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">{token.name}</div>
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        ${getTokenPrice(token).toFixed(2)}
+                                      </div>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground">Balance: 1,245.67</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={swapFromAmount}
+                          onChange={(e) => handleSwapFromAmountChange(e.target.value)}
+                          placeholder="0.0"
+                          className={`w-full bg-transparent font-bold text-foreground placeholder-muted-foreground focus:outline-none ${
+                            isMobile ? 'text-xl' : 'text-2xl'
+                          }`}
+                        />
+                        <div className="text-xs text-muted-foreground mt-1">
+                          ≈ ${((parseFloat(swapFromAmount) || 0) * getTokenPrice(fromToken)).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Swap Direction Button */}
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSwapTokens}
+                        className="rounded-full w-10 h-10 p-0 border-2 border-border/30 hover:border-border/60 bg-background hover:bg-accent/50"
+                      >
+                        <ArrowLeftRight className="w-4 h-4 rotate-90" />
+                      </Button>
+                    </div>
+
+                    {/* To Token Section */}
+                    <div className={`space-y-3 ${isMobile ? 'space-y-2' : ''}`}>
+                      <label className={`font-semibold text-foreground ${
+                        isMobile ? 'text-xs' : 'text-sm'
+                      }`}>
+                        To
+                      </label>
+                      
+                      <div className="bg-card/50 border border-border/30 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${toToken.gradient || 'from-teal-400 to-cyan-500'} flex items-center justify-center`}>
+                              <span className="text-white text-xs font-bold">{toToken.symbol.slice(0, 2)}</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-foreground">{toToken.symbol}</span>
+                              <span className="text-xs text-muted-foreground">{toToken.name}</span>
+                            </div>
+                          </div>
+                          <span className="text-xs text-muted-foreground">Balance: 0.00</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={swapToAmount}
+                          onChange={(e) => handleSwapToAmountChange(e.target.value)}
+                          placeholder="0.0"
+                          className={`w-full bg-transparent font-bold text-foreground placeholder-muted-foreground focus:outline-none ${
+                            isMobile ? 'text-xl' : 'text-2xl'
+                          }`}
+                        />
+                        <div className="text-xs text-muted-foreground mt-1">
+                          ≈ ${((parseFloat(swapToAmount) || 0) * getTokenPrice(toToken)).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Swap Rate Display */}
+                    <div className="bg-accent/20 rounded-lg p-3">
+                      <div className={`flex justify-between items-center ${
+                        isMobile ? 'text-xs' : 'text-sm'
+                      }`}>
+                        <span className="text-muted-foreground">Exchange Rate:</span>
+                        <div className="flex items-center gap-1">
+                          <span className="font-medium text-foreground">
+                            1 {fromToken.symbol} = {(getTokenPrice(toToken) / getTokenPrice(fromToken) || 0).toFixed(6)} {toToken.symbol}
+                          </span>
+                          <Button variant="ghost" size="sm" className="p-0 h-auto">
+                            <RefreshCw className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Swap Details */}
+                    <div className={`bg-accent/20 rounded-lg p-3 space-y-2`}>
+                      {/* Availability Warning */}
+                      {!((fromToken.symbol === 'ETH' && toToken.symbol === crypto.symbol) ||
+                         (fromToken.symbol === crypto.symbol && toToken.symbol === 'ETH')) && (
+                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-2 mb-2">
+                          <div className={`text-orange-600 dark:text-orange-400 ${
+                            isMobile ? 'text-xs' : 'text-sm'
+                          }`}>
+                            ⚠️ This swap pair will be available soon. Currently only ETH ↔ {crypto.symbol} swaps are supported.
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className={`flex justify-between ${
+                        isMobile ? 'text-xs' : 'text-sm'
+                      }`}>
+                        <span className="text-muted-foreground">Price Impact:</span>
+                        <span className="font-medium text-green-600">{'<0.01%'}</span>
+                      </div>
+                      <div className={`flex justify-between ${
+                        isMobile ? 'text-xs' : 'text-sm'
+                      }`}>
+                        <span className="text-muted-foreground">Max Slippage:</span>
+                        <span className="font-medium text-foreground">{slippage}%</span>
+                      </div>
+                      <div className={`flex justify-between ${
+                        isMobile ? 'text-xs' : 'text-sm'
+                      }`}>
+                        <span className="text-muted-foreground">Network Fee:</span>
+                        <span className="font-medium text-foreground">≈ $2.50</span>
+                      </div>
+                      <div className={`flex justify-between ${
+                        isMobile ? 'text-xs' : 'text-sm'
+                      }`}>
+                        <span className="text-muted-foreground">Route:</span>
+                        <span className="font-medium text-foreground text-right">
+                          {fromToken.symbol} → {toToken.symbol}
+                          <br />
+                          <span className="text-xs text-muted-foreground">Via 1inch</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Swap Button */}
+                    <Button
+                      className={`w-full font-semibold ${
+                        isMobile ? 'py-2.5 text-base' : 'py-3 text-lg'
+                      }`}
+                      disabled={
+                        !isAmountValid() || 
+                        !((fromToken.symbol === 'ETH' && toToken.symbol === crypto.symbol) ||
+                          (fromToken.symbol === crypto.symbol && toToken.symbol === 'ETH')) ||
+                        !(crypto.symbol === '1INCH' || crypto.symbol === 'ETH')
+                      }
+                      onClick={() => handleOrderSubmit('swap')}
+                      style={{
+                        background: ((fromToken.symbol === 'ETH' && toToken.symbol === crypto.symbol) ||
+                                   (fromToken.symbol === crypto.symbol && toToken.symbol === 'ETH')) && 
+                                   (crypto.symbol === '1INCH' || crypto.symbol === 'ETH') && isAmountValid()
+                          ? isDark 
+                            ? 'var(--gradient-primary)'
+                            : 'linear-gradient(135deg, #3b82f6, #1d4ed8)'
+                          : 'var(--muted)',
+                        color: ((fromToken.symbol === 'ETH' && toToken.symbol === crypto.symbol) ||
+                               (fromToken.symbol === crypto.symbol && toToken.symbol === 'ETH')) && 
+                               (crypto.symbol === '1INCH' || crypto.symbol === 'ETH') && isAmountValid()
+                          ? 'white'
+                          : 'var(--muted-foreground)'
+                      }}
+                    >
+                      {((fromToken.symbol === 'ETH' && toToken.symbol === crypto.symbol) ||
+                        (fromToken.symbol === crypto.symbol && toToken.symbol === 'ETH')) &&
+                        (crypto.symbol === '1INCH' || crypto.symbol === 'ETH')
+                        ? `Swap ${fromToken.symbol} for ${toToken.symbol}`
+                        : `${fromToken.symbol} ↔ ${toToken.symbol} Coming Soon`
+                      }
+                    </Button>
+
+                    {/* Disclaimer for Swap */}
+                    <p className={`text-muted-foreground text-center ${
+                      isMobile ? 'text-xs' : 'text-xs'
+                    }`}>
+                      Swaps are executed through 1inch aggregator for best prices. 
+                      This is a demo interface.
+                    </p>
+                  </div>
+                ) : orderType === 'limit' ? (
                   /* Limit Order Interface */
                   <div className={`space-y-4 ${isMobile ? 'p-3 pb-6' : 'p-4 pb-6'}`}>
                     {/* Quantity Section */}
