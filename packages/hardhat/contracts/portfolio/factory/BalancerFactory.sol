@@ -14,8 +14,8 @@ pragma solidity ^0.8.23;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../balancers/DriftBalancer.sol";
-import "../balancers/TimeBalancer.sol";
+import "../balancers/MinimalDriftBalancer.sol";
+import "../balancers/MinimalTimeBalancer.sol";
 
 contract BalancerFactory is Ownable {
     address public priceFeed;
@@ -50,7 +50,7 @@ contract BalancerFactory is Ownable {
         _checkUserTokenBalance(_assetAddresses, _amounts);
         _requireAtLeastOneStablecoin(_assetAddresses);
 
-        balancer = address(new DriftBalancer(msg.sender, address(this), _assetAddresses, _percentages, _driftPercentage, stablecoins));
+        balancer = address(new MinimalDriftBalancer(msg.sender, address(this), _assetAddresses, _percentages, _driftPercentage, stablecoins));
 
         _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
         userDriftBalancers[msg.sender].push(balancer);
@@ -73,7 +73,7 @@ contract BalancerFactory is Ownable {
         _checkUserTokenBalance(_assetAddresses, _amounts);
         _requireAtLeastOneStablecoin(_assetAddresses);
 
-        balancer = address(new TimeBalancer(msg.sender, address(this), _assetAddresses, _percentages, interval, stablecoins));
+        balancer = address(new MinimalTimeBalancer(msg.sender, address(this), _assetAddresses, _percentages, interval, stablecoins));
 
         _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
         userTimeBalancers[msg.sender].push(balancer);

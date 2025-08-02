@@ -35,7 +35,7 @@ const config: HardhatUserConfig = {
           optimizer: {
             enabled: true,
             // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
-            runs: 1000000, // Optimize for deployment size as per BASE deployment guide
+            runs: 100000, // Keep high optimization for modular contracts
           },
           viaIR: true,
         },
@@ -56,6 +56,11 @@ const config: HardhatUserConfig = {
       // Hardhat network can be configured to fork any network
       // Use: npx hardhat node --fork <network-name>
       // Or: HARDHAT_NETWORK=<network-name> yarn fork
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 8453, // Base mainnet chain ID
+      accounts: [deployerPrivateKey],
     },
     // BASE mainnet fork for testing
     baseFork: {

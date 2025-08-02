@@ -18,6 +18,9 @@ contract TimeBalancer is BaseBalancer {
     uint256 public lastRebalance;
 
     event IntervalUpdated(uint256 newInterval);
+    event RebalanceNeeded(uint256[] allocations, uint256 timestamp);
+    event StablecoinTimeRebalance(uint256 totalStablecoinValue, uint256[] balances, uint256[] values, uint256 timestamp);
+    event NonStablecoinTimeRebalance(address[] tokens, uint256[] balances, uint256[] values, uint256 totalValue, uint256 timestamp);
 
     constructor(
         address _owner,
@@ -30,8 +33,6 @@ contract TimeBalancer is BaseBalancer {
         interval = _interval;
         lastRebalance = block.timestamp;
     }
-
-    event RebalanceNeeded(uint256[] allocations, uint256 timestamp);
 
     function currentAllocations() public view returns (uint256[] memory) {
         uint256[] memory allocations = new uint256[](assetAddresses.length);
@@ -54,5 +55,30 @@ contract TimeBalancer is BaseBalancer {
         // emit with current allocations
         uint256[] memory current = currentAllocations();
         emit RebalanceNeeded(current, block.timestamp);
+    }
+
+    /// @notice Check stablecoin balances on time interval
+    function checkStablecoinTimeRebalance() external {
+        require(block.timestamp >= lastRebalance + interval, "Too early for stablecoin rebalance");
+        
+        (uint256 totalStablecoinValue, uint256[] memory balances, uint256[] memory values) = this.checkStablecoinBalances();
+        
+        emit StablecoinTimeRebalance(totalStablecoinValue, balances, values, block.timestamp);
+        lastRebalance = block.timestamp;
+    }
+
+    /// @notice Check non-stablecoin balances on time interval
+    function checkNonStablecoinTimeRebalance() external {
+        require(block.timestamp >= lastRebalance + interval, "Too early for non-stablecoin rebalance");
+        
+        (
+            address[] memory tokens,
+            uint256[] memory balances,
+            uint256[] memory values,
+            uint256 totalNonStablecoinValue
+        ) = this.checkNonStablecoinBalances();
+        
+        emit NonStablecoinTimeRebalance(tokens, balances, values, totalNonStablecoinValue, block.timestamp);
+        lastRebalance = block.timestamp;
     }
 }

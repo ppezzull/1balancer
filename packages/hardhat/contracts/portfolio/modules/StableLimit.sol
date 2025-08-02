@@ -64,15 +64,7 @@ abstract contract StableLimit is Ownable, Pausable, AutomationCompatibleInterfac
         for (uint i = 0; i < _stablecoins.length; i++) {
             stablecoins.push(_stablecoins[i]);
             isStablecoin[_stablecoins[i]] = true;
-            
-            // Set specific stablecoin addresses
-            if (_stablecoins[i] == 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913) {
-                USDC = _stablecoins[i];
-            } else if (_stablecoins[i] == 0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2) {
-                USDT = _stablecoins[i];
-            } else if (_stablecoins[i] == 0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb) {
-                DAI = _stablecoins[i];
-            }
+
         }
     }
 
@@ -89,7 +81,7 @@ abstract contract StableLimit is Ownable, Pausable, AutomationCompatibleInterfac
         uint256 currentPercentage,
         uint256 targetPercentage,
         uint256 /* price */
-    ) public view returns (bool isWithinRange, uint256 deviation) {
+    ) virtual pure public returns (bool isWithinRange, uint256 deviation) {
         // If token is not a stablecoin, we don't check it here
         // if (!isStablecoin[token]) {
         //     return (true, 0);
