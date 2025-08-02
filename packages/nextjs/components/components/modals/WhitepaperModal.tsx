@@ -27,7 +27,7 @@ import {
 import { useIsMobile } from "../ui/use-mobile";
 import { useTheme } from "../ui/use-theme";
 import { toast } from "sonner";
-import logoImage from "../../../public/logo.png";
+
 
 interface WhitepaperModalProps {
   isOpen: boolean;
@@ -825,7 +825,7 @@ export function WhitepaperModal({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-4 min-w-0">
                   <img
-                    src={logoImage}
+                    src={"/logo.png"}
                     alt="1Balancer"
                     className={`h-15 sm:h-30 w-auto flex-shrink-0`}
                   />
