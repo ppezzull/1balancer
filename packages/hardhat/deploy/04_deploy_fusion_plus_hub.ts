@@ -25,6 +25,7 @@ const deployFusionPlusHub: DeployFunction = async function (hre: HardhatRuntimeE
   // Deploy FusionPlusHub as upgradeable proxy
   const fusionPlusHubDeployment = await deploy("FusionPlusHub", {
     from: deployer,
+    contract: "FusionPlusHub", // Use the original V1 for now
     proxy: {
       proxyContract: "OpenZeppelinTransparentProxy",
       viaAdminContract: "DefaultProxyAdmin",
