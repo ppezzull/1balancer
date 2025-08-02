@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useIsMobile } from "./ui/use-mobile";
-import logoImage from '~~/public/logo.png';
 import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import { NavigationTabs } from "./header/NavigationTabs";
@@ -182,7 +181,7 @@ export function Header({
               type="button"
             >
               <img 
-                src={logoImage} 
+                src={"/logo.png"} 
                 alt="1balancer" 
                 className="h-40 w-auto"
               />

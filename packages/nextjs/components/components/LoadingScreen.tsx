@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useIsMobile } from "./ui/use-mobile";
 import { useTheme } from "./ui/use-theme";
-import logoImage from '~~/public/logo.png';
 
 interface LoadingScreenProps {
   onSkip?: () => void;
@@ -172,7 +171,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
             }}
           >
             <motion.img 
-              src={logoImage} 
+              src={"/logo.png"} 
               alt="1balancer" 
               className={`mx-auto ${isMobile ? 'h-70' : 'h-100'} w-auto`}
               style={{

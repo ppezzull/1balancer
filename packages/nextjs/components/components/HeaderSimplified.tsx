@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { Button } from "./ui/button";
 import { ThemeToggle } from "./ui/theme-toggle";
 import { useIsMobile } from "./ui/use-mobile";
-import logoImage from '~~/public/logo.png';
 import { Wallet, Copy, LogOut, Check, Menu, X, Home, PieChart, TrendingUp, Users, User } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
@@ -238,7 +237,7 @@ export function HeaderSimplified({
               type="button"
             >
               <img 
-                src={logoImage} 
+                src="/logo.png" 
                 alt="1balancer" 
                 className="h-35 w-auto"
               />
