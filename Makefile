@@ -56,11 +56,11 @@ help:
 	@echo "    make near-delete     - Show how to delete contracts"
 	@echo ""
 	@echo "  🏆 FUSION+ DEMO (HACKATHON):"
-	@echo "    make fusion+         - Run complete Fusion+ demonstration"
-	@echo "    make fusion+-test    - Run integration tests on testnet"
-	@echo "    make fusion+-setup   - Quick setup for demo"
-	@echo "    make fusion+-arch    - View system architecture"
-	@echo "    make fusion+-status  - Check deployment status"
+	@echo "    make fusion-plus         - Run complete Fusion+ demonstration"
+	@echo "    make fusion-plus-test    - Run integration tests on testnet"
+	@echo "    make fusion-plus-setup   - Quick setup for demo"
+	@echo "    make fusion-plus-arch    - View system architecture"
+	@echo "    make fusion-plus-status  - Check deployment status"
 	@echo ""
 	@echo "  ADVANCED:"
 	@echo "    make help-dev        - Show more development commands"
@@ -904,7 +904,7 @@ submodule-update:
 # ============================================
 
 # Complete Fusion+ demonstration for judges
-fusion+: .yarn-installed
+fusion-plus: .yarn-installed
 	@echo ""
 	@echo "🏆 1BALANCER FUSION+ DEMONSTRATION"
 	@echo "================================="
@@ -924,7 +924,7 @@ fusion+: .yarn-installed
 	@node scripts/fusion-plus-demo.js
 
 # Run integration tests with live contracts
-fusion+-test: .yarn-installed
+fusion-plus-test: .yarn-installed
 	@echo ""
 	@echo "🧪 FUSION+ INTEGRATION TESTS"
 	@echo "==========================="
@@ -941,7 +941,7 @@ fusion+-test: .yarn-installed
 	@node scripts/fusion-integration-tests.js
 
 # Quick demo setup for judges
-fusion+-setup: setup
+fusion-plus-setup: setup
 	@echo ""
 	@echo "⚡ FUSION+ QUICK SETUP"
 	@echo "===================="
@@ -966,57 +966,53 @@ fusion+-setup: setup
 	@echo ""
 	@echo "✅ Fusion+ demo environment ready!"
 	@echo ""
-	@echo "Run 'make fusion+' to start the demonstration"
+	@echo "Run 'make fusion-plus' to start the demonstration"
 
 # Show Fusion+ architecture
-fusion+-arch:
+fusion-plus-arch:
 	@clear
 	@echo ""
-	@cat << 'EOF'
-
-    🏆 1BALANCER FUSION+ ARCHITECTURE
-    =================================
-
-    ┌─────────────────────────────────────────────────────────────────┐
-    │                    1BALANCER FUSION+ SYSTEM                     │
-    ├─────────────────────────────────────────────────────────────────┤
-    │                                                                 │
-    │  BASE Chain (Ethereum L2)              NEAR Protocol            │
-    │  ┌─────────────────────┐              ┌──────────────────┐     │
-    │  │  FusionPlusHub.sol  │              │ fusion-htlc.near │     │
-    │  │  ┌───────────────┐  │              │ ┌──────────────┐ │     │
-    │  │  │ Escrow System │  │◄────────────►│ │ HTLC System  │ │     │
-    │  │  └───────────────┘  │              │ └──────────────┘ │     │
-    │  │  ┌───────────────┐  │              │ ┌──────────────┐ │     │
-    │  │  │ 1inch LOP    │  │              │ │ Event Monitor│ │     │
-    │  │  └───────────────┘  │              │ └──────────────┘ │     │
-    │  └─────────────────────┘              └──────────────────┘     │
-    │           ▲                                    ▲                │
-    │           │                                    │                │
-    │           └────────────┬───────────────────────┘                │
-    │                       │                                         │
-    │               ┌───────────────────┐                            │
-    │               │  Orchestration    │                            │
-    │               │    Service        │                            │
-    │               │ • Session Mgmt    │                            │
-    │               │ • Secret Mgmt     │                            │
-    │               │ • Event Monitor   │                            │
-    │               └───────────────────┘                            │
-    │                                                                 │
-    └─────────────────────────────────────────────────────────────────┘
-
-    KEY FEATURES:
-    ✓ Atomic Cross-Chain Swaps    ✓ No KYC Requirements
-    ✓ SHA-256 Hashlocks          ✓ Timeout Protection
-    ✓ 1inch Protocol Integration  ✓ Bidirectional Swaps
-
-EOF
+	@echo "    🏆 1BALANCER FUSION+ ARCHITECTURE"
+	@echo "    ================================="
+	@echo ""
+	@echo "    ┌─────────────────────────────────────────────────────────────────┐"
+	@echo "    │                    1BALANCER FUSION+ SYSTEM                     │"
+	@echo "    ├─────────────────────────────────────────────────────────────────┤"
+	@echo "    │                                                                 │"
+	@echo "    │  BASE Chain (Ethereum L2)              NEAR Protocol            │"
+	@echo "    │  ┌─────────────────────┐              ┌──────────────────┐     │"
+	@echo "    │  │  FusionPlusHub.sol  │              │ fusion-htlc.near │     │"
+	@echo "    │  │  ┌───────────────┐  │              │ ┌──────────────┐ │     │"
+	@echo "    │  │  │ Escrow System │  │◄────────────►│ │ HTLC System  │ │     │"
+	@echo "    │  │  └───────────────┘  │              │ └──────────────┘ │     │"
+	@echo "    │  │  ┌───────────────┐  │              │ ┌──────────────┐ │     │"
+	@echo "    │  │  │ 1inch LOP    │  │              │ │ Event Monitor│ │     │"
+	@echo "    │  │  └───────────────┘  │              │ └──────────────┘ │     │"
+	@echo "    │  └─────────────────────┘              └──────────────────┘     │"
+	@echo "    │           ▲                                    ▲                │"
+	@echo "    │           │                                    │                │"
+	@echo "    │           └────────────┬───────────────────────┘                │"
+	@echo "    │                       │                                         │"
+	@echo "    │               ┌───────────────────┐                            │"
+	@echo "    │               │  Orchestration    │                            │"
+	@echo "    │               │    Service        │                            │"
+	@echo "    │               │ • Session Mgmt    │                            │"
+	@echo "    │               │ • Secret Mgmt     │                            │"
+	@echo "    │               │ • Event Monitor   │                            │"
+	@echo "    │               └───────────────────┘                            │"
+	@echo "    │                                                                 │"
+	@echo "    └─────────────────────────────────────────────────────────────────┘"
+	@echo ""
+	@echo "    KEY FEATURES:"
+	@echo "    ✓ Atomic Cross-Chain Swaps    ✓ No KYC Requirements"
+	@echo "    ✓ SHA-256 Hashlocks          ✓ Timeout Protection"
+	@echo "    ✓ 1inch Protocol Integration  ✓ Bidirectional Swaps"
 	@echo ""
 	@echo "Press Enter to return to menu..."
 	@read _
 
 # View recent Fusion+ transactions
-fusion+-status:
+fusion-plus-status:
 	@echo ""
 	@echo "📊 FUSION+ DEPLOYMENT STATUS"
 	@echo "==========================="
