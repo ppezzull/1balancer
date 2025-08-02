@@ -52,6 +52,8 @@ help:
 	@echo "    make near-build      - Build NEAR contracts"
 	@echo "    make near-test       - Test NEAR contracts"
 	@echo "    make near-deploy     - Deploy to NEAR testnet"
+	@echo "    make near-status     - Check deployment status"
+	@echo "    make near-delete     - Show how to delete contracts"
 	@echo ""
 	@echo "  ADVANCED:"
 	@echo "    make help-dev        - Show more development commands"
@@ -423,17 +425,27 @@ orchestrator-check:
 	else \
 		echo "✅ NEAR submodule found"; \
 	fi
-	@# Check environment variables
+	@# Check environment variables (try loading from .env first)
+	@if [ -f ".env" ]; then \
+		eval "$$(grep -E '^NEAR_MASTER_ACCOUNT|^NEAR_PRIVATE_KEY' .env 2>/dev/null | sed 's/^/: $${/' | sed 's/$$/}/')"; \
+	fi
 	@if [ -z "$$NEAR_MASTER_ACCOUNT" ] || [ -z "$$NEAR_PRIVATE_KEY" ]; then \
 		echo "⚠️  NEAR credentials not configured"; \
 		echo ""; \
-		echo "📋 To enable NEAR functionality:"; \
-		echo "  1. Create a NEAR testnet account at https://testnet.mynearwallet.com/"; \
+		echo "📋 You have two options for NEAR functionality:"; \
+		echo ""; \
+		echo "Option 1: Native NEAR (Recommended)"; \
+		echo "  1. Create account at https://wallet.testnet.near.org"; \
 		echo "  2. Export credentials:"; \
 		echo "     export NEAR_MASTER_ACCOUNT=your-account.testnet"; \
-		echo "     export NEAR_PRIVATE_KEY=your-private-key"; \
+		echo "     export NEAR_PRIVATE_KEY=ed25519:your-private-key"; \
 		echo ""; \
-		echo "⚠️  Note: The orchestrator will work without these, but NEAR swaps will be disabled"; \
+		echo "Option 2: Aurora EVM (MetaMask compatible)"; \
+		echo "  - No NEAR account needed"; \
+		echo "  - Use MetaMask with Aurora Testnet"; \
+		echo "  - Deploy EVM contracts instead"; \
+		echo ""; \
+		echo "⚠️  Note: The orchestrator works without these, but NEAR swaps will be disabled"; \
 		echo ""; \
 	else \
 		echo "✅ NEAR credentials configured"; \
@@ -459,11 +471,21 @@ orchestrator-check:
 
 orchestrator-test: .yarn-installed orchestrator-check
 	@echo "🧪 Running orchestrator tests..."
-	@cd packages/orchestrator && yarn test
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_' .env 2>/dev/null | xargs) && \
+		cd packages/orchestrator && yarn test; \
+	else \
+		cd packages/orchestrator && yarn test; \
+	fi
 
 orchestrator-build: .yarn-installed orchestrator-check
 	@echo "🏗️  Building orchestrator..."
-	@cd packages/orchestrator && yarn build
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_' .env 2>/dev/null | xargs) && \
+		cd packages/orchestrator && yarn build; \
+	else \
+		cd packages/orchestrator && yarn build; \
+	fi
 
 orchestrator-dev: .yarn-installed orchestrator-check
 	@echo "🚀 Starting orchestrator in development mode..."
@@ -476,7 +498,12 @@ orchestrator-dev: .yarn-installed orchestrator-check
 	@echo ""
 	@echo "Press Ctrl+C to stop the orchestrator"
 	@echo ""
-	@cd packages/orchestrator && yarn dev
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_' .env 2>/dev/null | xargs) && \
+		cd packages/orchestrator && yarn dev; \
+	else \
+		cd packages/orchestrator && yarn dev; \
+	fi
 
 orchestrator-logs: .yarn-installed
 	@cd packages/orchestrator && make logs
@@ -551,32 +578,182 @@ near-test: near-check
 
 # Deploy to NEAR testnet
 near-deploy: near-check
-	@echo "🚀 Deploying to NEAR testnet..."
+	@echo "🚀 Deploying to NEAR/Aurora..."
+	@# Try to load .env file if it exists and NEAR credentials aren't already set
+	@if [ -f ".env" ] && [ -z "$$NEAR_MASTER_ACCOUNT" ]; then \
+		echo "📋 Checking for NEAR credentials in .env file..."; \
+	fi
 	@if [ -d "1balancer-near" ]; then \
-		cd 1balancer-near && make deploy-testnet && { \
+		if [ -f ".env" ]; then \
+			export $$(grep -E '^NEAR_MASTER_ACCOUNT|^NEAR_PRIVATE_KEY' .env 2>/dev/null | xargs) && \
+			cd 1balancer-near && make deploy-testnet; \
+		else \
+			cd 1balancer-near && make deploy-testnet; \
+		fi && { \
 			echo ""; \
-			echo "✅ NEAR contract deployed successfully!"; \
+			echo "📋 NEAR contracts built successfully. Ready for deployment."; \
 			echo ""; \
-			echo "📋 The deployed contract address is saved in:"; \
-			echo "   1balancer-near/.near-credentials/testnet/deploy.json"; \
+			echo "To check deployment status:"; \
+			echo "  make near-status"; \
 			echo ""; \
-			echo "🔧 The orchestrator will automatically read this address"; \
-			echo "   No manual export needed!"; \
 		} || { \
 			echo ""; \
-			echo "❌ NEAR deployment failed"; \
+			echo "📋 See deployment options above"; \
 			echo ""; \
-			echo "📋 Prerequisites:"; \
-			echo "  - NEAR CLI: npm install -g near-cli"; \
-			echo "  - NEAR account: Create at https://testnet.mynearwallet.com/"; \
-			echo "  - Export credentials:"; \
-			echo "    export NEAR_MASTER_ACCOUNT=your-account.testnet"; \
+			echo "Additional notes:"; \
+			echo "  - For native NEAR: Install NEAR CLI with 'npm install -g near-cli'"; \
+			echo "  - For Aurora EVM: Use existing Ethereum tools (Hardhat, Foundry)"; \
+			echo "  - Both options support cross-chain atomic swaps"; \
 			echo ""; \
 			exit 1; \
 		}; \
 	else \
 		echo "⚠️  NEAR submodule not found"; \
 		echo "   Run 'make submodule-init' first"; \
+	fi
+
+# Check NEAR deployment status
+near-status:
+	@echo "🔍 Checking NEAR deployment status..."
+	@echo ""
+	@# Try to detect logged-in NEAR account
+	@LOGGED_IN_ACCOUNT=""; \
+	if command -v near >/dev/null 2>&1; then \
+		for CRED_FILE in ~/.near-credentials/testnet/*.json; do \
+			if [ -f "$$CRED_FILE" ]; then \
+				ACCOUNT_NAME=$$(basename "$$CRED_FILE" .json); \
+				if [ "$$ACCOUNT_NAME" != "undefined" ] && [[ ! "$$ACCOUNT_NAME" =~ ^dev-[0-9]+ ]]; then \
+					LOGGED_IN_ACCOUNT="$$ACCOUNT_NAME"; \
+					break; \
+				fi; \
+			fi; \
+		done; \
+	fi; \
+	if [ -n "$$LOGGED_IN_ACCOUNT" ]; then \
+		echo "👤 Logged in as: $$LOGGED_IN_ACCOUNT"; \
+		echo ""; \
+	fi; \
+	\
+	if [ -f "1balancer-near/.near-credentials/testnet/deploy.json" ]; then \
+		echo "📋 Found deployment info:"; \
+		CONTRACT_ID=$$(grep -o '"contractId":"[^"]*' 1balancer-near/.near-credentials/testnet/deploy.json 2>/dev/null | cut -d'"' -f4); \
+		SOLVER_ID=$$(grep -o '"solverContract":"[^"]*' 1balancer-near/.near-credentials/testnet/deploy.json 2>/dev/null | cut -d'"' -f4); \
+		if [ -n "$$CONTRACT_ID" ]; then \
+			echo "  HTLC Contract: $$CONTRACT_ID"; \
+			[ -n "$$SOLVER_ID" ] && echo "  Solver Contract: $$SOLVER_ID"; \
+			echo ""; \
+			echo "🌐 View on NEAR Explorer:"; \
+			echo "  HTLC: https://testnet.nearblocks.io/address/$$CONTRACT_ID"; \
+			[ -n "$$SOLVER_ID" ] && echo "  Solver: https://testnet.nearblocks.io/address/$$SOLVER_ID"; \
+			echo ""; \
+			echo "📡 Test your contracts:"; \
+			echo "  near view $$CONTRACT_ID get_info '{}'"; \
+			[ -n "$$SOLVER_ID" ] && echo "  near view $$SOLVER_ID get_info '{}'"; \
+		else \
+			echo "  ⚠️  No contract ID found in deployment file"; \
+		fi; \
+	else \
+		echo "❌ No deployment info found"; \
+		echo ""; \
+		if [ -n "$$LOGGED_IN_ACCOUNT" ]; then \
+			echo "📋 Ready to deploy! Run:"; \
+			echo "  make near-deploy"; \
+			echo ""; \
+			echo "This will create and deploy:"; \
+			echo "  - fusion-htlc.$$LOGGED_IN_ACCOUNT"; \
+			echo "  - solver-registry.$$LOGGED_IN_ACCOUNT"; \
+			echo ""; \
+			echo "Or deploy manually:"; \
+			echo "  # Create subaccount"; \
+			echo "  near create-account fusion-htlc.$$LOGGED_IN_ACCOUNT --masterAccount $$LOGGED_IN_ACCOUNT --initialBalance 10"; \
+			echo "  # Deploy contract"; \
+			echo "  near deploy --accountId fusion-htlc.$$LOGGED_IN_ACCOUNT \\"; \
+			echo "    --wasmFile 1balancer-near/target/wasm32-unknown-unknown/release/fusion_plus_htlc.wasm"; \
+		else \
+			echo "📋 To deploy contracts:"; \
+			echo "  1. Install NEAR CLI: npm install -g near-cli"; \
+			echo "  2. Login to NEAR: near login"; \
+			echo "  3. Run deployment: make near-deploy"; \
+			echo ""; \
+			echo "⚠️  No NEAR account detected. Please login first:"; \
+			echo "  near login"; \
+		fi; \
+	fi
+	@echo ""
+	@# Check network connection
+	@if command -v near >/dev/null 2>&1; then \
+		echo "📡 Checking NEAR network connection..."; \
+		near validators current 2>/dev/null | head -n 1 && echo "✅ Connected to NEAR testnet" || echo "⚠️  Cannot connect to NEAR testnet"; \
+	else \
+		echo "⚠️  NEAR CLI not installed. Install with: npm install -g near-cli"; \
+	fi
+
+# Delete NEAR contracts
+near-delete:
+	@echo "🗑️  Delete NEAR contracts..."
+	@echo ""
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_MASTER_ACCOUNT' .env 2>/dev/null | xargs); \
+	fi; \
+	if [ -z "$$NEAR_MASTER_ACCOUNT" ]; then \
+		echo "❌ NEAR_MASTER_ACCOUNT not set"; \
+		echo "   Please set it in .env or export it"; \
+		exit 1; \
+	fi; \
+	echo "⚠️  This will delete contracts and return funds to $$NEAR_MASTER_ACCOUNT"; \
+	echo ""
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_MASTER_ACCOUNT' .env 2>/dev/null | xargs) && \
+		echo "Available contracts to delete:" && \
+		if near state "fusion-htlc.$$NEAR_MASTER_ACCOUNT" 2>/dev/null | grep -q "amount:"; then \
+			echo "  ✅ fusion-htlc.$$NEAR_MASTER_ACCOUNT exists"; \
+		else \
+			echo "  ❌ fusion-htlc.$$NEAR_MASTER_ACCOUNT not found"; \
+		fi && \
+		if near state "solver-registry.$$NEAR_MASTER_ACCOUNT" 2>/dev/null | grep -q "amount:"; then \
+			echo "  ✅ solver-registry.$$NEAR_MASTER_ACCOUNT exists"; \
+		else \
+			echo "  ❌ solver-registry.$$NEAR_MASTER_ACCOUNT not found"; \
+		fi && \
+		echo "" && \
+		echo "To delete a specific contract, run:" && \
+		echo "  near delete-account CONTRACT_NAME BENEFICIARY" && \
+		echo "" && \
+		echo "Examples:" && \
+		echo "  near delete-account fusion-htlc.$$NEAR_MASTER_ACCOUNT $$NEAR_MASTER_ACCOUNT" && \
+		echo "  near delete-account solver-registry.$$NEAR_MASTER_ACCOUNT $$NEAR_MASTER_ACCOUNT"; \
+	fi
+	@echo ""
+	@echo "To delete all contracts, run:"
+	@echo "  make near-delete-all"
+
+# Delete all NEAR contracts (with confirmation)
+near-delete-all: near-check
+	@echo "🗑️  Deleting ALL NEAR contracts..."
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_MASTER_ACCOUNT' .env 2>/dev/null | xargs); \
+	fi; \
+	if [ -z "$$NEAR_MASTER_ACCOUNT" ]; then \
+		echo "❌ NEAR_MASTER_ACCOUNT not set"; \
+		exit 1; \
+	fi; \
+	echo ""; \
+	echo "⚠️  WARNING: This will delete all contracts and return funds to $$NEAR_MASTER_ACCOUNT"; \
+	echo ""; \
+	read -p "Are you sure? Type 'yes' to confirm: " CONFIRM; \
+	if [ "$$CONFIRM" = "yes" ]; then \
+		if near state "fusion-htlc.$$NEAR_MASTER_ACCOUNT" 2>/dev/null | grep -q "amount:"; then \
+			echo "Deleting fusion-htlc.$$NEAR_MASTER_ACCOUNT..."; \
+			near delete-account "fusion-htlc.$$NEAR_MASTER_ACCOUNT" "$$NEAR_MASTER_ACCOUNT" || true; \
+		fi; \
+		if near state "solver-registry.$$NEAR_MASTER_ACCOUNT" 2>/dev/null | grep -q "amount:"; then \
+			echo "Deleting solver-registry.$$NEAR_MASTER_ACCOUNT..."; \
+			near delete-account "solver-registry.$$NEAR_MASTER_ACCOUNT" "$$NEAR_MASTER_ACCOUNT" || true; \
+		fi; \
+		rm -f 1balancer-near/.near-credentials/testnet/deploy.json; \
+		echo "✅ All contracts deleted"; \
+	else \
+		echo "❌ Cancelled"; \
 	fi
 
 # NEAR development mode
