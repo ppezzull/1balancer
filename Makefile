@@ -92,6 +92,18 @@ help-dev:
 	@echo "    make fork-optimism   - Fork Optimism"
 	@echo "    make fork-polygon    - Fork Polygon"
 	@echo ""
+	@echo "  BASE SEPOLIA DEPLOYMENT:"
+	@echo "    make deploy-base-all     - Deploy all BASE contracts at once"
+	@echo "    make deploy-base-hub     - Deploy only FusionPlusHub"
+	@echo "    make deploy-base-escrow  - Deploy only EscrowFactory"
+	@echo "    make base-gas-estimate   - Check deployment gas costs"
+	@echo ""
+	@echo "  NEAR TESTNET DEPLOYMENT:"
+	@echo "    make deploy-near-all     - Build and deploy all NEAR contracts"
+	@echo "    make deploy-near-htlc    - Deploy only HTLC contract"
+	@echo "    make deploy-near-solver  - Deploy only solver registry"
+	@echo "    make near-gas-estimate   - Check deployment gas costs"
+	@echo ""
 	@echo "  TESTING & QUALITY:"
 	@echo "    make test-fork       - Run fork tests"
 	@echo "    make test-coverage   - Generate coverage report"
@@ -110,9 +122,14 @@ help-dev:
 	@echo "    make proxy-test      - Test proxy endpoints"
 	@echo "    make proxy-deploy    - Redeploy proxy to Vercel"
 	@echo ""
+	@echo "  ACCOUNT MANAGEMENT:"
+	@echo "    make account-status  - Quick status check"
+	@echo "    make account         - Full details with balances"
+	@echo "    make account-fund    - Get your address for faucets"
+	@echo "    make account-generate - Generate new account"
+	@echo "    make account-import  - Import existing private key"
+	@echo ""
 	@echo "  UTILITIES:"
-	@echo "    make account         - View current account"
-	@echo "    make account-status  - Quick account check"
 	@echo "    make create-env      - Create .env files"
 	@echo "    make update-env      - Update .env files"
 	@echo "    make verify          - Verify contracts"
@@ -761,6 +778,35 @@ deploy-base: .yarn-installed
 	@echo "  • Check deployment:      make fusion-plus-status"
 	@echo "  • Run integration test:  make fusion-plus-test"
 
+# Optimized BASE deployment commands
+deploy-base-hub: .yarn-installed
+	@echo "🚀 Deploying FusionPlusHub to BASE Sepolia..."
+	@cd packages/hardhat && npx hardhat deploy --network baseSepolia --tags FusionPlusHub
+	@echo "✅ FusionPlusHub deployed!"
+
+deploy-base-escrow: .yarn-installed
+	@echo "🏭 Deploying EscrowFactory to BASE Sepolia..."
+	@cd packages/hardhat && npx hardhat deploy --network baseSepolia --tags EscrowFactory
+	@echo "✅ EscrowFactory deployed!"
+
+deploy-base-all: deploy-base-hub deploy-base-escrow
+	@echo "✅ All BASE contracts deployed!"
+	@make fusion-plus-status
+
+# Check BASE deployment gas estimates
+base-gas-estimate: .yarn-installed
+	@echo "⛽ Estimating deployment gas costs for BASE Sepolia..."
+	@echo ""
+	@echo "Approximate gas costs:"
+	@echo "  • FusionPlusHub:  ~3,000,000 gas"
+	@echo "  • EscrowFactory:  ~5,000,000 gas"
+	@echo "  • Total:          ~8,000,000 gas"
+	@echo ""
+	@echo "At 0.1 gwei gas price (typical for testnet):"
+	@echo "  • Total cost: ~0.0008 ETH"
+	@echo ""
+	@echo "Get BASE Sepolia ETH from faucets listed in 'make account-fund'"
+
 # ============================================
 # INDIVIDUAL SERVICE COMMANDS
 # ============================================
@@ -954,6 +1000,55 @@ orchestrator-logs: .yarn-installed
 # ============================================
 # NEAR COMMANDS
 # ============================================
+
+# Optimized NEAR deployment commands
+deploy-near-all: near-build
+	@echo "🚀 Deploying all NEAR contracts to testnet..."
+	@make near-deploy
+	@echo "✅ All NEAR contracts deployed!"
+	@make near-status
+
+deploy-near-htlc: near-check
+	@echo "🔐 Deploying NEAR HTLC contract..."
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_MASTER_ACCOUNT' .env 2>/dev/null | xargs); \
+	fi; \
+	if [ -z "$$NEAR_MASTER_ACCOUNT" ]; then \
+		echo "❌ NEAR_MASTER_ACCOUNT not set"; \
+		exit 1; \
+	fi; \
+	cd 1balancer-near && \
+	near create-account fusion-htlc.$$NEAR_MASTER_ACCOUNT --masterAccount $$NEAR_MASTER_ACCOUNT --initialBalance 10 && \
+	near deploy --accountId fusion-htlc.$$NEAR_MASTER_ACCOUNT \
+		--wasmFile target/wasm32-unknown-unknown/release/fusion_plus_htlc.wasm
+	@echo "✅ HTLC contract deployed!"
+
+deploy-near-solver: near-check
+	@echo "🧩 Deploying NEAR solver registry..."
+	@if [ -f ".env" ]; then \
+		export $$(grep -E '^NEAR_MASTER_ACCOUNT' .env 2>/dev/null | xargs); \
+	fi; \
+	if [ -z "$$NEAR_MASTER_ACCOUNT" ]; then \
+		echo "❌ NEAR_MASTER_ACCOUNT not set"; \
+		exit 1; \
+	fi; \
+	cd 1balancer-near && \
+	near create-account solver-registry.$$NEAR_MASTER_ACCOUNT --masterAccount $$NEAR_MASTER_ACCOUNT --initialBalance 5 && \
+	near deploy --accountId solver-registry.$$NEAR_MASTER_ACCOUNT \
+		--wasmFile target/wasm32-unknown-unknown/release/solver_registry.wasm
+	@echo "✅ Solver registry deployed!"
+
+# Check NEAR deployment gas estimates
+near-gas-estimate: .yarn-installed
+	@echo "⛽ Estimating deployment gas costs for NEAR testnet..."
+	@echo ""
+	@echo "Approximate costs:"
+	@echo "  • HTLC Contract:    10 NEAR (account creation + deployment)"
+	@echo "  • Solver Registry:   5 NEAR (account creation + deployment)"
+	@echo "  • Total:           15 NEAR"
+	@echo ""
+	@echo "Note: NEAR testnet tokens are free!"
+	@echo "Get them from: https://nearblocks.io/faucets"
 
 # Check NEAR Rust dependencies
 near-check:
@@ -1254,9 +1349,32 @@ fork-polygon-mumbai: .yarn-installed
 # View current deployer account and balances
 account: .yarn-installed
 	@echo "👛 Checking deployer account..."
-	@cd packages/hardhat && { \
-		yarn account 2>&1 | sed '/Loading environment/d; /Root \.env loaded/d; /Loading local overrides/d; /^$$/d' || true; \
-	}
+	@# First check if DEPLOYER_PRIVATE_KEY is set in .env
+	@if grep -q "^DEPLOYER_PRIVATE_KEY=0x[a-fA-F0-9]" .env 2>/dev/null; then \
+		echo ""; \
+		echo "Using DEPLOYER_PRIVATE_KEY from .env file"; \
+		echo ""; \
+		cd packages/hardhat && { \
+			ADDR=$$(npx hardhat run --no-compile scripts/getAddress.js 2>&1 | grep -E "^0x[a-fA-F0-9]{40}$$" | tail -1); \
+			if [ "$$ADDR" != "NO_KEY" ] && [ -n "$$ADDR" ]; then \
+				echo "Public address: $$ADDR"; \
+				echo ""; \
+				echo "📊 Checking balances..."; \
+				echo "-- localhost --"; \
+				BAL=$$(npx hardhat run --no-compile scripts/checkBalance.js --network localhost 2>/dev/null || echo "0"); \
+				echo "  balance: $$BAL ETH"; \
+				echo "-- baseSepolia --"; \
+				BAL=$$(npx hardhat run --no-compile scripts/checkBalance.js --network baseSepolia 2>/dev/null || echo "0"); \
+				echo "  balance: $$BAL ETH"; \
+			else \
+				echo "❌ Could not derive address from private key"; \
+			fi; \
+		}; \
+	else \
+		cd packages/hardhat && { \
+			yarn account 2>&1 | sed '/Loading environment/d; /Root \.env loaded/d; /Loading local overrides/d; /^$$/d' || true; \
+		}; \
+	fi
 
 # Generate a new deployer account
 account-generate: .yarn-installed
@@ -1301,24 +1419,37 @@ account-reveal-pk: .yarn-installed
 # Quick account status check (no password required)
 account-status: .yarn-installed
 	@echo "📊 Account Status Check..."
-	@cd packages/hardhat && { \
-		OUTPUT=$$(yarn account 2>&1); \
-		if echo "$$OUTPUT" | grep -q "You don't have"; then \
-			echo "❌ No deployer account found!"; \
-			echo ""; \
-			echo "📚 SETUP REQUIRED:"; \
-			echo "  1. Generate account:    make account-generate"; \
-			echo "  2. Or import existing:  make account-import"; \
-		else \
-			echo "$$OUTPUT" | grep -E "(Public address:|-- localhost|-- sepolia|-- base)" | head -4 || echo "✅ Account configured (run 'make account' for details)"; \
-		fi; \
-	}
+	@# First check if DEPLOYER_PRIVATE_KEY is set in .env
+	@if grep -q "^DEPLOYER_PRIVATE_KEY=0x[a-fA-F0-9]" .env 2>/dev/null; then \
+		cd packages/hardhat && { \
+			ADDR=$$(npx hardhat run --no-compile scripts/getAddress.js 2>&1 | grep -E "^0x[a-fA-F0-9]{40}$$" | tail -1); \
+			if [ "$$ADDR" != "NO_KEY" ] && [ -n "$$ADDR" ]; then \
+				echo "✅ Account configured in .env"; \
+				echo "   Address: $$ADDR"; \
+			else \
+				echo "❌ Invalid private key in .env"; \
+			fi; \
+		}; \
+	else \
+		cd packages/hardhat && { \
+			OUTPUT=$$(yarn account 2>&1); \
+			if echo "$$OUTPUT" | grep -q "You don't have"; then \
+				echo "❌ No deployer account found!"; \
+				echo ""; \
+				echo "📚 SETUP REQUIRED:"; \
+				echo "  1. Set DEPLOYER_PRIVATE_KEY in .env"; \
+				echo "  2. Or run 'make account-generate' to create one"; \
+			else \
+				echo "$$OUTPUT" | grep -E "(Public address:|-- localhost|-- sepolia|-- base)" | head -4 || echo "✅ Account configured (run 'make account' for details)"; \
+			fi; \
+		}; \
+	fi
 	@echo ""
 	@echo "📚 ACCOUNT COMMANDS:"
-	@echo "  • make account          - View full details (requires password)"
+	@echo "  • make account          - View full details"
 	@echo "  • make account-generate - Create new account"
 	@echo "  • make account-import   - Import existing key"
-	@echo "  • make account-reveal-pk - Show private key"
+	@echo "  • make account-fund     - Get testnet tokens"
 
 # Fund account with testnet tokens (shows faucet links)
 account-fund: .yarn-installed
@@ -1338,17 +1469,34 @@ account-fund: .yarn-installed
 	@echo "🔷 NEAR Testnet:"
 	@echo "   https://nearblocks.io/faucets"
 	@echo ""
-	@cd packages/hardhat && { \
-		OUTPUT=$$(yarn account 2>&1); \
-		if echo "$$OUTPUT" | grep -q "Public address:"; then \
-			ADDR=$$(echo "$$OUTPUT" | grep "Public address:" | awk '{print $$3}'); \
-			echo "📬 Your address: $$ADDR"; \
-			echo ""; \
-			echo "Copy this address and paste it in the faucet!"; \
-		else \
-			echo "❌ No account found. Run 'make account-generate' first!"; \
-		fi; \
-	}
+	@# First check if DEPLOYER_PRIVATE_KEY is set in .env
+	@if grep -q "^DEPLOYER_PRIVATE_KEY=0x[a-fA-F0-9]" .env 2>/dev/null; then \
+		PRIVATE_KEY=$$(grep "^DEPLOYER_PRIVATE_KEY=" .env | cut -d'=' -f2); \
+		cd packages/hardhat && { \
+			ADDR=$$(npx hardhat run --no-compile scripts/getAddress.js 2>&1 | grep -E "^0x[a-fA-F0-9]{40}$$" | tail -1); \
+			if [ -n "$$ADDR" ]; then \
+				echo "📬 Your deployer address: $$ADDR"; \
+				echo ""; \
+				echo "Copy this address and paste it in the faucet!"; \
+			else \
+				echo "❌ Could not get address from private key"; \
+			fi; \
+		}; \
+	else \
+		cd packages/hardhat && { \
+			OUTPUT=$$(yarn account 2>&1); \
+			if echo "$$OUTPUT" | grep -q "Public address:"; then \
+				ADDR=$$(echo "$$OUTPUT" | grep "Public address:" | awk '{print $$3}'); \
+				echo "📬 Your address: $$ADDR"; \
+				echo ""; \
+				echo "Copy this address and paste it in the faucet!"; \
+			else \
+				echo "❌ No account found. Either:"; \
+				echo "  1. Set DEPLOYER_PRIVATE_KEY in .env"; \
+				echo "  2. Or run 'make account-generate' to create one"; \
+			fi; \
+		}; \
+	fi
 
 # Alias for account
 a: account-status
