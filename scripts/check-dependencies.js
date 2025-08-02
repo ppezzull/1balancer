@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const { execSync } = require('child_process');
-const chalk = require('chalk').default;
-const ora = require('ora').default;
+const { default: chalk } = require('chalk');
+const { default: ora } = require('ora');
 
 console.log(chalk.blue.bold('\n🔍 Checking system dependencies...\n'));
 

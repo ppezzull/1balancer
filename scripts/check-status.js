@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const http = require('http');
-const chalk = require('chalk').default;
-const ora = require('ora').default;
+const { default: chalk } = require('chalk');
+const { default: ora } = require('ora');
 
 console.log(chalk.blue.bold('\n📊 Checking service status...\n'));
 
@@ -10,36 +10,32 @@ const services = [
   {
     name: 'Frontend (Next.js)',
     url: 'http://localhost:3000',
-    description: 'Main application UI'
+    description: 'Main application UI',
+    startCommand: 'yarn start',
+    makeCommand: 'make frontend'
   },
   {
     name: 'Hardhat Node',
     url: 'http://localhost:8545',
     description: 'Local EVM blockchain',
-    isRPC: true
+    isRPC: true,
+    startCommand: 'yarn chain',
+    makeCommand: 'make chain'
   },
   {
-    name: 'Orchestrator API',
+    name: 'Orchestrator Service',
     url: 'http://localhost:8080',
-    description: 'Backend coordination service'
+    description: 'REST API, WebSocket & Cross-chain coordination',
+    startCommand: 'yarn orchestrator:dev',
+    makeCommand: 'make backend'
   },
   {
-    name: 'NEAR Bridge',
-    url: 'http://localhost:8090',
-    description: 'Cross-chain communication'
+    name: 'API Proxy',
+    url: 'http://localhost:3001',
+    description: '1inch API proxy service',
+    startCommand: 'yarn proxy:dev',
+    makeCommand: 'make proxy'
   },
-  {
-    name: 'NEAR Local',
-    url: 'http://localhost:3030',
-    description: 'NEAR local development',
-    optional: true
-  },
-  {
-    name: 'Solver Service',
-    url: 'http://localhost:8091',
-    description: 'TEE Solver agent',
-    optional: true
-  }
 ];
 
 async function checkService(service) {
@@ -81,6 +77,7 @@ async function checkAllServices() {
   let allRunning = true;
   let runningCount = 0;
   let totalRequired = services.filter(s => !s.optional).length;
+  const notRunningServices = [];
 
   for (const service of services) {
     const spinner = ora(`Checking ${service.name}...`).start();
@@ -98,24 +95,46 @@ async function checkAllServices() {
         allRunning = false;
       }
       console.log(chalk.gray(`  ${service.description}`));
+      
+      // Add start command suggestion
+      if (service.startCommand !== 'Coming soon') {
+        console.log(chalk.cyan(`  ▸ Start with: ${chalk.white(service.makeCommand)} or ${chalk.white(service.startCommand)}`));
+      } else {
+        console.log(chalk.gray(`  ▸ ${service.startCommand}`));
+      }
+      
+      if (!result.success && !service.optional) {
+        notRunningServices.push(service);
+      }
     }
   }
 
   console.log(chalk.white.bold(`\n📈 Status Summary:`));
   console.log(chalk.gray(`   Running: ${runningCount}/${services.length} services`));
-  console.log(chalk.gray(`   Required: ${services.filter(s => !s.optional && s).length} services\n`));
+  console.log(chalk.gray(`   Required: ${services.filter(s => !s.optional && s).length} services`));
+  console.log(chalk.gray(`   NEAR: Uses testnet (no local service)\n`));
 
   if (allRunning) {
     console.log(chalk.green.bold('✅ All required services are running!\n'));
     
     console.log(chalk.cyan('🌐 Quick Links:'));
-    console.log(chalk.white('   Frontend:     http://localhost:3000'));
-    console.log(chalk.white('   Orchestrator: http://localhost:8080'));
-    console.log(chalk.white('   NEAR Bridge:  http://localhost:8090\n'));
+    console.log(chalk.white('   Frontend:       http://localhost:3000'));
+    console.log(chalk.white('   Orchestrator:   http://localhost:8080'));
+    console.log(chalk.white('   API Docs:       http://localhost:8080/api-docs'));
+    console.log(chalk.white('   WebSocket:      ws://localhost:8080/ws'));
+    console.log(chalk.white('   API Proxy:      http://localhost:3001\n'));
   } else {
     console.log(chalk.yellow.bold('⚠️  Some required services are not running.\n'));
-    console.log(chalk.white('To start all services, run:'));
-    console.log(chalk.cyan('   yarn dev:all\n'));
+    console.log(chalk.white('To start all services at once:'));
+    console.log(chalk.cyan('   make dev') + chalk.gray(' or ') + chalk.cyan('yarn dev:all\n'));
+    
+    if (notRunningServices.length > 0) {
+      console.log(chalk.white('To start missing required services individually:'));
+      notRunningServices.forEach(service => {
+        console.log(chalk.cyan(`   ${service.makeCommand}`) + chalk.gray(` (${service.name})`));
+      });
+      console.log('');
+    }
   }
 }
 

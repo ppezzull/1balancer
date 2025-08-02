@@ -21,6 +21,10 @@ help:
 	@echo "  🚀 1BALANCER - Cross-Chain Atomic Swap Protocol"
 	@echo "  =============================================="
 	@echo ""
+	@echo "  🎯 NEW TO 1BALANCER? Start here:"
+	@echo "    make guide           - Interactive setup guide (RECOMMENDED)"
+	@echo "    make quickstart      - Fastest path to running demo"
+	@echo ""
 	@echo "  QUICK START:"
 	@echo "    make setup           - First-time setup (installs everything)"
 	@echo "    make run             - Start all services"
@@ -57,6 +61,7 @@ help:
 	@echo ""
 	@echo "  🏆 FUSION+ DEMO (HACKATHON):"
 	@echo "    make fusion-plus         - Run complete Fusion+ demonstration"
+	@echo "    make fusion-plus-local   - Run demo on LOCAL chain (no costs!)"
 	@echo "    make fusion-plus-test    - Run integration tests on testnet"
 	@echo "    make fusion-plus-setup   - Quick setup for demo"
 	@echo "    make fusion-plus-arch    - View system architecture"
@@ -72,6 +77,13 @@ help-dev:
 	@echo ""
 	@echo "  🔧 ADDITIONAL DEVELOPMENT COMMANDS"
 	@echo "  ================================="
+	@echo ""
+	@echo "  INTENT-DRIVEN WORKFLOWS:"
+	@echo "    make workflows           - Show all guided workflows"
+	@echo "    make workflow-test-swaps - Test atomic swaps locally"
+	@echo "    make workflow-1inch      - Integrate with 1inch protocols"
+	@echo "    make workflow-cross-chain - Build cross-chain dApp"
+	@echo "    make workflow-debug      - Debug failed swaps"
 	@echo ""
 	@echo "  FORK TESTING:"
 	@echo "    make fork-mainnet    - Fork Ethereum mainnet"
@@ -100,6 +112,7 @@ help-dev:
 	@echo ""
 	@echo "  UTILITIES:"
 	@echo "    make account         - View current account"
+	@echo "    make account-status  - Quick account check"
 	@echo "    make create-env      - Create .env files"
 	@echo "    make update-env      - Update .env files"
 	@echo "    make verify          - Verify contracts"
@@ -138,10 +151,13 @@ help-all: help help-dev
 	@echo "    make fork-polygon-mumbai    - Fork Polygon Mumbai"
 	@echo ""
 	@echo "  ACCOUNT MANAGEMENT:"
-	@echo "    make account                - View current account"
+	@echo "    make account                - View current account (requires password)"
+	@echo "    make account-status         - Quick status check (no password)"
 	@echo "    make account-generate       - Generate new account"
 	@echo "    make account-import         - Import existing account"
 	@echo "    make account-reveal-pk      - Reveal private key"
+	@echo "    make account-fund           - Get testnet tokens (shows faucets)"
+	@echo "    make a                      - Alias for account-status"
 	@echo ""
 	@echo "  PROXY & API:"
 	@echo "    make proxy-setup            - Setup/deploy 1inch proxy to Vercel"
@@ -173,6 +189,300 @@ help-all: help help-dev
 	@echo ""
 
 # ============================================
+# GUIDED SETUP FOR NEW USERS
+# ============================================
+
+# Interactive setup guide
+guide:
+	@clear
+	@echo ""
+	@echo "  🎯 WELCOME TO 1BALANCER SETUP GUIDE"
+	@echo "  ==================================="
+	@echo ""
+	@echo "  This guide will help you get 1Balancer running in minutes."
+	@echo ""
+	@echo "  Choose your development path:"
+	@echo ""
+	@echo "  1) 🏠 LOCAL DEVELOPMENT"
+	@echo "     • Run everything on your machine"
+	@echo "     • No real tokens needed"
+	@echo "     • Perfect for development & testing"
+	@echo ""
+	@echo "  2) 🌐 TESTNET DEPLOYMENT"
+	@echo "     • Deploy to real test networks"
+	@echo "     • Requires testnet tokens"
+	@echo "     • For integration testing"
+	@echo ""
+	@echo "  3) 🏆 FUSION+ DEMO (Hackathon)"
+	@echo "     • Quick setup for judges"
+	@echo "     • Shows cross-chain swaps"
+	@echo "     • BASE ↔ NEAR atomic swaps"
+	@echo ""
+	@echo "  Enter your choice (1/2/3) or 'q' to quit:"
+	@read -p "  > " choice; \
+	case $$choice in \
+		1) make guide-local ;; \
+		2) make guide-testnet ;; \
+		3) make guide-fusion ;; \
+		q|Q) echo "  Goodbye!" ;; \
+		*) echo "  Invalid choice. Please run 'make guide' again." ;; \
+	esac
+
+# Local development guide
+guide-local:
+	@clear
+	@echo ""
+	@echo "  🏠 LOCAL DEVELOPMENT SETUP"
+	@echo "  ========================="
+	@echo ""
+	@echo "  Let's set up your local development environment..."
+	@echo ""
+	@echo "  📋 CHECKING PREREQUISITES:"
+	@node scripts/check-dependencies.js || { \
+		echo ""; \
+		echo "  ❌ Missing dependencies detected!"; \
+		echo ""; \
+		echo "  Please install the missing dependencies and run 'make guide' again."; \
+		exit 1; \
+	}
+	@echo ""
+	@echo "  ✅ All prerequisites installed!"
+	@echo ""
+	@echo "  🔧 SETTING UP PROJECT..."
+	@echo ""
+	@echo "  Installing packages (this may take a few minutes)..."
+	@yarn install > install.log 2>&1 && echo "  ✓ Core dependencies installed" || { echo "  ❌ Installation failed. Check install.log"; exit 1; }
+	@yarn install:all > install-all.log 2>&1 && echo "  ✓ All packages installed" || { echo "  ❌ Installation failed. Check install-all.log"; exit 1; }
+	@touch .yarn-installed
+	@echo "  ✓ Creating environment files..."
+	@node scripts/create-env-files.js > /dev/null 2>&1
+	@echo ""
+	@echo "  ✅ LOCAL SETUP COMPLETE!"
+	@echo ""
+	@echo "  📚 NEXT STEPS:"
+	@echo "  ============="
+	@echo ""
+	@echo "  1. Start local blockchain:"
+	@echo "     make chain"
+	@echo ""
+	@echo "  2. Generate deployer account:"
+	@echo "     make account-generate"
+	@echo ""
+	@echo "  3. In a new terminal, deploy contracts:"
+	@echo "     make deploy"
+	@echo ""
+	@echo "  4. Start all services:"
+	@echo "     make dev"
+	@echo ""
+	@echo "  5. Open frontend:"
+	@echo "     http://localhost:3000"
+	@echo ""
+	@echo "  💡 TIP: Run 'make status' anytime to check service health"
+	@echo ""
+
+# Testnet deployment guide
+guide-testnet:
+	@clear
+	@echo ""
+	@echo "  🌐 TESTNET DEPLOYMENT SETUP"
+	@echo "  ==========================="
+	@echo ""
+	@echo "  Setting up for testnet deployment..."
+	@echo ""
+	@echo "  📋 REQUIREMENTS:"
+	@echo "  • BASE Sepolia ETH (get from faucet)"
+	@echo "  • NEAR Testnet tokens"
+	@echo "  • 1inch API key (from ETHGlobal for hackathon)"
+	@echo ""
+	@echo "  Do you have all requirements? (y/n)"
+	@read -p "  > " confirm; \
+	if [ "$$confirm" != "y" ] && [ "$$confirm" != "Y" ]; then \
+		echo ""; \
+		echo "  📚 GET TESTNET RESOURCES:"; \
+		echo "  ======================="; \
+		echo ""; \
+		echo "  1. BASE Sepolia ETH:"; \
+		echo "     https://docs.base.org/docs/tools/network-faucets"; \
+		echo ""; \
+		echo "  2. NEAR Testnet tokens:"; \
+		echo "     https://nearblocks.io/faucets"; \
+		echo ""; \
+		echo "  3. 1inch API key (hackathon):"; \
+		echo "     Request through ETHGlobal Discord"; \
+		echo ""; \
+		echo "  Come back when you have all requirements!"; \
+		exit 0; \
+	fi
+	@echo ""
+	@echo "  🔧 CONFIGURING FOR TESTNET..."
+	@echo ""
+	@if [ ! -f ".yarn-installed" ]; then \
+		echo "  Installing packages..."; \
+		yarn install > install.log 2>&1 && yarn install:all > install-all.log 2>&1; \
+		touch .yarn-installed; \
+	fi
+	@echo "  ✓ Dependencies ready"
+	@echo ""
+	@echo "  🔐 ENVIRONMENT SETUP:"
+	@echo "  ==================="
+	@echo ""
+	@echo "  Please configure your .env file with:"
+	@echo "  • Private key (with testnet funds)"
+	@echo "  • 1inch API key"
+	@echo "  • RPC endpoints"
+	@echo ""
+	@echo "  Run: nano .env"
+	@echo ""
+	@echo "  Press Enter when configuration is complete..."
+	@read _
+	@echo ""
+	@echo "  📚 TESTNET DEPLOYMENT STEPS:"
+	@echo "  ==========================="
+	@echo ""
+	@echo "  1. Generate or import account:"
+	@echo "     make account-generate  # Or: make account-import"
+	@echo ""
+	@echo "  2. Fund your account with testnet ETH"
+	@echo ""
+	@echo "  3. Deploy to BASE Sepolia:"
+	@echo "     make deploy-base"
+	@echo ""
+	@echo "  4. Deploy to NEAR testnet:"
+	@echo "     make near-deploy"
+	@echo ""
+	@echo "  5. Start orchestrator:"
+	@echo "     make orchestrator-dev"
+	@echo ""
+	@echo "  6. Run integration tests:"
+	@echo "     make fusion-plus-test"
+	@echo ""
+	@echo "  💡 TIP: Check deployment status with 'make fusion-plus-status'"
+	@echo ""
+
+# Fusion+ demo guide
+guide-fusion:
+	@clear
+	@echo ""
+	@echo "  🏆 FUSION+ DEMO QUICK SETUP"
+	@echo "  =========================="
+	@echo ""
+	@echo "  Setting up the Fusion+ cross-chain demo..."
+	@echo ""
+	@echo "  This will demonstrate:"
+	@echo "  • Atomic swaps between BASE and NEAR"
+	@echo "  • HTLC with SHA-256 hashlocks"
+	@echo "  • Complete orchestration system"
+	@echo ""
+	@echo "  Press Enter to begin setup..."
+	@read _
+	@echo ""
+	@echo "  🔧 INSTALLING DEPENDENCIES..."
+	@if [ ! -f ".yarn-installed" ]; then \
+		yarn install > install.log 2>&1 && yarn install:all > install-all.log 2>&1 && \
+		touch .yarn-installed && \
+		echo "  ✓ Dependencies installed"; \
+	else \
+		echo "  ✓ Dependencies already installed"; \
+	fi
+	@echo ""
+	@echo "  🔐 CHECKING CONFIGURATION..."
+	@if grep -q "your-1inch-api-key-here" .env 2>/dev/null; then \
+		echo "  ⚠️  1inch API key not configured"; \
+		echo "  Please set your API key in .env file"; \
+		echo "  (Get from ETHGlobal for hackathon)"; \
+		echo ""; \
+		echo "  Run: nano .env"; \
+		echo "  Then run: make fusion-plus-setup"; \
+		exit 1; \
+	else \
+		echo "  ✓ API key configured"; \
+	fi
+	@echo ""
+	@echo "  📄 CHECKING DEPLOYMENTS..."
+	@if [ -f "packages/hardhat/deployments/baseSepolia/FusionPlusHub.json" ]; then \
+		echo "  ✓ BASE contracts deployed"; \
+	else \
+		echo "  ⚠️  BASE contracts not deployed"; \
+		echo "  Run: make deploy-base"; \
+	fi
+	@if [ -f "1balancer-near/.near-credentials/testnet/deploy.json" ]; then \
+		echo "  ✓ NEAR contracts deployed"; \
+	else \
+		echo "  ⚠️  NEAR contracts not deployed"; \
+		echo "  Run: make near-deploy"; \
+	fi
+	@echo ""
+	@echo "  🎯 STARTING SERVICES..."
+	@if curl -s http://localhost:8080/health > /dev/null 2>&1; then \
+		echo "  ✓ Orchestrator running"; \
+	else \
+		echo "  Starting orchestrator..."; \
+		cd packages/orchestrator && yarn dev > ../../orchestrator.log 2>&1 & \
+		sleep 5; \
+		echo "  ✓ Orchestrator started"; \
+	fi
+	@echo ""
+	@echo "  ✅ FUSION+ DEMO READY!"
+	@echo ""
+	@echo "  📚 RUN THE DEMO:"
+	@echo "  ==============="
+	@echo ""
+	@echo "  1. View architecture:"
+	@echo "     make fusion-plus-arch"
+	@echo ""
+	@echo "  2. Run live demo:"
+	@echo "     make fusion-plus"
+	@echo ""
+	@echo "  3. Check status:"
+	@echo "     make fusion-plus-status"
+	@echo ""
+	@echo "  💡 The demo will show real cross-chain swaps on testnet!"
+	@echo ""
+
+# Quick start - fastest path to demo
+quickstart:
+	@echo "⚡ QUICK START - Getting you running in 60 seconds..."
+	@echo ""
+	@# Install dependencies if needed
+	@if [ ! -f ".yarn-installed" ]; then \
+		echo "📦 Installing dependencies..."; \
+		yarn install > /dev/null 2>&1 && \
+		yarn install:all > /dev/null 2>&1 && \
+		touch .yarn-installed; \
+	fi
+	@# Create env files
+	@node scripts/create-env-files.js > /dev/null 2>&1
+	@echo "✓ Environment configured"
+	@# Start chain
+	@echo "⛓️  Starting blockchain..."
+	@yarn chain > hardhat.log 2>&1 &
+	@sleep 5
+	@# Check account first
+	@cd packages/hardhat && yarn account > /tmp/account-check 2>&1 || true
+	@if grep -q "You don't have a deployer account" /tmp/account-check 2>/dev/null; then \
+		echo "⚠️  No deployer account - generating one..."; \
+		cd packages/hardhat && yarn generate > /dev/null 2>&1 || true; \
+	fi
+	@# Deploy contracts
+	@echo "📄 Deploying contracts..."
+	@yarn deploy --network localhost > /dev/null 2>&1 || true
+	@# Start services
+	@echo "🚀 Starting services..."
+	@yarn dev:all > services.log 2>&1 &
+	@sleep 3
+	@echo ""
+	@echo "✅ 1BALANCER IS RUNNING!"
+	@echo ""
+	@echo "🌐 Frontend: http://localhost:3000"
+	@echo "📡 API Docs: http://localhost:3001/api-docs"
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • View logs: make logs"
+	@echo "  • Run tests: make test"
+	@echo "  • Stop all:  make stop"
+	@echo ""
+
+# ============================================
 # ESSENTIAL COMMANDS (New Users)
 # ============================================
 
@@ -181,8 +491,20 @@ all: setup run
 	@echo "✅ 1Balancer is ready!"
 
 # First-time setup - installs everything needed
-setup: .yarn-installed
+setup:
 	@echo "🚀 Setting up 1Balancer..."
+	@echo ""
+	@# First ensure dependencies are installed
+	@if [ ! -f ".yarn-installed" ]; then \
+		echo "📦 Installing dependencies (this may take a few minutes)..."; \
+		yarn install && yarn install:all && touch .yarn-installed && \
+		echo "✅ Dependencies installed" || { \
+			echo "❌ Installation failed. Please check your network connection and try again."; \
+			exit 1; \
+		}; \
+	else \
+		echo "✅ Dependencies already installed"; \
+	fi
 	@echo ""
 	@node scripts/check-dependencies.js || exit 1
 	@echo ""
@@ -200,14 +522,23 @@ setup: .yarn-installed
 	@echo ""
 	@echo "🌐 Setting up 1inch API proxy..."
 	@if grep -q "your-1inch-api-key-here" .env 2>/dev/null; then \
-		echo "⚠️  Proxy setup skipped - Set your 1inch API key in .env file first"; \
-		echo "   Get your API key from: https://portal.1inch.dev/"; \
-		echo "   Then run 'make proxy-setup' to deploy the proxy"; \
+		echo ""; \
+		echo "⚠️  Proxy setup skipped!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Get API key from:    https://portal.1inch.dev/"; \
+		echo "  2. Update .env file with your API key"; \
+		echo "  3. Then run:           make proxy-setup"; \
 	else \
 		node scripts/setup-proxy.js > /dev/null 2>&1 || echo "⚠️  Proxy setup failed - Run 'make proxy-setup' manually"; \
 	fi
 	@echo ""
-	@echo "✅ Setup complete! Run 'make run' to start."
+	@echo "✅ Setup complete!"
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  1. Start local development:  make run"
+	@echo "  2. Or run the guide:        make guide"
+	@echo "  3. Check service status:    make status"
 
 # Start everything
 run: .yarn-installed
@@ -216,21 +547,32 @@ run: .yarn-installed
 	@echo "⛓️  Starting local blockchain..."
 	@yarn chain > hardhat.log 2>&1 &
 	@sleep 5
+	@# Check account first
+	@cd packages/hardhat && yarn account > /tmp/account-check 2>&1 || true
+	@if grep -q "You don't have a deployer account" /tmp/account-check 2>/dev/null; then \
+		echo "⚠️  No deployer account - generating one..."; \
+		cd packages/hardhat && yarn generate > /dev/null 2>&1 || true; \
+	fi
 	@echo "📄 Deploying contracts..."
 	@yarn deploy --network localhost > /dev/null 2>&1 || true
 	@echo "🎯 Starting all services..."
 	@yarn dev:all > services.log 2>&1 &
 	@sleep 3
 	@echo ""
-	@echo "✅ 1Balancer is running!"
+	@echo "✅ 1BALANCER IS RUNNING!"
 	@echo ""
-	@echo "  Frontend:     http://localhost:3000"
-	@echo "  Blockchain:   http://localhost:8545"
-	@echo "  Orchestrator: http://localhost:3001"
-	@echo "  API Docs:     http://localhost:3001/api-docs"
+	@echo "  🌐 Frontend:     http://localhost:3000"
+	@echo "  ⛓️  Blockchain:   http://localhost:8545"
+	@echo "  🎯 Orchestrator: http://localhost:3001"
+	@echo "  📚 API Docs:     http://localhost:3001/api-docs"
 	@echo ""
-	@echo "Use 'make stop' to stop all services."
-	@echo "Use 'make logs' to view logs."
+	@echo "📚 NEXT STEPS:"
+	@echo "  • View logs:            make logs"
+	@echo "  • Check service health: make status"
+	@echo "  • Run tests:            make test"
+	@echo "  • Stop all services:    make stop"
+	@echo ""
+	@echo "💡 TIP: The frontend may take 30-60 seconds to fully load"
 
 # Stop everything
 stop:
@@ -250,6 +592,12 @@ status:
 dev: .yarn-installed
 	@echo "🔧 Starting development mode..."
 	@yarn dev:all
+	@echo ""
+	@echo "📚 DEVELOPMENT TIPS:"
+	@echo "  • Frontend changes reload automatically"
+	@echo "  • Contract changes: run 'make deploy' in new terminal"
+	@echo "  • View orchestrator logs: make orchestrator-logs"
+	@echo "  • Run specific tests: yarn test path/to/test.ts"
 
 # Run all tests
 test: .yarn-installed
@@ -278,22 +626,140 @@ clean:
 # Deploy to localhost
 deploy: .yarn-installed
 	@echo "📄 Deploying contracts to localhost..."
+	@# Check if local chain is running
+	@if ! curl -s http://localhost:8545 > /dev/null 2>&1; then \
+		echo ""; \
+		echo "❌ Local blockchain not running!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Start blockchain:    make chain"; \
+		echo "  2. Then run:           make deploy"; \
+		exit 1; \
+	fi
+	@# For localhost, use default Hardhat accounts (no password needed)
+	@echo "  Using default Hardhat test accounts..."
+	@cd packages/hardhat && npx hardhat deploy --network localhost
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Start frontend:       make frontend"
+	@echo "  • Start orchestrator:   make backend"
+	@echo "  • Run integration test: make test-integration"
+
+# Deploy Mock NEAR contract for local testing
+deploy-mock-near: .yarn-installed
+	@echo "🌐 Deploying Mock NEAR HTLC for local testing..."
+	@cd packages/hardhat && npx hardhat deploy --tags MockNEARHTLC --network localhost
+	@echo "✅ Mock NEAR contract deployed!"
+	@echo "📋 Update .env with the deployed address shown above"
+
+# Deploy with account system (for testnets)
+deploy-with-account: .yarn-installed
+	@echo "📄 Deploying contracts..."
+	@# Check if account exists first
+	@cd packages/hardhat && yarn account > /tmp/account-check 2>&1 || true
+	@if grep -q "You don't have a deployer account" /tmp/account-check 2>/dev/null; then \
+		echo ""; \
+		echo "❌ No deployer account found!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Generate account:    make account-generate"; \
+		echo "  2. Or import existing:  make account-import"; \
+		echo "  3. Fund account from faucet"; \
+		echo "  4. Then run deployment again"; \
+		exit 1; \
+	fi
 	@yarn deploy --network localhost
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Start frontend:       make frontend"
+	@echo "  • Start orchestrator:   make backend"
+	@echo "  • Run integration test: make test-integration"
 
 # Deploy to forked mainnet
 deploy-fork: .yarn-installed
 	@echo "📄 Deploying to forked mainnet..."
+	@# Check if account exists first
+	@cd packages/hardhat && yarn account > /tmp/account-check 2>&1 || true
+	@if grep -q "You don't have a deployer account" /tmp/account-check 2>/dev/null; then \
+		echo ""; \
+		echo "❌ No deployer account found!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Generate account:    make account-generate"; \
+		echo "  2. Or import existing:  make account-import"; \
+		echo "  3. Then run:           make deploy-fork"; \
+		exit 1; \
+	fi
 	@yarn deploy:fork
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Test with mainnet tokens: make test-fork"
+	@echo "  • Start orchestrator:       make orchestrator-dev"
 
 # Deploy to Sepolia testnet
 deploy-sepolia: .yarn-installed
 	@echo "📄 Deploying to Sepolia testnet..."
+	@# Check if account exists first
+	@cd packages/hardhat && yarn account > /tmp/account-check 2>&1 || true
+	@if grep -q "You don't have a deployer account" /tmp/account-check 2>/dev/null; then \
+		echo ""; \
+		echo "❌ No deployer account found!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Generate account:    make account-generate"; \
+		echo "  2. Or import existing:  make account-import"; \
+		echo "  3. Fund with testnet ETH from faucet"; \
+		echo "  4. Then run:           make deploy-sepolia"; \
+		exit 1; \
+	fi
 	@yarn deploy --network sepolia
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Verify contracts:     make verify"
+	@echo "  • Configure proxy:      make proxy-setup"
+	@echo "  • Start orchestrator:   make orchestrator-dev"
 
 # Deploy to Base
 deploy-base: .yarn-installed
-	@echo "📄 Deploying to Base..."
-	@yarn deploy --network base
+	@echo "📄 Deploying to Base Sepolia..."
+	@# Check if account exists first
+	@cd packages/hardhat && yarn account > /tmp/account-check 2>&1 || true
+	@if grep -q "You don't have a deployer account" /tmp/account-check 2>/dev/null; then \
+		echo ""; \
+		echo "❌ No deployer account found!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Generate account:    make account-generate"; \
+		echo "  2. Or import existing:  make account-import"; \
+		echo "  3. Fund with BASE ETH from faucet"; \
+		echo "  4. Then run:           make deploy-base"; \
+		exit 1; \
+	fi
+	@echo ""
+	@echo "📋 DEPLOYMENT NOTES:"
+	@echo "  • If you get 'insufficient funds' error, fund your account:"
+	@echo "    - Get deployer address: make account"
+	@echo "    - Get BASE Sepolia ETH from:"
+	@echo "      https://www.alchemy.com/faucets/base-sepolia"
+	@echo "      https://faucet.quicknode.com/base/sepolia"
+	@echo ""
+	@echo "  • Alternative direct deployment (if make fails):"
+	@echo "    cd packages/hardhat"
+	@echo "    npx hardhat deploy --network baseSepolia --tags EthereumHub"
+	@echo ""
+	@cd packages/hardhat && yarn deploy:base-testnet || { \
+		echo ""; \
+		echo "⚠️  Deployment failed. Common issues:"; \
+		echo "  1. Insufficient funds - fund your account"; \
+		echo "  2. Password required - use direct deployment command above"; \
+		echo "  3. Network issues - check your connection"; \
+		exit 1; \
+	}
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Deploy NEAR contracts: make near-deploy"
+	@echo "  • Check deployment:      make fusion-plus-status"
+	@echo "  • Run integration test:  make fusion-plus-test"
 
 # ============================================
 # INDIVIDUAL SERVICE COMMANDS
@@ -380,6 +846,17 @@ test-unit: .yarn-installed
 # Integration tests
 test-integration: .yarn-installed
 	@echo "🧪 Running integration tests..."
+	@# Check if contracts are deployed
+	@if [ ! -d "packages/hardhat/deployments/localhost" ] || [ -z "$$(ls -A packages/hardhat/deployments/localhost 2>/dev/null)" ]; then \
+		echo ""; \
+		echo "❌ No contracts deployed!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Start blockchain:    make chain"; \
+		echo "  2. Deploy contracts:    make deploy"; \
+		echo "  3. Then run tests:      make test-integration"; \
+		exit 1; \
+	fi
 	@./scripts/run-integration-tests.sh
 
 # Fork testing
@@ -414,67 +891,12 @@ health: .yarn-installed
 
 # Check orchestrator prerequisites
 orchestrator-check:
-	@echo "🔍 Checking orchestrator prerequisites..."
+	@bash scripts/orchestrator-check.sh
 	@echo ""
-	@# Check if submodule exists
-	@if [ ! -d "1balancer-near" ]; then \
-		echo "❌ NEAR submodule not initialized"; \
-		echo ""; \
-		echo "📋 To fix this, run these commands in order:"; \
-		echo "  1. make submodule-init"; \
-		echo "  2. make near-install"; \
-		echo "  3. make near-build"; \
-		echo "  4. make near-deploy"; \
-		echo ""; \
-		echo "⚠️  Note: The orchestrator will still work for BASE <-> Ethereum swaps"; \
-		echo "         NEAR errors are non-critical and only affect NEAR swaps"; \
-		echo ""; \
-	else \
-		echo "✅ NEAR submodule found"; \
-	fi
-	@# Check environment variables (try loading from .env first)
-	@if [ -f ".env" ]; then \
-		eval "$$(grep -E '^NEAR_MASTER_ACCOUNT|^NEAR_PRIVATE_KEY' .env 2>/dev/null | sed 's/^/: $${/' | sed 's/$$/}/')"; \
-	fi
-	@if [ -z "$$NEAR_MASTER_ACCOUNT" ] || [ -z "$$NEAR_PRIVATE_KEY" ]; then \
-		echo "⚠️  NEAR credentials not configured"; \
-		echo ""; \
-		echo "📋 You have two options for NEAR functionality:"; \
-		echo ""; \
-		echo "Option 1: Native NEAR (Recommended)"; \
-		echo "  1. Create account at https://wallet.testnet.near.org"; \
-		echo "  2. Export credentials:"; \
-		echo "     export NEAR_MASTER_ACCOUNT=your-account.testnet"; \
-		echo "     export NEAR_PRIVATE_KEY=ed25519:your-private-key"; \
-		echo ""; \
-		echo "Option 2: Aurora EVM (MetaMask compatible)"; \
-		echo "  - No NEAR account needed"; \
-		echo "  - Use MetaMask with Aurora Testnet"; \
-		echo "  - Deploy EVM contracts instead"; \
-		echo ""; \
-		echo "⚠️  Note: The orchestrator works without these, but NEAR swaps will be disabled"; \
-		echo ""; \
-	else \
-		echo "✅ NEAR credentials configured"; \
-	fi
-	@# Check if NEAR contract is deployed
-	@if [ -f "1balancer-near/.near-credentials/testnet/deploy.json" ]; then \
-		echo "✅ NEAR contract deployment found"; \
-		echo "   The orchestrator will read from: 1balancer-near/.near-credentials/testnet/deploy.json"; \
-	elif [ -n "$$NEAR_HTLC_CONTRACT" ]; then \
-		echo "✅ NEAR HTLC contract manually configured: $$NEAR_HTLC_CONTRACT"; \
-	else \
-		echo "⚠️  NEAR HTLC contract not deployed"; \
-		echo ""; \
-		echo "📋 After setting up NEAR credentials, simply run:"; \
-		echo "   make near-deploy"; \
-		echo ""; \
-		echo "   The orchestrator will automatically use the deployed address"; \
-		echo ""; \
-	fi
-	@echo ""
-	@echo "✅ Orchestrator can run now. NEAR errors are expected if not fully configured."
-	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Configure environment: nano .env"
+	@echo "  • Run orchestrator:      make orchestrator-dev"
+	@echo "  • Test orchestrator:     make orchestrator-test"
 
 orchestrator-test: .yarn-installed orchestrator-check
 	@echo "🧪 Running orchestrator tests..."
@@ -484,6 +906,11 @@ orchestrator-test: .yarn-installed orchestrator-check
 	else \
 		cd packages/orchestrator && yarn test; \
 	fi
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Build orchestrator:    make orchestrator-build"
+	@echo "  • Start development:     make orchestrator-dev"
+	@echo "  • View documentation:    cat packages/orchestrator/docs/USAGE.md"
 
 orchestrator-build: .yarn-installed orchestrator-check
 	@echo "🏗️  Building orchestrator..."
@@ -493,6 +920,10 @@ orchestrator-build: .yarn-installed orchestrator-check
 	else \
 		cd packages/orchestrator && yarn build; \
 	fi
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Start production:      cd packages/orchestrator && yarn start"
+	@echo "  • Deploy to server:      See packages/orchestrator/docs/DEPLOYMENT.md"
 
 orchestrator-dev: .yarn-installed orchestrator-check
 	@echo "🚀 Starting orchestrator in development mode..."
@@ -503,17 +934,22 @@ orchestrator-dev: .yarn-installed orchestrator-check
 	@echo "  - BASE and Ethereum monitoring will work"
 	@echo "  - NEAR errors (AccountDoesNotExist) are expected if not configured"
 	@echo ""
+	@echo "📚 WHILE RUNNING:"
+	@echo "  • View API docs:         http://localhost:8080/api-docs"
+	@echo "  • Test WebSocket:        wscat -c ws://localhost:8080/ws"
+	@echo "  • Create swap session:   See examples in docs/USAGE.md"
+	@echo ""
 	@echo "Press Ctrl+C to stop the orchestrator"
 	@echo ""
-	@if [ -f ".env" ]; then \
-		export $$(grep -E '^NEAR_' .env 2>/dev/null | xargs) && \
-		cd packages/orchestrator && yarn dev; \
-	else \
-		cd packages/orchestrator && yarn dev; \
-	fi
+	@bash scripts/run-orchestrator.sh
 
 orchestrator-logs: .yarn-installed
 	@cd packages/orchestrator && make logs
+	@echo ""
+	@echo "📚 LOG MANAGEMENT:"
+	@echo "  • Clear logs:            rm -rf packages/orchestrator/logs/*"
+	@echo "  • Monitor errors:        tail -f packages/orchestrator/logs/error.log"
+	@echo "  • Check metrics:         make metrics"
 
 # ============================================
 # NEAR COMMANDS
@@ -765,8 +1201,17 @@ near-delete-all: near-check
 
 # NEAR development mode
 near-dev:
-	@echo "🔧 Starting NEAR development..."
-	@yarn near:dev
+	@echo "🔧 NEAR Development Setup..."
+	@echo ""
+	@echo "NEAR contracts are deployed on testnet, not run locally."
+	@echo ""
+	@echo "📋 Available NEAR commands:"
+	@echo "  • make near-build    - Build NEAR contracts"
+	@echo "  • make near-test     - Test NEAR contracts"
+	@echo "  • make near-deploy   - Deploy to NEAR testnet"
+	@echo "  • make near-status   - Check deployment status"
+	@echo ""
+	@echo "✅ NEAR is integrated via testnet - no local service needed!"
 
 # ============================================
 # FORK TESTING COMMANDS
@@ -806,17 +1251,107 @@ fork-polygon-mumbai: .yarn-installed
 # ACCOUNT MANAGEMENT
 # ============================================
 
+# View current deployer account and balances
 account: .yarn-installed
-	@yarn account
+	@echo "👛 Checking deployer account..."
+	@cd packages/hardhat && { \
+		yarn account 2>&1 | sed '/Loading environment/d; /Root \.env loaded/d; /Loading local overrides/d; /^$$/d' || true; \
+	}
 
+# Generate a new deployer account
 account-generate: .yarn-installed
-	@yarn account:generate
+	@echo "🔑 Generating new deployer account..."
+	@cd packages/hardhat && { \
+		yarn account:generate 2>&1 | sed '/Loading environment/d; /Root \.env loaded/d; /Loading local overrides/d; /^$$/d' || true; \
+	}
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Save your private key securely!"
+	@echo "  • For testnet: make account-fund (get tokens from faucet)"
+	@echo "  • For localhost: Account auto-funded with 10,000 ETH"
+	@echo "  • Deploy contracts: make deploy"
 
+# Import an existing private key
 account-import: .yarn-installed
-	@yarn account:import
+	@echo "📥 Importing existing account..."
+	@echo ""
+	@echo "⚠️  SECURITY NOTES:"
+	@echo "  • Enter private key when prompted (hidden)"
+	@echo "  • Key will be encrypted with password"
+	@echo "  • Never share your private key!"
+	@echo ""
+	@cd packages/hardhat && { \
+		yarn account:import 2>&1 | sed '/Loading environment/d; /Root \.env loaded/d; /Loading local overrides/d; /^$$/d' || true; \
+	}
 
+# Reveal the private key (requires password)
 account-reveal-pk: .yarn-installed
-	@yarn account:reveal-pk
+	@echo "🔓 Revealing private key..."
+	@echo ""
+	@echo "⚠️  SECURITY WARNING:"
+	@echo "  • Private key will be displayed!"
+	@echo "  • Make sure no one is looking"
+	@echo "  • Never share this key"
+	@echo ""
+	@read -p "Press Enter to continue or Ctrl+C to cancel..." _
+	@cd packages/hardhat && { \
+		yarn account:reveal-pk 2>&1 | sed '/Loading environment/d; /Root \.env loaded/d; /Loading local overrides/d; /^$$/d' || true; \
+	}
+
+# Quick account status check (no password required)
+account-status: .yarn-installed
+	@echo "📊 Account Status Check..."
+	@cd packages/hardhat && { \
+		OUTPUT=$$(yarn account 2>&1); \
+		if echo "$$OUTPUT" | grep -q "You don't have"; then \
+			echo "❌ No deployer account found!"; \
+			echo ""; \
+			echo "📚 SETUP REQUIRED:"; \
+			echo "  1. Generate account:    make account-generate"; \
+			echo "  2. Or import existing:  make account-import"; \
+		else \
+			echo "$$OUTPUT" | grep -E "(Public address:|-- localhost|-- sepolia|-- base)" | head -4 || echo "✅ Account configured (run 'make account' for details)"; \
+		fi; \
+	}
+	@echo ""
+	@echo "📚 ACCOUNT COMMANDS:"
+	@echo "  • make account          - View full details (requires password)"
+	@echo "  • make account-generate - Create new account"
+	@echo "  • make account-import   - Import existing key"
+	@echo "  • make account-reveal-pk - Show private key"
+
+# Fund account with testnet tokens (shows faucet links)
+account-fund: .yarn-installed
+	@echo "💰 Funding Your Account"
+	@echo "====================="
+	@echo ""
+	@echo "Get testnet tokens from these faucets:"
+	@echo ""
+	@echo "🔷 BASE Sepolia:"
+	@echo "   https://www.alchemy.com/faucets/base-sepolia"
+	@echo "   https://faucet.quicknode.com/base/sepolia"
+	@echo ""
+	@echo "🔷 Sepolia ETH:"
+	@echo "   https://sepoliafaucet.com/"
+	@echo "   https://sepolia-faucet.pk910.de/"
+	@echo ""
+	@echo "🔷 NEAR Testnet:"
+	@echo "   https://nearblocks.io/faucets"
+	@echo ""
+	@cd packages/hardhat && { \
+		OUTPUT=$$(yarn account 2>&1); \
+		if echo "$$OUTPUT" | grep -q "Public address:"; then \
+			ADDR=$$(echo "$$OUTPUT" | grep "Public address:" | awk '{print $$3}'); \
+			echo "📬 Your address: $$ADDR"; \
+			echo ""; \
+			echo "Copy this address and paste it in the faucet!"; \
+		else \
+			echo "❌ No account found. Run 'make account-generate' first!"; \
+		fi; \
+	}
+
+# Alias for account
+a: account-status
 
 # ============================================
 # UTILITY COMMANDS
@@ -921,7 +1456,7 @@ fusion-plus: .yarn-installed
 	@echo "  ✅ Complete orchestration system"
 	@echo ""
 	@read -p "Press Enter to begin the demonstration..." _
-	@node scripts/fusion-plus-demo.js
+	@node scripts/fusion-plus-demo-real.js
 
 # Run integration tests with live contracts
 fusion-plus-test: .yarn-installed
@@ -1054,6 +1589,160 @@ fusion-plus-status:
 		echo "  ❌ Status: Not running (start with 'make orchestrator-dev')"; \
 	fi
 	@echo ""
+
+# Run Fusion+ demo on local chain (no testnet costs)
+fusion-plus-local: .yarn-installed
+	@echo ""
+	@echo "🏠 FUSION+ LOCAL CHAIN DEMO"
+	@echo "=========================="
+	@echo ""
+	@echo "Running Fusion+ demo on local blockchain (no testnet costs)"
+	@echo ""
+	@echo "📋 SETUP CHECKLIST:"
+	@# Check if local chain is running
+	@if ! curl -s http://localhost:8545 > /dev/null 2>&1; then \
+		echo "  ❌ Local blockchain not running"; \
+		echo "     Start it with: make chain"; \
+		echo ""; \
+		exit 1; \
+	else \
+		echo "  ✅ Local blockchain running"; \
+	fi
+	@# Check if contracts are deployed locally
+	@if [ ! -f "packages/hardhat/deployments/localhost/FusionPlusHub.json" ]; then \
+		echo "  ❌ Contracts not deployed locally"; \
+		echo "     Deploy with: make deploy"; \
+		echo ""; \
+		exit 1; \
+	else \
+		echo "  ✅ Contracts deployed"; \
+	fi
+	@# Check orchestrator
+	@if ! curl -s http://localhost:8080/health > /dev/null 2>&1; then \
+		echo "  ⚠️  Orchestrator not running"; \
+		echo "     Start with: make orchestrator-dev"; \
+	else \
+		echo "  ✅ Orchestrator running"; \
+	fi
+	@echo ""
+	@echo "📚 STARTING LOCAL DEMO..."
+	@echo ""
+	@echo "This demo will:"
+	@echo "  • Simulate BASE <-> NEAR atomic swaps"
+	@echo "  • Use local test accounts (auto-funded)"
+	@echo "  • Show complete swap lifecycle"
+	@echo "  • No real tokens or gas fees required"
+	@echo ""
+	@read -p "Press Enter to begin..." _
+	@# Try the demo script first, fall back to test if it fails
+	@node scripts/fusion-plus-demo-local.js 2>/dev/null || { \
+		echo ""; \
+		echo "📋 Running test suite demonstration instead..."; \
+		echo ""; \
+		cd packages/hardhat && npx hardhat test test/integration/FusionPlusLocal.test.ts --network localhost; \
+	}
+
+# ============================================
+# INTENT-DRIVEN WORKFLOWS
+# ============================================
+
+# Workflow: I want to test atomic swaps locally
+workflow-test-swaps:
+	@echo "🔄 TESTING ATOMIC SWAPS LOCALLY"
+	@echo "=============================="
+	@echo ""
+	@echo "This workflow will guide you through testing atomic swaps on your local machine."
+	@echo ""
+	@echo "📋 STEPS:"
+	@echo "  1. make chain           # Start local blockchain"
+	@echo "  2. make account-generate # Generate deployer account"
+	@echo "  3. make deploy          # Deploy contracts"
+	@echo "  4. make orchestrator-dev # Start orchestrator"
+	@echo "  5. make frontend        # Start UI"
+	@echo "  6. make test-integration # Run swap tests"
+	@echo ""
+	@echo "💡 All commands should be run in separate terminals"
+
+# Workflow: I want to integrate with 1inch protocols
+workflow-1inch:
+	@echo "🔌 1INCH PROTOCOL INTEGRATION"
+	@echo "============================"
+	@echo ""
+	@echo "📋 REQUIREMENTS:"
+	@echo "  • 1inch API key from ETHGlobal"
+	@echo "  • Mainnet fork for testing"
+	@echo ""
+	@echo "📚 STEPS:"
+	@echo "  1. Set API key in .env file"
+	@echo "  2. make account-generate # Generate account (if needed)"
+	@echo "  3. make proxy-setup     # Deploy proxy to Vercel"
+	@echo "  4. make fork-base       # Fork BASE mainnet"
+	@echo "  5. make deploy-fork     # Deploy to fork"
+	@echo "  6. make test-fork       # Test with real protocols"
+	@echo ""
+	@echo "📖 See docs/sections/04-limit-order-protocol.md for details"
+
+# Workflow: I want to build a cross-chain dApp
+workflow-cross-chain:
+	@echo "🌉 CROSS-CHAIN DAPP DEVELOPMENT"
+	@echo "==============================="
+	@echo ""
+	@echo "Building a dApp with BASE ↔ NEAR atomic swaps"
+	@echo ""
+	@echo "📋 DEVELOPMENT FLOW:"
+	@echo "  1. make guide           # Interactive setup"
+	@echo "  2. make dev             # Start development"
+	@echo "  3. Edit frontend in packages/nextjs/"
+	@echo "  4. Edit contracts in packages/hardhat/contracts/"
+	@echo "  5. make test            # Run tests"
+	@echo ""
+	@echo "📋 DEPLOYMENT FLOW:"
+	@echo "  1. make account-generate # Generate account"
+	@echo "  2. Fund account with testnet tokens"
+	@echo "  3. make deploy-base     # Deploy to BASE"
+	@echo "  4. make near-deploy     # Deploy to NEAR"
+	@echo "  5. make orchestrator-dev # Start orchestrator"
+	@echo "  6. make fusion-plus-test # Test integration"
+	@echo ""
+	@echo "📖 Architecture: packages/hardhat/contracts/ethereum-hub/docs/"
+
+# Workflow: I'm debugging failed swaps
+workflow-debug:
+	@echo "🔍 DEBUGGING FAILED SWAPS"
+	@echo "========================"
+	@echo ""
+	@echo "📋 DEBUGGING CHECKLIST:"
+	@echo "  1. Check service health:"
+	@echo "     make status"
+	@echo ""
+	@echo "  2. View orchestrator logs:"
+	@echo "     make orchestrator-logs"
+	@echo ""
+	@echo "  3. Check contract events:"
+	@echo "     make logs | grep -i event"
+	@echo ""
+	@echo "  4. Verify deployments:"
+	@echo "     make fusion-plus-status"
+	@echo ""
+	@echo "  5. Test individual components:"
+	@echo "     make test-unit"
+	@echo ""
+	@echo "📖 Common issues: packages/orchestrator/docs/TROUBLESHOOTING.md"
+
+# Show all workflows
+workflows:
+	@echo ""
+	@echo "🎯 INTENT-DRIVEN WORKFLOWS"
+	@echo "========================="
+	@echo ""
+	@echo "Choose a workflow based on what you want to do:"
+	@echo ""
+	@echo "  make workflow-test-swaps    - Test atomic swaps locally"
+	@echo "  make workflow-1inch         - Integrate with 1inch protocols"
+	@echo "  make workflow-cross-chain   - Build a cross-chain dApp"
+	@echo "  make workflow-debug         - Debug failed swaps"
+	@echo ""
+	@echo "💡 Each workflow provides step-by-step guidance"
 
 # ============================================
 # SHORTCUTS & ALIASES

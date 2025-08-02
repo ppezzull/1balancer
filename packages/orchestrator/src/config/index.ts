@@ -135,10 +135,10 @@ function getConfig(): Config {
       near: {
         rpcUrl: process.env.NEAR_RPC_URL || 'https://rpc.testnet.near.org',
         networkId: process.env.NEAR_NETWORK_ID || 'testnet',
-        accountId: process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || '',
-        privateKey: process.env.NEAR_PRIVATE_KEY,
+        accountId: process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || process.env.NEAR_MASTER_ACCOUNT || '',
+        privateKey: process.env.NEAR_PRIVATE_KEY || '',
         contracts: {
-          htlc: getNearContractAddress(),
+          htlc: process.env.NEAR_HTLC_CONTRACT || 'fusion-htlc.rog_eth.testnet',
           solverRegistry: process.env.NEAR_SOLVER_REGISTRY || 'solver-registry.testnet',
         },
       },

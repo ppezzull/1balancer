@@ -1,4 +1,6 @@
-import 'dotenv/config';
+// Load .env file but don't override existing environment variables
+import * as dotenv from 'dotenv';
+dotenv.config({ override: false });
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
