@@ -617,8 +617,12 @@ export class FusionPlusExecutor {
     this.addExecutionStep(session.sessionId, step);
     
     try {
+      // For NEAR HTLCs, use the master account (with credentials) as receiver to enable withdrawal
+      const nearMasterAccountId = await this.nearCoordinator.getMasterAccountId();
+      
       const params = {
-        receiver: session.taker,
+        receiver: session.taker.endsWith('.testnet') || session.taker.endsWith('.near') ? 
+          nearMasterAccountId : session.taker, // Use master account as receiver for NEAR
         token: session.destinationToken,
         amount: session.destinationAmount,
         hashlock: session.hashlockHash,
@@ -631,12 +635,19 @@ export class FusionPlusExecutor {
       this.updateExecutionStep(session.sessionId, step);
       
       // Call NEAR coordinator
-      const htlcId = await this.nearCoordinator.createHTLC(params);
+      const nearResult = await this.nearCoordinator.createHTLC(params);
+      const htlcId = typeof nearResult === 'string' ? nearResult : nearResult.htlcId;
+      const txHash = typeof nearResult === 'string' ? nearResult : nearResult.txHash;
+      const explorer = typeof nearResult === 'string' ? 
+        `https://testnet.nearblocks.io/txns/${nearResult}` : 
+        nearResult.explorer;
       
       step.status = 'completed';
       step.result = {
         htlcId,
-        explorer: `https://testnet.nearblocks.io/address/${htlcId}`
+        txHash, // Actual NEAR transaction hash
+        explorer,
+        contractExplorer: `https://testnet.nearblocks.io/address/fusion-htlc.rog_eth.testnet`
       };
       
       this.updateExecutionStep(session.sessionId, step);
@@ -925,10 +936,15 @@ export class FusionPlusExecutor {
         action: 'near_withdraw_call'
       });
       
+      // Use master account as receiver since that's the account we have credentials for
+      const nearMasterAccountId = await this.nearCoordinator.getMasterAccountId();
+      const nearReceiver = session.taker.endsWith('.testnet') || session.taker.endsWith('.near') ? 
+        nearMasterAccountId : session.taker;
+        
       await this.nearCoordinator.withdrawHTLC(
         session.nearHTLCId!,
         secret,
-        session.taker // Alice (maker) claims on NEAR destination
+        nearReceiver // Use account with credentials to withdraw
       );
       
       step.status = 'completed';

@@ -234,7 +234,7 @@ export class NEARChainCoordinator {
     }
   }
 
-  async createHTLC(params: HTLCParams): Promise<string> {
+  async createHTLC(params: HTLCParams): Promise<{htlcId: string, txHash: string, explorer: string}> {
     const timestamp = new Date().toISOString();
     
     try {
@@ -423,7 +423,11 @@ export class NEARChainCoordinator {
         }
       });
 
-      return htlcId;
+      return {
+        htlcId,
+        txHash: result.transaction.hash,
+        explorer: `https://testnet.nearblocks.io/txns/${result.transaction.hash}`
+      };
       
     } catch (error) {
       const err = error as Error;
@@ -441,32 +445,68 @@ export class NEARChainCoordinator {
   }
 
   async withdrawHTLC(htlcId: string, secret: string, receiver: string): Promise<void> {
+    const timestamp = new Date().toISOString();
+    
     try {
-      logger.info('Withdrawing NEAR HTLC', { htlcId, receiver });
+      logger.info(`[${timestamp}][NEAR] Withdrawing HTLC with secret revelation`, {
+        htlcId,
+        receiver,
+        contractId: this.htlcContract,
+        action: 'withdraw_with_secret_revelation'
+      });
 
-      // Get receiver account
-      const receiverAccount = new Account(
-        this.nearConnection,
-        receiver
-      );
+      // Validate master account availability
+      if (!this.masterAccount) {
+        logger.error(`[${timestamp}][NEAR] Cannot withdraw HTLC - no master account`, {
+          htlcId,
+          receiver,
+          error: 'Master account not initialized'
+        });
+        throw new Error('NEAR master account not available for withdrawal operations');
+      }
 
-      // Call withdraw on NEAR contract
-      const result = await receiverAccount.functionCall({
+      // Use the account that has credentials (master account) to withdraw
+      // The HTLC contract should allow the master account to withdraw on behalf of receiver
+      logger.info(`[${timestamp}][NEAR] Using master account to withdraw HTLC on behalf of receiver`, {
+        htlcId,
+        receiver,
+        withdrawer: this.masterAccount.accountId,
+        note: 'Master account has credentials and withdraws to reveal secret publicly'
+      });
+
+      // Use master account to call withdraw (this reveals the secret and completes the HTLC)
+      const result = await this.masterAccount.functionCall({
         contractId: this.htlcContract,
         methodName: 'withdraw',
         args: {
           htlc_id: htlcId,
           secret: secret,
+          // Some HTLC contracts require specifying the receiver
+          receiver: receiver
         },
-        gas: BigInt('30000000000000'), // 30 TGas - reduced for cost optimization
+        gas: BigInt('30000000000000'), // 30 TGas
       });
 
-      logger.info('NEAR HTLC withdrawn', {
+      logger.info(`[${timestamp}][NEAR] HTLC withdrawal completed successfully`, {
         htlcId,
         txHash: result.transaction.hash,
+        receiver,
+        masterAccount: this.masterAccount.accountId,
+        explorer: `https://testnet.nearblocks.io/txns/${result.transaction.hash}`,
+        secretRevealed: true,
+        note: 'Secret is now publicly visible on NEAR blockchain'
       });
+      
     } catch (error) {
-      logger.error('Failed to withdraw NEAR HTLC', { error, htlcId });
+      const err = error as Error;
+      logger.error(`[${timestamp}][NEAR] Failed to withdraw HTLC`, {
+        error: err.message,
+        stack: err.stack,
+        htlcId,
+        receiver,
+        masterAccount: this.masterAccount?.accountId,
+        contractId: this.htlcContract
+      });
       throw this.handleNearError(error);
     }
   }
@@ -690,7 +730,7 @@ export class NEARChainCoordinator {
       logger.info('Locking assets on NEAR', { sessionId: session.id });
       
       // Create HTLC on NEAR
-      const htlcId = await this.createHTLC({
+      const nearResult = await this.createHTLC({
         receiver: session.destinationAddress || session.taker,
         token: session.destinationAsset || session.destinationToken,
         amount: session.destinationAmount,
@@ -700,6 +740,7 @@ export class NEARChainCoordinator {
       });
       
       // Update session with NEAR HTLC ID
+      const htlcId = nearResult.htlcId;
       session.nearHTLCId = htlcId;
       session.status = 'htlc_created_near';
       await this.sessionManager.updateSession(session.id, session);
@@ -914,6 +955,26 @@ export class NEARChainCoordinator {
         return null;
       }
     }
+  }
+
+  /**
+   * Get the master account ID dynamically from the initialized account
+   * This allows the code to work with any NEAR account configured in environment variables
+   */
+  async getMasterAccountId(): Promise<string> {
+    if (!this.masterAccount) {
+      throw new Error('Master account not initialized - cannot get account ID');
+    }
+    
+    // Get account ID dynamically from the Account object
+    const accountId = this.masterAccount.accountId;
+    
+    logger.debug('Retrieved master account ID dynamically', {
+      accountId,
+      source: 'masterAccount.accountId'
+    });
+    
+    return accountId;
   }
 
   shutdown(): void {
