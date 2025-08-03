@@ -274,14 +274,18 @@ export class NEARChainCoordinator {
         isNativeNear: params.token === 'near'
       });
 
-      const amount = params.token === 'near' 
+      // Check if amount is already in yoctoNEAR format (very large number) or NEAR format (smaller number)
+      const isAlreadyYoctoNear = params.amount.length > 20; // yoctoNEAR amounts are typically 24+ digits
+      
+      const amount = params.token === 'near' && !isAlreadyYoctoNear
         ? this.parseNearAmount(params.amount)
-        : params.amount;
+        : params.amount; // Already in correct format
 
       logger.info(`[${timestamp}][NEAR] Amount processed`, {
         originalAmount: params.amount,
         processedAmount: amount,
-        conversionApplied: params.token === 'near'
+        isAlreadyYoctoNear,
+        conversionApplied: params.token === 'near' && !isAlreadyYoctoNear
       });
 
       // Prepare function call arguments with validation
