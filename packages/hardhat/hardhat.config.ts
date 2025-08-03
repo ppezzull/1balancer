@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
           optimizer: {
             enabled: true,
             // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
-            runs: 1000000, // Optimize for deployment size as per BASE deployment guide
+            runs: 100000, // Keep high optimization for modular contracts
           },
           viaIR: true,
         },
@@ -59,6 +59,9 @@ const config: HardhatUserConfig = {
       // Hardhat network can be configured to fork any network
       // Use: npx hardhat node --fork <network-name>
       // Or: HARDHAT_NETWORK=<network-name> yarn fork
+      allowUnlimitedContractSize: true,
+      gas: 100000000000, // Set high gas limit for testing
+      blockGasLimit: 100000000000,
     },
     // BASE mainnet fork for testing
     baseFork: {
@@ -67,7 +70,7 @@ const config: HardhatUserConfig = {
       forking: {
         url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
         blockNumber: 19000000, // Fixed block for consistent testing
-        enabled: true
+        enabled: true,
       },
       accounts: [deployerPrivateKey],
     },
