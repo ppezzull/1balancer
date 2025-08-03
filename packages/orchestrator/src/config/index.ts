@@ -112,8 +112,9 @@ function getNearContractAddress(): string {
     // Ignore errors, fall back to default
   }
   
-  // Default fallback
-  return 'fusion-htlc.testnet';
+  // Default fallback - using the account's subaccount
+  const account = process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || 'rog_eth.testnet';
+  return `fusion-htlc.${account}`;
 }
 
 function getConfig(): Config {
@@ -138,7 +139,7 @@ function getConfig(): Config {
         accountId: process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || process.env.NEAR_MASTER_ACCOUNT || '',
         privateKey: process.env.NEAR_PRIVATE_KEY || '',
         contracts: {
-          htlc: process.env.NEAR_HTLC_CONTRACT || 'fusion-htlc.rog_eth.testnet',
+          htlc: getNearContractAddress(),
           solverRegistry: process.env.NEAR_SOLVER_REGISTRY || 'solver-registry.testnet',
         },
       },

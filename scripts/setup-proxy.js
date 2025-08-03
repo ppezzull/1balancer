@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const { execSync, spawn } = require('child_process');
-const { default: chalk } = require('chalk');
-const { default: ora } = require('ora');
+const chalk = require('chalk').default || require('chalk');
+const ora = require('ora').default || require('ora');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');

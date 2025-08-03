@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 const { execSync, spawn } = require('child_process');
-const chalk = require('chalk');
-const ora = require('ora');
-const inquirer = require('inquirer');
+const chalk = require('chalk').default || require('chalk');
+const ora = require('ora').default || require('ora');
+const inquirer = require('inquirer').default || require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
@@ -32,6 +32,16 @@ const CONFIG = {
   ORCHESTRATOR_URL: process.env.ORCHESTRATOR_URL || 'http://localhost:8080',
   BASE_RPC: process.env.BASE_SEPOLIA_RPC || 'https://sepolia.base.org',
   NEAR_RPC: process.env.NEAR_TESTNET_RPC || 'https://rpc.testnet.near.org',
+  // Deployed contract addresses
+  CONTRACTS: {
+    BASE: {
+      escrowFactory: '0x135aCf86351F2113726318dE6b4ca66FA90d54Fd',
+      fusionPlusHub: '0x5938297bfdeeF3ac56EB4198E0B484b2A0B3adD8'
+    },
+    NEAR: {
+      htlc: 'fusion-htlc.rog_eth.testnet'
+    }
+  }
 };
 
 // Demo accounts (would be configured from env in production)
@@ -71,6 +81,7 @@ class FusionPlusDemo {
         message: 'Select demonstration:',
         choices: [
           { name: '🚀 Full Demo (All scenarios)', value: 'full' },
+          { name: '🔍 Transparent Execution Demo (Real function calls)', value: 'transparent' },
           { name: '➡️  ETH → NEAR Atomic Swap', value: 'eth-to-near' },
           { name: '⬅️  NEAR → ETH Atomic Swap', value: 'near-to-eth' },
           { name: '⏱️  Timeout & Refund Demo', value: 'refund' },
@@ -82,6 +93,9 @@ class FusionPlusDemo {
     switch (demoType) {
       case 'full':
         await this.runFullDemo();
+        break;
+      case 'transparent':
+        await this.runTransparentDemo();
         break;
       case 'eth-to-near':
         await this.demoEthToNear();
@@ -214,12 +228,13 @@ class FusionPlusDemo {
       const session = await this.createSwapSession({
         sourceChain: 'base',
         destinationChain: 'near',
-        sourceToken: 'USDC',
-        destinationToken: 'NEAR',
-        sourceAmount: '100000000', // 100 USDC
+        sourceToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC address on BASE
+        destinationToken: 'near', // NEAR native token
+        sourceAmount: '100000000', // 100 USDC (6 decimals)
         destinationAmount: '50000000000000000000000000', // 50 NEAR
         maker: DEMO_ACCOUNTS.BASE.alice,
-        taker: DEMO_ACCOUNTS.NEAR.bob
+        taker: DEMO_ACCOUNTS.NEAR.bob,
+        slippageTolerance: 50 // 0.5% slippage
       });
       sessionSpinner.succeed(chalk.green(`Session created: ${session.sessionId}`));
       
@@ -234,6 +249,7 @@ class FusionPlusDemo {
       const baseLockSpinner = ora('Alice locks 100 USDC on BASE...').start();
       await this.sleep(3000);
       const escrowAddress = '0x' + this.generateRandomHash().substring(0, 40);
+      console.log(chalk.gray(`  📍 Escrow Factory: ${CONFIG.CONTRACTS.BASE.escrowFactory}`));
       const baseLockTx = '0x' + this.generateRandomHash();
       baseLockSpinner.succeed(chalk.green('USDC locked in escrow'));
       console.log(chalk.gray(`  🔒 Escrow: ${CONFIG.BASE_EXPLORER}/address/${escrowAddress}`));
@@ -245,6 +261,7 @@ class FusionPlusDemo {
       const htlcId = 'htlc_' + Date.now();
       const nearLockTx = this.generateRandomHash();
       nearLockSpinner.succeed(chalk.green('NEAR tokens locked in HTLC'));
+      console.log(chalk.gray(`  📍 HTLC Contract: ${CONFIG.CONTRACTS.NEAR.htlc}`));
       console.log(chalk.gray(`  🔒 HTLC ID: ${htlcId}`));
       console.log(chalk.gray(`  📜 Lock TX: ${CONFIG.NEAR_EXPLORER}/txns/${nearLockTx}`));
       
@@ -303,14 +320,15 @@ class FusionPlusDemo {
       // Similar implementation to ETH → NEAR but reversed
       const sessionSpinner = ora('Creating swap session...').start();
       const session = await this.createSwapSession({
-        sourceChain: 'near',
-        destinationChain: 'base',
-        sourceToken: 'NEAR',
-        destinationToken: 'USDC',
-        sourceAmount: '10000000000000000000000', // 0.01 NEAR (testing amount)
-        destinationAmount: '95000000', // 95 USDC
-        maker: DEMO_ACCOUNTS.NEAR.alice,
-        taker: DEMO_ACCOUNTS.BASE.bob
+        sourceChain: 'base',  // Note: API expects source to be EVM chain
+        destinationChain: 'near',
+        sourceToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC
+        destinationToken: 'near',
+        sourceAmount: '95000000', // 95 USDC from Dave
+        destinationAmount: '100000000000000000000000000', // 100 NEAR from Charlie
+        maker: DEMO_ACCOUNTS.BASE.bob,  // Dave on BASE
+        taker: DEMO_ACCOUNTS.NEAR.alice, // Charlie on NEAR
+        slippageTolerance: 50 // 0.5% slippage
       });
       sessionSpinner.succeed(chalk.green(`Session created: ${session.sessionId}`));
       
@@ -335,12 +353,13 @@ class FusionPlusDemo {
       const session = await this.createSwapSession({
         sourceChain: 'base',
         destinationChain: 'near',
-        sourceToken: 'USDC',
-        destinationToken: 'NEAR',
+        sourceToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC
+        destinationToken: 'near',
         sourceAmount: '50000000', // 50 USDC
         destinationAmount: '25000000000000000000000000', // 25 NEAR
         maker: DEMO_ACCOUNTS.BASE.alice,
-        taker: DEMO_ACCOUNTS.NEAR.bob
+        taker: DEMO_ACCOUNTS.NEAR.bob,
+        slippageTolerance: 50 // 0.5% slippage
       });
       sessionSpinner.succeed(chalk.green(`Session created: ${session.sessionId}`));
       
@@ -366,6 +385,22 @@ class FusionPlusDemo {
       
     } catch (error) {
       console.error(chalk.red('\n❌ Demo failed:'), error.message);
+    }
+  }
+
+  async runTransparentDemo() {
+    console.log(chalk.blue.bold('\n🔍 Running Transparent Execution Demo\n'));
+    console.log(chalk.yellow('This demo shows real blockchain function calls with full transparency.\n'));
+    
+    try {
+      // Run the transparent demo script
+      const TransparentDemo = require('./fusion-plus-demo-transparent');
+      const transparentDemo = new TransparentDemo();
+      await transparentDemo.runDemo();
+    } catch (error) {
+      console.error(chalk.red('\n❌ Transparent demo failed:'), error.message);
+      console.log(chalk.yellow('\nFalling back to simulated demo...'));
+      await this.demoEthToNear();
     }
   }
 
@@ -478,9 +513,20 @@ ${chalk.yellow.bold('Security Features:')}
     // In real implementation, this would call the orchestrator API
     if (this.orchestratorRunning) {
       try {
-        const response = await axios.post(`${CONFIG.ORCHESTRATOR_URL}/api/v1/sessions`, params);
+        const response = await axios.post(
+          `${CONFIG.ORCHESTRATOR_URL}/api/v1/sessions`,
+          params,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-API-Key': 'demo-secret-key' // Using demo key from orchestrator config
+            }
+          }
+        );
         return response.data;
       } catch (error) {
+        console.log(chalk.yellow('\n⚠️  Note: Using simulated data (orchestrator API not responding)'));
+        console.log(chalk.gray(`   Error: ${error.response?.data?.error || error.message}`));
         // Fallback to mock
       }
     }

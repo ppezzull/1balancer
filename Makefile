@@ -61,6 +61,7 @@ help:
 	@echo ""
 	@echo "  🏆 FUSION+ DEMO (HACKATHON):"
 	@echo "    make fusion-plus         - Run complete Fusion+ demonstration"
+	@echo "    make fusion-plus-demo     - Run transparent execution demo"
 	@echo "    make fusion-plus-local   - Run demo on LOCAL chain (no costs!)"
 	@echo "    make fusion-plus-test    - Run integration tests on testnet"
 	@echo "    make fusion-plus-setup   - Quick setup for demo"
@@ -97,12 +98,14 @@ help-dev:
 	@echo "    make deploy-base-hub     - Deploy only FusionPlusHub"
 	@echo "    make deploy-base-escrow  - Deploy only EscrowFactory"
 	@echo "    make base-gas-estimate   - Check deployment gas costs"
+	@echo "    make deploy-base-status  - View detailed deployment dashboard"
 	@echo ""
 	@echo "  NEAR TESTNET DEPLOYMENT:"
 	@echo "    make deploy-near-all     - Build and deploy all NEAR contracts"
 	@echo "    make deploy-near-htlc    - Deploy only HTLC contract"
 	@echo "    make deploy-near-solver  - Deploy only solver registry"
 	@echo "    make near-gas-estimate   - Check deployment gas costs"
+	@echo "    make deploy-near-status  - View detailed deployment dashboard"
 	@echo ""
 	@echo "  TESTING & QUALITY:"
 	@echo "    make test-fork       - Run fork tests"
@@ -120,7 +123,13 @@ help-dev:
 	@echo "  PROXY & API:"
 	@echo "    make proxy-setup     - Setup/deploy 1inch proxy to Vercel"
 	@echo "    make proxy-test      - Test proxy endpoints"
-	@echo "    make proxy-deploy    - Redeploy proxy to Vercel"
+	@echo ""
+	@echo "  CONTRACT VIEWING:"
+	@echo "    make contracts          - Open Scaffold Debug Contracts page"
+	@echo "    make contracts-refresh  - Update contracts for all networks"
+	@echo "    make contracts-local    - View local chain contracts"
+	@echo "    make contracts-base     - View BASE Sepolia contracts"
+	@echo "    make contracts-near     - View NEAR Testnet contracts"
 	@echo ""
 	@echo "  ACCOUNT MANAGEMENT:"
 	@echo "    make account-status  - Quick status check"
@@ -580,8 +589,8 @@ run: .yarn-installed
 	@echo ""
 	@echo "  🌐 Frontend:     http://localhost:3000"
 	@echo "  ⛓️  Blockchain:   http://localhost:8545"
-	@echo "  🎯 Orchestrator: http://localhost:3001"
-	@echo "  📚 API Docs:     http://localhost:3001/api-docs"
+	@echo "  🎯 Orchestrator: http://localhost:8080"
+	@echo "  🔒 API Endpoint: http://localhost:8080/api/v1 (requires auth)"
 	@echo ""
 	@echo "📚 NEXT STEPS:"
 	@echo "  • View logs:            make logs"
@@ -594,7 +603,19 @@ run: .yarn-installed
 # Stop everything
 stop:
 	@echo "🛑 Stopping all services..."
-	@yarn stop > /dev/null 2>&1
+	@-pkill -f 'hardhat node' 2>/dev/null || true
+	@-pkill -f 'next-router-worker' 2>/dev/null || true
+	@-pkill -f 'next dev' 2>/dev/null || true
+	@-pkill -f 'yarn dev' 2>/dev/null || true
+	@-pkill -f 'yarn start' 2>/dev/null || true
+	@-pkill -f 'yarn chain' 2>/dev/null || true
+	@-pkill -f 'orchestrator' 2>/dev/null || true
+	@-pkill -f 'near' 2>/dev/null || true
+	@-pkill -f 'cargo' 2>/dev/null || true
+	@-lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+	@-lsof -ti:3001 | xargs kill -9 2>/dev/null || true
+	@-lsof -ti:8080 | xargs kill -9 2>/dev/null || true
+	@-lsof -ti:8545 | xargs kill -9 2>/dev/null || true
 	@echo "✅ All services stopped"
 
 # Check service status
@@ -657,8 +678,13 @@ deploy: .yarn-installed
 	@echo "  Using default Hardhat test accounts..."
 	@cd packages/hardhat && npx hardhat deploy --network localhost
 	@echo ""
+	@echo "🔄 Updating Scaffold-ETH contracts..."
+	@cd packages/hardhat && npx hardhat deploy --tags generateTsAbis --network localhost > /dev/null 2>&1
+	@echo "✅ Contracts available in Debug page"
+	@echo ""
 	@echo "📚 NEXT STEPS:"
 	@echo "  • Start frontend:       make frontend"
+	@echo "  • View contracts:       make contracts"
 	@echo "  • Start orchestrator:   make backend"
 	@echo "  • Run integration test: make test-integration"
 
@@ -773,7 +799,12 @@ deploy-base: .yarn-installed
 		exit 1; \
 	}
 	@echo ""
+	@echo "🔄 Updating Scaffold-ETH contracts..."
+	@cd packages/hardhat && npx hardhat deploy --tags generateTsAbis --network baseSepolia > /dev/null 2>&1
+	@echo "✅ BASE contracts available in Debug page"
+	@echo ""
 	@echo "📚 NEXT STEPS:"
+	@echo "  • View contracts:        make contracts"
 	@echo "  • Deploy NEAR contracts: make near-deploy"
 	@echo "  • Check deployment:      make fusion-plus-status"
 	@echo "  • Run integration test:  make fusion-plus-test"
@@ -791,6 +822,10 @@ deploy-base-escrow: .yarn-installed
 
 deploy-base-all: deploy-base-hub deploy-base-escrow
 	@echo "✅ All BASE contracts deployed!"
+	@echo ""
+	@echo "🔄 Updating Scaffold-ETH contracts..."
+	@cd packages/hardhat && npx hardhat deploy --tags generateTsAbis --network baseSepolia > /dev/null 2>&1
+	@echo "✅ Contracts available in Debug page"
 	@make fusion-plus-status
 
 # Check BASE deployment gas estimates
@@ -807,6 +842,158 @@ base-gas-estimate: .yarn-installed
 	@echo ""
 	@echo "Get BASE Sepolia ETH from faucets listed in 'make account-fund'"
 
+# List deployed contracts on BASE Sepolia
+base-contracts: .yarn-installed
+	@echo "📋 Deployed contracts on BASE Sepolia:"
+	@cd packages/hardhat && node scripts/listDeployedContracts.js baseSepolia
+
+# Comprehensive BASE deployment status dashboard
+deploy-base-status: .yarn-installed
+	@echo ""
+	@echo "🔷 BASE SEPOLIA DEPLOYMENT STATUS"
+	@echo "=================================="
+	@cd packages/hardhat && node scripts/baseDeploymentStatus.js
+
+# ============================================
+# CONTRACT VIEWING WITH SCAFFOLD-ETH
+# ============================================
+
+# Open Scaffold-ETH Debug Contracts page
+contracts:
+	@echo ""
+	@echo "🔍 SCAFFOLD-ETH CONTRACT VIEWER"
+	@echo "=============================="
+	@echo ""
+	@if curl -s http://localhost:3000 > /dev/null 2>&1; then \
+		echo "✅ Frontend is running"; \
+		echo ""; \
+		echo "👉 Open: http://localhost:3000/debug"; \
+		echo ""; \
+		echo "📋 AVAILABLE CONTRACTS:"; \
+		echo "  • Local chain: All deployed contracts"; \
+		echo "  • BASE Sepolia: FusionPlusHub, EscrowFactory"; \
+		echo ""; \
+		echo "💡 TIP: Switch networks in your wallet to view different contracts"; \
+		echo ""; \
+		echo "📚 NEXT STEPS:"; \
+		echo "  • Deploy locally:        make deploy"; \
+		echo "  • Deploy to BASE:        make deploy-base"; \
+		echo "  • View local contracts:  make contracts-local"; \
+		echo "  • View BASE contracts:   make contracts-base"; \
+		echo "  • Refresh contracts:     make contracts-refresh"; \
+	else \
+		echo "❌ Frontend not running!"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Start frontend:       make frontend"; \
+		echo "  2. Then run:            make contracts"; \
+		echo ""; \
+		echo "⚡ QUICK START:"; \
+		echo "  • Full setup:           make setup"; \
+		echo "  • Deploy & run:         make demo-local"; \
+	fi
+
+# Update contracts for all networks
+contracts-refresh: .yarn-installed
+	@echo ""
+	@echo "🔄 REFRESHING CONTRACT DEFINITIONS"
+	@echo "=================================="
+	@echo ""
+	@cd packages/hardhat && node scripts/generateScaffoldContracts.js
+	@echo ""
+	@echo "✅ Contracts updated for all networks"
+	@echo ""
+	@echo "📚 NEXT STEPS:"
+	@echo "  • Restart frontend:      make frontend-restart"
+	@echo "  • View contracts:        make contracts"
+	@echo "  • Deploy new contracts:  make deploy"
+	@echo ""
+	@echo "💡 TIP: Run this after deploying to see new contracts in Debug page"
+
+# View local chain contracts
+contracts-local: .yarn-installed
+	@echo ""
+	@echo "📋 LOCAL CHAIN CONTRACTS"
+	@echo "======================="
+	@echo ""
+	@if [ -d "packages/hardhat/deployments/localhost" ]; then \
+		cd packages/hardhat && node scripts/listDeployedContracts.js localhost; \
+		echo ""; \
+		echo "📚 NEXT STEPS:"; \
+		echo "  • View in Debug page:    make contracts"; \
+		echo "  • Test integration:      make test-integration"; \
+		echo "  • Deploy to testnet:     make deploy-base"; \
+		echo "  • Check BASE contracts:  make contracts-base"; \
+	else \
+		echo "❌ No contracts deployed locally"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Start local chain:    make chain"; \
+		echo "  2. Deploy contracts:     make deploy"; \
+		echo "  3. Then run:            make contracts-local"; \
+		echo ""; \
+		echo "⚡ QUICK START:"; \
+		echo "  • Full local demo:      make demo-local"; \
+	fi
+
+# View BASE Sepolia contracts
+contracts-base: .yarn-installed
+	@echo ""
+	@echo "📋 BASE SEPOLIA CONTRACTS"
+	@echo "========================"
+	@echo ""
+	@if [ -d "packages/hardhat/deployments/baseSepolia" ]; then \
+		cd packages/hardhat && node scripts/listDeployedContracts.js baseSepolia; \
+		echo ""; \
+		echo "📚 NEXT STEPS:"; \
+		echo "  • View in Debug page:    make contracts"; \
+		echo "  • Check deployment:      make deploy-base-status"; \
+		echo "  • Deploy NEAR side:      make near-deploy"; \
+		echo "  • Test cross-chain:      make fusion-plus-test"; \
+		echo ""; \
+		echo "🔗 EXPLORERS:"; \
+		echo "  • BaseScan: https://sepolia.basescan.org"; \
+		echo "  • Add to wallet: https://chainlist.org/chain/84532"; \
+	else \
+		echo "❌ No contracts deployed on BASE Sepolia"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Fund account:         make account"; \
+		echo "  2. Deploy contracts:     make deploy-base"; \
+		echo "  3. Then run:            make contracts-base"; \
+		echo ""; \
+		echo "💡 TIP: Need testnet ETH? Use https://www.alchemy.com/faucets/base-sepolia"; \
+	fi
+
+# View NEAR Testnet contracts
+contracts-near: .yarn-installed
+	@echo ""
+	@echo "🟣 NEAR TESTNET CONTRACTS"
+	@echo "========================"
+	@echo ""
+	@if [ -f "1balancer-near/.near-credentials/testnet/deploy.json" ]; then \
+		cd packages/hardhat && node scripts/listNearContracts.js; \
+		echo ""; \
+		echo "📚 NEXT STEPS:"; \
+		echo "  • View in Explorer:      Click links above"; \
+		echo "  • Check deployment:      make deploy-near-status"; \
+		echo "  • Deploy BASE side:      make deploy-base"; \
+		echo "  • Test cross-chain:      make fusion-plus-test"; \
+		echo ""; \
+		echo "🔗 EXPLORERS:"; \
+		echo "  • NearBlocks: https://testnet.nearblocks.io"; \
+		echo "  • Get testnet tokens: https://nearblocks.io/faucets"; \
+	else \
+		echo "❌ No contracts deployed on NEAR Testnet"; \
+		echo ""; \
+		echo "📚 SETUP REQUIRED:"; \
+		echo "  1. Get NEAR tokens:      https://nearblocks.io/faucets"; \
+		echo "  2. Deploy contracts:     make near-deploy"; \
+		echo "  3. Then run:            make contracts-near"; \
+		echo ""; \
+		echo "💡 TIP: NEAR testnet tokens are free!"; \
+	fi
+
 # ============================================
 # INDIVIDUAL SERVICE COMMANDS
 # ============================================
@@ -818,6 +1005,15 @@ chain: .yarn-installed
 
 # Start frontend only
 frontend: .yarn-installed
+	@echo "🌐 Starting frontend..."
+	@yarn start
+
+# Restart frontend (stop and start)
+frontend-restart: .yarn-installed
+	@echo "🔄 Restarting frontend..."
+	@-pkill -f "next-router-worker" 2>/dev/null || true
+	@-pkill -f "next dev" 2>/dev/null || true
+	@sleep 2
 	@echo "🌐 Starting frontend..."
 	@yarn start
 
@@ -1049,6 +1245,13 @@ near-gas-estimate: .yarn-installed
 	@echo ""
 	@echo "Note: NEAR testnet tokens are free!"
 	@echo "Get them from: https://nearblocks.io/faucets"
+
+# Comprehensive NEAR deployment status dashboard
+deploy-near-status: .yarn-installed
+	@echo ""
+	@echo "🟣 NEAR TESTNET DEPLOYMENT STATUS"
+	@echo "=================================="
+	@cd packages/hardhat && node scripts/nearDeploymentStatus.js
 
 # Check NEAR Rust dependencies
 near-check:
@@ -1605,6 +1808,61 @@ fusion-plus: .yarn-installed
 	@echo ""
 	@read -p "Press Enter to begin the demonstration..." _
 	@node scripts/fusion-plus-demo-real.js
+
+# Main demo command - runs the comprehensive demo with all services
+fusion-plus-demo: .yarn-installed
+	@echo ""
+	@echo "🎮 1BALANCER FUSION+ INTERACTIVE DEMO"
+	@echo "===================================="
+	@echo ""
+	@echo "Prerequisites check:"
+	@# Check if orchestrator is running
+	@if curl -s http://localhost:8080/health > /dev/null 2>&1; then \
+		echo "  ✅ Orchestrator running on port 8080"; \
+	else \
+		echo "  ❌ Orchestrator not running"; \
+		echo "     Please run 'make run' first to start all services"; \
+		exit 1; \
+	fi
+	@# Check contract deployments
+	@if [ -f "packages/hardhat/deployments/baseSepolia/FusionPlusHub.json" ]; then \
+		echo "  ✅ BASE contracts deployed"; \
+		HUB_ADDR=$$(jq -r .address packages/hardhat/deployments/baseSepolia/FusionPlusHub.json 2>/dev/null); \
+		echo "     FusionPlusHub: $$HUB_ADDR"; \
+		if [ -f "packages/hardhat/deployments/baseSepolia/EscrowFactory.json" ]; then \
+			ESCROW_ADDR=$$(jq -r .address packages/hardhat/deployments/baseSepolia/EscrowFactory.json 2>/dev/null); \
+			echo "     EscrowFactory: $$ESCROW_ADDR"; \
+		fi; \
+	else \
+		echo "  ⚠️  BASE contracts not deployed on testnet"; \
+		echo "     Demo will use simulated transactions"; \
+	fi
+	@echo "  ✅ NEAR contract: fusion-htlc.rog_eth.testnet"
+	@echo ""
+	@echo "Demo features:"
+	@echo "  • Interactive menu with swap scenarios"
+	@echo "  • Live BASE <-> NEAR atomic swaps"
+	@echo "  • Real-time transaction monitoring"
+	@echo "  • Transparent function call logging"
+	@echo "  • Architecture visualization"
+	@echo ""
+	@echo "Select demo type:"
+	@echo "  1. Quick status demo (shows current state)"
+	@echo "  2. Complete flow demo (simulates execution)"
+	@echo "  3. Transparent execution demo (real function calls)"
+	@echo "  4. Full interactive demo"
+	@echo ""
+	@read -p "Enter choice (1-4) [4]: " choice; \
+	choice=$${choice:-4}; \
+	if [ "$$choice" = "1" ]; then \
+		node scripts/fusion-plus-demo-live.js; \
+	elif [ "$$choice" = "2" ]; then \
+		node scripts/fusion-plus-demo-complete.js; \
+	elif [ "$$choice" = "3" ]; then \
+		node scripts/fusion-plus-demo-transparent.js; \
+	else \
+		node scripts/fusion-plus-demo.js; \
+	fi
 
 # Run integration tests with live contracts
 fusion-plus-test: .yarn-installed

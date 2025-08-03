@@ -46,7 +46,7 @@ const deployEscrowFactory: DeployFunction = async function (hre: HardhatRuntimeE
     autoMine: true,
     // Gas optimization for BASE Sepolia
     gasPrice: hre.ethers.parseUnits("0.1", "gwei"), // Very low gas price on testnet
-    gasLimit: 5000000, // Higher limit for factory deployment (deploys implementations)
+    gasLimit: 8000000, // Increase gas limit for factory deployment (deploys implementations)
   });
 
   console.log("✅ EscrowFactory deployed to:", escrowFactoryDeployment.address);

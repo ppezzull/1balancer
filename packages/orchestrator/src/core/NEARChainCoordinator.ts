@@ -186,8 +186,8 @@ export class NEARChainCoordinator {
             order_hash: params.orderHash,
           }
         },
-        gas: BigInt('300000000000000'), // 300 TGas
-        attachedDeposit: params.token === 'near' ? BigInt(amount) : BigInt(1), // Attach amount if NEAR, else storage deposit
+        gas: BigInt('30000000000000'), // 30 TGas - reduced for cost optimization
+        attachedDeposit: params.token === 'near' ? BigInt(amount) : BigInt('10000000000000000000000'), // 0.01 NEAR min storage
       });
 
       // Extract HTLC ID from result
@@ -224,7 +224,7 @@ export class NEARChainCoordinator {
           htlc_id: htlcId,
           secret: secret,
         },
-        gas: BigInt('300000000000000'), // 300 TGas
+        gas: BigInt('30000000000000'), // 30 TGas - reduced for cost optimization
       });
 
       logger.info('NEAR HTLC withdrawn', {
@@ -254,7 +254,7 @@ export class NEARChainCoordinator {
         args: {
           htlc_id: htlcId,
         },
-        gas: BigInt('300000000000000'), // 300 TGas
+        gas: BigInt('30000000000000'), // 30 TGas - reduced for cost optimization
       });
 
       logger.info('NEAR HTLC refunded', {
@@ -503,7 +503,7 @@ export class NEARChainCoordinator {
           account_id: this.htlcContract,
           method_name: 'get_recent_events',
           args_base64: Buffer.from(JSON.stringify({
-            from_timestamp: Date.now() - 60000 // Last minute
+            _from_timestamp: String(Date.now() - 60000) // Last minute - must be string
           })).toString('base64'),
         });
 
@@ -530,7 +530,12 @@ export class NEARChainCoordinator {
             contract: this.htlcContract 
           });
         } else {
-          logger.error('Error monitoring NEAR events', { error });
+          logger.error('Error monitoring NEAR events', { 
+            error,
+            errorType: error.type,
+            errorMessage: error.message || error.toString(),
+            contract: this.htlcContract
+          });
         }
       }
     }, 5000);

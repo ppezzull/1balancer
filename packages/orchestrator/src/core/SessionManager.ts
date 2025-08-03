@@ -196,6 +196,7 @@ export class SessionManager {
     logger.info('Updated session status', { sessionId, status });
   }
 
+
   async updateSessionWithOrderHash(sessionId: string, orderHash: string): Promise<void> {
     const session = this.sessions.get(sessionId);
     if (!session) {

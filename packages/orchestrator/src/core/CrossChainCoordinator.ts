@@ -5,7 +5,6 @@ import { SessionManager, SwapSession } from './SessionManager';
 import { SecretManager } from './SecretManager';
 import { ApiErrorFactory } from '../api/middleware/errorHandler';
 import { NEARChainCoordinator } from './NEARChainCoordinator';
-import { LocalNEARCoordinator } from './LocalNEARCoordinator';
 
 const logger = createLogger('CrossChainCoordinator');
 

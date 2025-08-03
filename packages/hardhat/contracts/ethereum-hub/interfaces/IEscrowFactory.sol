@@ -52,6 +52,22 @@ interface IEscrowFactory {
         returns (address escrowAddress);
 
     /**
+     * @notice Creates escrows for orchestration service
+     * @dev Batch creation for efficiency
+     * @param srcImmutables Source chain immutables
+     * @param dstImmutables Destination chain immutables
+     * @return srcEscrow Source escrow address
+     * @return dstEscrow Destination escrow address
+     */
+    function createEscrowPair(
+        ImmutablesLib.Immutables calldata srcImmutables,
+        ImmutablesLib.Immutables calldata dstImmutables
+    ) external payable returns (
+        address srcEscrow,
+        address dstEscrow
+    );
+
+    /**
      * @notice Checks if an address is a valid escrow created by this factory
      * @param escrow Address to check
      * @return True if the address is a valid escrow
