@@ -374,11 +374,20 @@ class TransparentDemo {
       
       // Transaction link with enhanced formatting
       if (step.txHash) {
-        const explorer = step.contract.includes('.near') || step.contract.includes('testnet') ? 
-          CONFIG.NEAR_EXPLORER : CONFIG.BASE_EXPLORER;
-        const explorerName = step.contract.includes('.near') || step.contract.includes('testnet') ? 
-          'NEAR Explorer' : 'BaseScan';
-        console.log(chalk.cyan(`     🔗 ${explorerName}: ${explorer}/tx/${step.txHash}`));
+        // Determine explorer based on multiple factors
+        const isNearTransaction = 
+          step.contract.includes('.near') || 
+          step.contract.includes('testnet') ||
+          step.function === 'reveal_secret_and_complete_swap' ||
+          step.function === 'withdraw' ||
+          (step.result && step.result.explorer && step.result.explorer.includes('nearblocks')) ||
+          (step.txHash && !step.txHash.startsWith('0x')); // NEAR txHashes don't start with 0x
+        
+        const explorer = isNearTransaction ? CONFIG.NEAR_EXPLORER : CONFIG.BASE_EXPLORER;
+        const explorerName = isNearTransaction ? 'NEAR Explorer' : 'BaseScan';
+        const explorerPath = isNearTransaction ? 'txns' : 'tx'; // NEAR uses /txns/, BASE uses /tx/
+        
+        console.log(chalk.cyan(`     🔗 ${explorerName}: ${explorer}/${explorerPath}/${step.txHash}`));
       }
       
       // Add gas usage and result summary if available
