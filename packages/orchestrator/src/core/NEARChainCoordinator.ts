@@ -288,6 +288,13 @@ export class NEARChainCoordinator {
         conversionApplied: params.token === 'near' && !isAlreadyYoctoNear
       });
 
+      // Convert hex strings to base64 for NEAR contract
+      const hashlockBase64 = this.hexToBase64(params.hashlock);
+      const orderHashBase64 = this.hexToBase64(params.orderHash);
+
+      // Convert timelock from seconds to nanoseconds (NEAR uses nanoseconds since epoch)
+      const timelockNanoseconds = (params.timelock * 1_000_000_000).toString();
+
       // Prepare function call arguments with validation
       // Contract expects parameters wrapped in an 'args' field
       const functionCallArgs = {
@@ -295,9 +302,9 @@ export class NEARChainCoordinator {
           receiver: params.receiver,
           token: params.token === 'near' ? null : params.token, // NEAR contract expects null for native token
           amount: amount,
-          hashlock: params.hashlock,
-          timelock: params.timelock,
-          order_hash: params.orderHash,
+          hashlock: hashlockBase64, // Convert hex to base64
+          timelock: timelockNanoseconds, // Convert seconds to nanoseconds for NEAR
+          order_hash: orderHashBase64, // Convert hex to base64
         }
       };
 
@@ -310,11 +317,19 @@ export class NEARChainCoordinator {
           timelock: functionCallArgs.args.timelock,
           order_hash: functionCallArgs.args.order_hash ? `${functionCallArgs.args.order_hash.substring(0, 10)}...` : 'undefined'
         },
+        conversion: {
+          originalHashlock: params.hashlock.substring(0, 10) + '...',
+          convertedHashlock: hashlockBase64.substring(0, 10) + '...',
+          originalOrderHash: params.orderHash.substring(0, 10) + '...',
+          convertedOrderHash: orderHashBase64.substring(0, 10) + '...',
+          originalTimelock: params.timelock + ' seconds',
+          convertedTimelock: timelockNanoseconds.substring(0, 13) + '... nanoseconds'
+        },
         validation: {
           receiverNotEmpty: !!functionCallArgs.args.receiver,
           amountPositive: BigInt(functionCallArgs.args.amount) > 0n,
           hashlockLength: functionCallArgs.args.hashlock?.length || 0,
-          timelockInFuture: functionCallArgs.args.timelock > Math.floor(Date.now() / 1000),
+          timelockInFuture: BigInt(functionCallArgs.args.timelock) > BigInt(Date.now() * 1_000_000),
           orderHashLength: functionCallArgs.args.order_hash?.length || 0
         }
       });
@@ -624,6 +639,17 @@ export class NEARChainCoordinator {
     
     // Remove leading zeros
     return yoctoNear.replace(/^0+/, '') || '0';
+  }
+
+  private hexToBase64(hexString: string): string {
+    // Remove 0x prefix if present
+    const hex = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
+    
+    // Convert hex to bytes
+    const bytes = Buffer.from(hex, 'hex');
+    
+    // Convert to base64
+    return bytes.toString('base64');
   }
 
   private handleNearError(error: any): Error {
