@@ -474,13 +474,24 @@ export class NEARChainCoordinator {
         note: 'Master account has credentials and withdraws to reveal secret publicly'
       });
 
+      // Convert hex secret to base64 for NEAR contract (NEAR expects base64-encoded binary data)
+      const secretBase64 = this.hexToBase64(secret);
+
+      logger.info(`[${timestamp}][NEAR] Converting secret format for NEAR contract`, {
+        originalSecretFormat: 'hex',
+        secretLength: secret.length,
+        convertedFormat: 'base64',
+        convertedLength: secretBase64.length,
+        note: 'NEAR contracts expect base64-encoded binary data, not hex strings'
+      });
+
       // Use master account to call withdraw (this reveals the secret and completes the HTLC)
       const result = await this.masterAccount.functionCall({
         contractId: this.htlcContract,
         methodName: 'withdraw',
         args: {
           htlc_id: htlcId,
-          secret: secret,
+          secret: secretBase64,
           // Some HTLC contracts require specifying the receiver
           receiver: receiver
         },

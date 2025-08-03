@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { createHash } from 'crypto';
+import { ethers } from 'ethers';
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 
@@ -304,12 +305,13 @@ export class SessionManager {
   }
 
   private generateHashlock(secret: string): string {
-    // Generate hashlock from secret
+    // Generate hashlock from secret using Keccak-256 (matches BASE contract and updated NEAR contract)
     const cleanSecret = secret.startsWith('0x') ? secret.slice(2) : secret;
-    const hash = createHash('sha256')
-      .update(Buffer.from(cleanSecret, 'hex'))
-      .digest('hex');
-    return '0x' + hash;
+    const secretBytes = '0x' + cleanSecret;
+    
+    // Use ethers keccak256 with abi.encodePacked equivalent (just the bytes)
+    const hash = ethers.keccak256(secretBytes);
+    return hash;
   }
 
   private updateStepStatus(session: SwapSession, status: SessionStatus): void {

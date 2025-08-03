@@ -796,15 +796,16 @@ export class FusionPlusExecutor {
         nearHTLCId: session.nearHTLCId,
         action: 'reveal_secret_near'
       });
-      await this.revealSecretOnNear(session);
+      const revealedSecret = await this.revealSecretOnNear(session);
       
-      // Step 2: Wait for NEAR confirmation and get the revealed secret
-      logger.info(`[${timestamp}][FUSION+] Phase 2: Monitoring NEAR for secret revelation`, {
+      // Step 2: Secret successfully revealed - now we can complete BASE withdrawal
+      logger.info(`[${timestamp}][FUSION+] Phase 2: Secret obtained from NEAR withdrawal`, {
         sessionId: session.sessionId,
         nearHTLCId: session.nearHTLCId,
-        action: 'monitor_secret_revelation'
+        hasRevealedSecret: !!revealedSecret,
+        action: 'secret_obtained_from_withdrawal',
+        note: 'No polling needed - secret was revealed during HTLC withdrawal'
       });
-      const revealedSecret = await this.waitForSecretRevealedOnNear(session);
       
       // Step 3: Use revealed secret to complete BASE withdrawal
       logger.info(`[${timestamp}][FUSION+] Phase 3: Completing BASE withdrawal with revealed secret`, {
@@ -883,7 +884,7 @@ export class FusionPlusExecutor {
    * Reveal secret on NEAR to claim destination tokens
    * This is where Alice (maker) claims her NEAR tokens and reveals the secret
    */
-  private async revealSecretOnNear(session: SwapSession): Promise<void> {
+  private async revealSecretOnNear(session: SwapSession): Promise<string> {
     const timestamp = new Date().toISOString();
     
     logger.info(`[${timestamp}][FUSION+] Revealing secret on NEAR to claim tokens`, {
@@ -960,8 +961,10 @@ export class FusionPlusExecutor {
         nearHTLCId: session.nearHTLCId,
         secretRevealed: true,
         aliceClaimedTokens: true,
-        nextStep: 'monitor_for_secret_on_near'
+        nextStep: 'use_revealed_secret_for_base_withdrawal'
       });
+
+      return secret;
       
     } catch (error) {
       const err = error as Error;
@@ -981,81 +984,6 @@ export class FusionPlusExecutor {
     }
   }
 
-  /**
-   * Wait for secret to be revealed on NEAR and retrieve it
-   * This method polls NEAR contract until the secret becomes publicly visible
-   */
-  private async waitForSecretRevealedOnNear(session: SwapSession): Promise<string> {
-    const timestamp = new Date().toISOString();
-    const maxWaitTime = 5 * 60 * 1000; // 5 minutes
-    const checkInterval = 3000; // 3 seconds
-    const startTime = Date.now();
-    
-    logger.info(`[${timestamp}][FUSION+] Waiting for secret to be revealed on NEAR`, {
-      sessionId: session.sessionId,
-      nearHTLCId: session.nearHTLCId,
-      maxWaitTime: `${maxWaitTime / 1000}s`,
-      checkInterval: `${checkInterval / 1000}s`,
-      action: 'monitor_secret_revelation'
-    });
-    
-    while (Date.now() - startTime < maxWaitTime) {
-      try {
-        const timeElapsed = (Date.now() - startTime) / 1000;
-        
-        logger.debug(`[${timestamp}][FUSION+] Checking NEAR contract for revealed secret`, {
-          sessionId: session.sessionId,
-          nearHTLCId: session.nearHTLCId,
-          timeElapsed: `${timeElapsed}s`,
-          attempt: Math.floor(timeElapsed / (checkInterval / 1000)) + 1
-        });
-        
-        // Query NEAR contract to check if secret was revealed
-        const revealedSecret = await this.nearCoordinator.getRevealedSecret(session.nearHTLCId!);
-        
-        if (revealedSecret) {
-          logger.info(`[${timestamp}][FUSION+] Secret revealed on NEAR - proceeding to BASE completion`, {
-            sessionId: session.sessionId,
-            nearHTLCId: session.nearHTLCId,
-            secretLength: revealedSecret.length,
-            secretPrefix: revealedSecret.substring(0, 10) + '...',
-            timeToReveal: `${timeElapsed}s`,
-            nextAction: 'complete_base_withdrawal'
-          });
-          
-          return revealedSecret;
-        } else {
-          logger.debug(`[${timestamp}][FUSION+] Secret not yet revealed, continuing to monitor`, {
-            sessionId: session.sessionId,
-            nearHTLCId: session.nearHTLCId,
-            timeElapsed: `${timeElapsed}s`,
-            nextCheck: `${checkInterval / 1000}s`
-          });
-        }
-        
-      } catch (error) {
-        const err = error as Error;
-        logger.warn(`[${timestamp}][FUSION+] Error checking NEAR secret status`, { 
-          sessionId: session.sessionId,
-          nearHTLCId: session.nearHTLCId,
-          error: err.message,
-          timeElapsed: `${(Date.now() - startTime) / 1000}s`,
-          action: 'continue_monitoring'
-        });
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, checkInterval));
-    }
-    
-    logger.error(`[${timestamp}][FUSION+] Timeout waiting for secret revelation on NEAR`, {
-      sessionId: session.sessionId,
-      nearHTLCId: session.nearHTLCId,
-      timeoutAfter: `${maxWaitTime / 1000}s`,
-      action: 'secret_revelation_timeout'
-    });
-    
-    throw new Error('Timeout waiting for secret revelation on NEAR');
-  }
 
   /**
    * Complete BASE withdrawal using the revealed secret from NEAR

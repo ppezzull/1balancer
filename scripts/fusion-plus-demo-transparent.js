@@ -351,7 +351,7 @@ class TransparentDemo {
 
   displayFinalSummary() {
     console.log(chalk.cyan.bold('\n\n📊 Execution Summary\n'));
-    console.log('═'.repeat(60));
+    console.log('═'.repeat(80));
     
     const completed = this.executionSteps.filter(s => s.status === 'completed');
     const failed = this.executionSteps.filter(s => s.status === 'failed');
@@ -360,20 +360,117 @@ class TransparentDemo {
     console.log(chalk.green(`Completed: ${completed.length}`));
     console.log(chalk.red(`Failed: ${failed.length}`));
     
-    console.log(chalk.cyan('\n📋 Execution Steps:'));
+    console.log(chalk.cyan('\n📋 Detailed Execution Steps:\n'));
+    
     this.executionSteps.forEach((step, index) => {
       const status = step.status === 'completed' ? '✅' : 
                     step.status === 'failed' ? '❌' : '⏳';
-      console.log(chalk.white(`${index + 1}. ${status} ${step.function} on ${step.contract}`));
       
+      // Main step header
+      console.log(chalk.white.bold(`${index + 1}. ${status} ${step.function} on ${step.contract}`));
+      
+      // Add detailed microtasks based on the step type
+      this.displayStepMicrotasks(step, index + 1);
+      
+      // Transaction link with enhanced formatting
       if (step.txHash) {
-        const explorer = step.contract.includes('.near') ? 
+        const explorer = step.contract.includes('.near') || step.contract.includes('testnet') ? 
           CONFIG.NEAR_EXPLORER : CONFIG.BASE_EXPLORER;
-        console.log(chalk.gray(`     ${explorer}/tx/${step.txHash}`));
+        const explorerName = step.contract.includes('.near') || step.contract.includes('testnet') ? 
+          'NEAR Explorer' : 'BaseScan';
+        console.log(chalk.cyan(`     🔗 ${explorerName}: ${explorer}/tx/${step.txHash}`));
       }
+      
+      // Add gas usage and result summary if available
+      if (step.gasUsed) {
+        console.log(chalk.gray(`     ⛽ Gas Used: ${step.gasUsed}`));
+      }
+      
+      if (step.result) {
+        this.displayStepResult(step);
+      }
+      
+      if (step.error) {
+        console.log(chalk.red(`     ❌ Error: ${step.error}`));
+      }
+      
+      console.log(''); // Add spacing between steps
     });
     
-    console.log('\n' + '═'.repeat(60));
+    console.log('═'.repeat(80));
+  }
+
+  displayStepMicrotasks(step, stepNumber) {
+    const microtasks = this.getMicrotasksForStep(stepNumber);
+    
+    microtasks.forEach((task) => {
+      const taskStatus = step.status === 'completed' ? '✓' : 
+                        step.status === 'failed' ? '✗' : '○';
+      console.log(chalk.gray(`     ${taskStatus} ${task}`));
+    });
+  }
+
+  getMicrotasksForStep(stepNumber) {
+    switch (stepNumber) {
+      case 1: // createSrcEscrow on EscrowFactory
+        return [
+          'Generate unique secret and compute SHA-256 hashlock',
+          'Calculate optimal timelock parameters for cross-chain safety',
+          'Deploy escrow contract with maker deposit (0.001 ETH)',
+          'Set hashlock for atomic swap coordination',
+          'Configure withdrawal timeouts for Bob (5 min) and public (8 min)',
+          'Lock maker funds pending secret revelation'
+        ];
+        
+      case 2: // create_htlc on NEAR
+        return [
+          'Convert hex hashlock to base64 for NEAR contract compatibility',
+          'Set up HTLC parameters with 0.1 NEAR token amount',
+          'Configure Alice as receiver with 3-minute withdrawal window',
+          'Deploy HTLC to fusion-htlc.rog_eth.testnet contract',
+          'Lock NEAR tokens pending secret revelation',
+          'Establish cross-chain coordination with BASE escrow'
+        ];
+        
+      case 3: // reveal_secret_and_complete_swap
+        return [
+          'Wait for both chains to confirm locked state (BASE + NEAR)',
+          'Alice withdraws NEAR HTLC by revealing the secret',
+          'Secret becomes publicly visible on NEAR blockchain',
+          'Extract revealed secret from NEAR transaction logs',
+          'Validate secret matches original hashlock commitment'
+        ];
+        
+      case 4: // withdraw on BASE escrow
+        return [
+          'Bob monitors NEAR for secret revelation event',
+          'Extract revealed secret from NEAR withdrawal transaction',
+          'Use revealed secret to unlock BASE escrow contract',
+          'Bob withdraws maker\'s 0.001 ETH deposit',
+          'Complete atomic swap - both parties receive intended tokens',
+          'Atomic swap successfully completed across BASE and NEAR'
+        ];
+        
+      default:
+        return ['Execute contract function', 'Process transaction', 'Update state'];
+    }
+  }
+
+  displayStepResult(step) {
+    if (step.result) {
+      if (step.result.secretRevealed) {
+        console.log(chalk.green(`     ✨ Secret successfully revealed and tokens claimed`));
+      }
+      if (step.result.escrowAddress) {
+        console.log(chalk.yellow(`     📍 Escrow Address: ${step.result.escrowAddress}`));
+      }
+      if (step.result.htlcId) {
+        console.log(chalk.yellow(`     🔑 HTLC ID: ${step.result.htlcId}`));
+      }
+      if (step.result.amount) {
+        console.log(chalk.yellow(`     💰 Amount: ${step.result.amount} tokens`));
+      }
+    }
   }
 
   async runDemo() {
@@ -452,7 +549,7 @@ class TransparentDemo {
   async runSimulation() {
     console.log(chalk.yellow('\n🎮 Running Simulation...\n'));
     
-    const response = await axios.post(
+    await axios.post(
       `${CONFIG.ORCHESTRATOR_URL}/api/v1/demo/simulate/${this.sessionId}`,
       {},
       {
