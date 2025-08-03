@@ -55,11 +55,28 @@ export class FusionPlusExecutor {
     private wsManager: WebSocketManager
   ) {
     this.baseProvider = new ethers.JsonRpcProvider(config.chains.base.rpcUrl);
+    // Use hardcoded address if config returns zero address
+    const factoryAddress = config.contracts.escrowFactory === ethers.ZeroAddress 
+      ? '0x135aCf86351F2113726318dE6b4ca66FA90d54Fd'
+      : config.contracts.escrowFactory;
+    
+    logger.info('Initializing FusionPlusExecutor', {
+      baseRpcUrl: config.chains.base.rpcUrl,
+      factoryAddress,
+      configFactoryAddress: config.contracts.escrowFactory,
+      defaultFactoryAddress: '0x135aCf86351F2113726318dE6b4ca66FA90d54Fd'
+    });
+    
     this.escrowFactory = new ethers.Contract(
-      config.contracts.escrowFactory || '0x135aCf86351F2113726318dE6b4ca66FA90d54Fd',
+      factoryAddress,
       ESCROW_FACTORY_ABI,
       this.baseProvider
     );
+    
+    logger.info('EscrowFactory contract initialized', {
+      address: this.escrowFactory.target,
+      provider: this.baseProvider._getConnection().url
+    });
     
     this.nearCoordinator = new NEARChainCoordinator(sessionManager, secretManager);
   }
@@ -111,12 +128,48 @@ export class FusionPlusExecutor {
     this.addExecutionStep(session.sessionId, step);
     
     try {
+      // Log raw session data
+      logger.info('Raw session data', {
+        sessionId: session.sessionId,
+        maker: session.maker,
+        taker: session.taker,
+        sourceToken: session.sourceToken,
+        sourceAmount: session.sourceAmount,
+        hashlockHash: session.hashlockHash
+      });
+      
+      // Validate and format addresses
+      // Fix checksum for the maker address
+      let makerAddress: string;
+      try {
+        makerAddress = ethers.getAddress(session.maker);
+      } catch (e) {
+        // If checksum fails, convert to proper checksum format
+        logger.warn('Invalid maker address checksum, converting to proper format', {
+          original: session.maker,
+          error: (e as Error).message
+        });
+        // Convert to lowercase first, then use getAddress to get proper checksum
+        makerAddress = ethers.getAddress(session.maker.toLowerCase());
+      }
+      
+      const sourceTokenAddress = session.sourceToken === ethers.ZeroAddress ? 
+        ethers.ZeroAddress : 
+        ethers.getAddress(session.sourceToken);
+      
+      logger.info('Formatted addresses', {
+        originalMaker: session.maker,
+        formattedMaker: makerAddress,
+        originalToken: session.sourceToken,
+        formattedToken: sourceTokenAddress
+      });
+      
       // Prepare immutables
       const timelocks = this.calculateTimelocks();
       const immutables = {
-        maker: session.maker,
+        maker: makerAddress,
         taker: session.taker,
-        token: session.sourceToken,
+        token: sourceTokenAddress,
         amount: session.sourceAmount,
         safetyDeposit: ethers.parseEther('0.0001'), // Minimum safety deposit (0.0001 ETH)
         hashlockHash: session.hashlockHash,
@@ -191,16 +244,41 @@ export class FusionPlusExecutor {
         immutables: step.params.immutables
       });
       
-      // Let ethers.js estimate gas for Base Sepolia
-      const gasEstimate = await (escrowFactoryWithSigner as any).createSrcEscrow.estimateGas(
-        immutables,
-        { value: immutables.safetyDeposit }
-      );
-      
-      logger.info('Gas estimation', {
-        estimatedGas: gasEstimate.toString(),
-        wallet: wallet.address
+      // Log the actual factory address being used
+      logger.info('Factory contract details', {
+        factoryAddress: this.escrowFactory.target,
+        signerAddress: wallet.address,
+        connectedFactoryAddress: escrowFactoryWithSigner.target
       });
+      
+      // Log immutables object before gas estimation
+      logger.info('Immutables object for gas estimation', {
+        immutables: JSON.stringify(immutables, (_key, value) => 
+          typeof value === 'bigint' ? value.toString() : value
+        , 2)
+      });
+      
+      // Let ethers.js estimate gas for Base Sepolia
+      let gasEstimate;
+      try {
+        gasEstimate = await (escrowFactoryWithSigner as any).createSrcEscrow.estimateGas(
+          immutables,
+          { value: immutables.safetyDeposit }
+        );
+        
+        logger.info('Gas estimation successful', {
+          estimatedGas: gasEstimate.toString(),
+          wallet: wallet.address
+        });
+      } catch (gasError) {
+        logger.error('Gas estimation failed', {
+          error: gasError,
+          immutables: JSON.stringify(immutables, (_key, value) => 
+            typeof value === 'bigint' ? value.toString() : value
+          , 2)
+        });
+        throw gasError;
+      }
       
       const tx = await (escrowFactoryWithSigner as any).createSrcEscrow(
         immutables,

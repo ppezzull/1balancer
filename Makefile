@@ -582,8 +582,14 @@ run: .yarn-installed
 	@echo "📄 Deploying contracts..."
 	@yarn deploy --network localhost > /dev/null 2>&1 || true
 	@echo "🎯 Starting all services..."
-	@yarn dev:all > services.log 2>&1 &
-	@echo "⏳ Waiting for frontend to boot up..."
+	@# Start services individually to avoid chain conflict
+	@echo "  • Starting orchestrator..."
+	@yarn orchestrator:dev > orchestrator.log 2>&1 &
+	@echo "  • Starting proxy..."
+	@yarn proxy:dev > proxy.log 2>&1 &
+	@echo "  • Starting frontend..."
+	@yarn start > frontend.log 2>&1 &
+	@echo "⏳ Waiting for services to boot up..."
 	@sleep 15
 	@echo ""
 	@echo "✅ 1BALANCER IS RUNNING!"
