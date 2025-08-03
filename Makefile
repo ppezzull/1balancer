@@ -1027,6 +1027,8 @@ frontend-restart: .yarn-installed
 # Start backend/orchestrator
 backend: .yarn-installed
 	@echo "🎯 Starting backend services..."
+	@echo "🔧 Checking for port conflicts..."
+	@lsof -ti:8080 | xargs kill -9 2>/dev/null || true
 	@cd packages/orchestrator && yarn dev
 
 # Start proxy server

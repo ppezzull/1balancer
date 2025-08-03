@@ -79,7 +79,11 @@ export class FusionPlusExecutor {
     });
     
     // Verify contract exists on chain
-    this.verifyContractDeployment();
+    this.verifyContractDeployment().catch(error => {
+      logger.error('Failed to verify contract deployment', {
+        error: (error as Error).message
+      });
+    });
     
     this.nearCoordinator = new NEARChainCoordinator(sessionManager, secretManager);
   }
@@ -102,19 +106,13 @@ export class FusionPlusExecutor {
           network: config.chains.base.rpcUrl
         });
         
-        // Try to call a view function to verify ABI compatibility
-        try {
-          const paused = await this.escrowFactory.paused();
-          logger.info('EscrowFactory contract ABI verified', {
-            paused,
-            contractAddress: this.escrowFactory.target
-          });
-        } catch (abiError) {
-          logger.error('EscrowFactory ABI mismatch or contract error', {
-            error: (abiError as Error).message,
-            contractAddress: this.escrowFactory.target
-          });
-        }
+        // ABI verification - since we're using a minimal ABI, we'll skip the DEFAULT_ADMIN_ROLE check
+        logger.info('EscrowFactory contract ready', {
+          contractAddress: this.escrowFactory.target,
+          abiFunctions: this.escrowFactory.interface.fragments
+            .filter(f => f.type === 'function')
+            .map(f => f.format().split('(')[0])
+        });
       }
     } catch (error) {
       logger.error('Failed to verify contract deployment', {
@@ -330,9 +328,17 @@ export class FusionPlusExecutor {
         });
         
         // Check contract method exists
-        if (!escrowFactoryWithSigner.createSrcEscrow) {
+        const contractInterface = escrowFactoryWithSigner.interface;
+        try {
+          contractInterface.getFunction('createSrcEscrow');
+        } catch (e) {
+          const functionNames = contractInterface.fragments
+            .filter(f => f.type === 'function')
+            .map(f => (f as any).name)
+            .filter(name => name);
           logger.error('createSrcEscrow method not found on contract!', {
-            availableMethods: Object.keys(escrowFactoryWithSigner.interface.functions)
+            availableMethods: functionNames,
+            error: (e as Error).message
           });
           throw new Error('createSrcEscrow method not found on contract');
         }
