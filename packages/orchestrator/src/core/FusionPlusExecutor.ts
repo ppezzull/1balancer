@@ -78,7 +78,50 @@ export class FusionPlusExecutor {
       provider: this.baseProvider._getConnection().url
     });
     
+    // Verify contract exists on chain
+    this.verifyContractDeployment();
+    
     this.nearCoordinator = new NEARChainCoordinator(sessionManager, secretManager);
+  }
+
+  /**
+   * Verify that the escrow factory contract is deployed and accessible
+   */
+  private async verifyContractDeployment(): Promise<void> {
+    try {
+      const code = await this.baseProvider.getCode(this.escrowFactory.target as string);
+      if (code === '0x') {
+        logger.error('EscrowFactory contract not found on chain!', {
+          address: this.escrowFactory.target,
+          network: config.chains.base.rpcUrl
+        });
+      } else {
+        logger.info('EscrowFactory contract verified on chain', {
+          address: this.escrowFactory.target,
+          codeSize: code.length,
+          network: config.chains.base.rpcUrl
+        });
+        
+        // Try to call a view function to verify ABI compatibility
+        try {
+          const paused = await this.escrowFactory.paused();
+          logger.info('EscrowFactory contract ABI verified', {
+            paused,
+            contractAddress: this.escrowFactory.target
+          });
+        } catch (abiError) {
+          logger.error('EscrowFactory ABI mismatch or contract error', {
+            error: (abiError as Error).message,
+            contractAddress: this.escrowFactory.target
+          });
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to verify contract deployment', {
+        error: (error as Error).message,
+        contractAddress: this.escrowFactory.target
+      });
+    }
   }
 
   /**
@@ -261,6 +304,39 @@ export class FusionPlusExecutor {
       // Let ethers.js estimate gas for Base Sepolia
       let gasEstimate;
       try {
+        // Log the exact parameters being sent
+        logger.info('Attempting gas estimation with parameters', {
+          contractMethod: 'createSrcEscrow',
+          immutablesStructure: {
+            maker: immutables.maker,
+            taker: immutables.taker,
+            token: immutables.token,
+            amount: immutables.amount.toString(),
+            safetyDeposit: immutables.safetyDeposit.toString(),
+            hashlockHash: immutables.hashlockHash,
+            timelocks: {
+              srcWithdrawal: immutables.timelocks.srcWithdrawal,
+              srcPublicWithdrawal: immutables.timelocks.srcPublicWithdrawal,
+              srcCancellation: immutables.timelocks.srcCancellation,
+              srcDeployedAt: immutables.timelocks.srcDeployedAt,
+              dstWithdrawal: immutables.timelocks.dstWithdrawal,
+              dstCancellation: immutables.timelocks.dstCancellation,
+              dstDeployedAt: immutables.timelocks.dstDeployedAt
+            },
+            orderHash: immutables.orderHash,
+            chainId: immutables.chainId
+          },
+          value: immutables.safetyDeposit.toString()
+        });
+        
+        // Check contract method exists
+        if (!escrowFactoryWithSigner.createSrcEscrow) {
+          logger.error('createSrcEscrow method not found on contract!', {
+            availableMethods: Object.keys(escrowFactoryWithSigner.interface.functions)
+          });
+          throw new Error('createSrcEscrow method not found on contract');
+        }
+        
         gasEstimate = await (escrowFactoryWithSigner as any).createSrcEscrow.estimateGas(
           immutables,
           { value: immutables.safetyDeposit }
@@ -271,12 +347,35 @@ export class FusionPlusExecutor {
           wallet: wallet.address
         });
       } catch (gasError) {
-        logger.error('Gas estimation failed', {
-          error: gasError,
+        logger.error('Gas estimation failed - detailed error', {
+          error: (gasError as any).message,
+          code: (gasError as any).code,
+          reason: (gasError as any).reason,
+          data: (gasError as any).data,
+          method: (gasError as any).method,
+          transaction: (gasError as any).transaction,
           immutables: JSON.stringify(immutables, (_key, value) => 
             typeof value === 'bigint' ? value.toString() : value
-          , 2)
+          , 2),
+          contractAddress: escrowFactoryWithSigner.target,
+          walletAddress: wallet.address
         });
+        
+        // Try to decode the error
+        if ((gasError as any).data) {
+          try {
+            const decodedError = escrowFactoryWithSigner.interface.parseError((gasError as any).data);
+            logger.error('Decoded contract error', {
+              errorName: decodedError?.name,
+              errorArgs: decodedError?.args
+            });
+          } catch (decodeErr) {
+            logger.error('Could not decode contract error', { 
+              decodeError: (decodeErr as Error).message 
+            });
+          }
+        }
+        
         throw gasError;
       }
       
