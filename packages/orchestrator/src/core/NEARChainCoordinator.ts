@@ -289,30 +289,33 @@ export class NEARChainCoordinator {
       });
 
       // Prepare function call arguments with validation
+      // Contract expects parameters wrapped in an 'args' field
       const functionCallArgs = {
-        receiver: params.receiver,
-        token: params.token === 'near' ? null : params.token, // NEAR contract expects null for native token
-        amount: amount,
-        hashlock: params.hashlock,
-        timelock: params.timelock,
-        order_hash: params.orderHash,
+        args: {
+          receiver: params.receiver,
+          token: params.token === 'near' ? null : params.token, // NEAR contract expects null for native token
+          amount: amount,
+          hashlock: params.hashlock,
+          timelock: params.timelock,
+          order_hash: params.orderHash,
+        }
       };
 
       logger.info(`[${timestamp}][NEAR] Prepared function call arguments`, {
         args: {
-          receiver: functionCallArgs.receiver,
-          token: functionCallArgs.token,
-          amount: functionCallArgs.amount,
-          hashlock: functionCallArgs.hashlock ? `${functionCallArgs.hashlock.substring(0, 10)}...` : 'undefined',
-          timelock: functionCallArgs.timelock,
-          order_hash: functionCallArgs.order_hash ? `${functionCallArgs.order_hash.substring(0, 10)}...` : 'undefined'
+          receiver: functionCallArgs.args.receiver,
+          token: functionCallArgs.args.token,
+          amount: functionCallArgs.args.amount,
+          hashlock: functionCallArgs.args.hashlock ? `${functionCallArgs.args.hashlock.substring(0, 10)}...` : 'undefined',
+          timelock: functionCallArgs.args.timelock,
+          order_hash: functionCallArgs.args.order_hash ? `${functionCallArgs.args.order_hash.substring(0, 10)}...` : 'undefined'
         },
         validation: {
-          receiverNotEmpty: !!functionCallArgs.receiver,
-          amountPositive: BigInt(functionCallArgs.amount) > 0n,
-          hashlockLength: functionCallArgs.hashlock?.length || 0,
-          timelockInFuture: functionCallArgs.timelock > Math.floor(Date.now() / 1000),
-          orderHashLength: functionCallArgs.order_hash?.length || 0
+          receiverNotEmpty: !!functionCallArgs.args.receiver,
+          amountPositive: BigInt(functionCallArgs.args.amount) > 0n,
+          hashlockLength: functionCallArgs.args.hashlock?.length || 0,
+          timelockInFuture: functionCallArgs.args.timelock > Math.floor(Date.now() / 1000),
+          orderHashLength: functionCallArgs.args.order_hash?.length || 0
         }
       });
 
