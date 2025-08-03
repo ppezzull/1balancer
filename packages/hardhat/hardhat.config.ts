@@ -56,11 +56,9 @@ const config: HardhatUserConfig = {
       // Hardhat network can be configured to fork any network
       // Use: npx hardhat node --fork <network-name>
       // Or: HARDHAT_NETWORK=<network-name> yarn fork
-    },
-    localhost: {
-      url: "http://127.0.0.1:8545",
-      chainId: 8453, // Base mainnet chain ID
-      accounts: [deployerPrivateKey],
+      allowUnlimitedContractSize: true,
+      gas: 100000000000, // Set high gas limit for testing
+      blockGasLimit: 100000000000,
     },
     // BASE mainnet fork for testing
     baseFork: {
@@ -69,7 +67,7 @@ const config: HardhatUserConfig = {
       forking: {
         url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
         blockNumber: 19000000, // Fixed block for consistent testing
-        enabled: true
+        enabled: true,
       },
       accounts: [deployerPrivateKey],
     },
