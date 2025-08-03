@@ -40,7 +40,7 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
       <HeaderSimplified />
       
       {/* Main content with proper spacing for fixed header and footer */}
-      <main className={`flex-1 ${showFooter ? 'pt-16 sm:pt-20 pb-20' : 'pt-16 sm:pt-20'} ${isRootPage ? 'overflow-hidden' : 'overflow-auto'}`}>
+      <main className={`flex-1 ${showFooter ? 'pt-16 sm:pt-20 pb-20' : 'pt-16 sm:pt-20'} ${isRootPage ? 'overflow-hidden flex items-center justify-center' : 'overflow-auto'}`}>
         {children}
       </main>
       
