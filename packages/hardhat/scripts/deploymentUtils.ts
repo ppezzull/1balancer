@@ -1,5 +1,22 @@
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
+import type { BaseContract } from "ethers";
+import type {
+  OptimizedBalancerFactory,
+  MockERC20,
+  MockSpotPriceAggregator,
+  MockLimitOrderProtocol,
+  LimitOrderLib,
+  StablecoinGridLib,
+  PortfolioCoreLib,
+} from "../typechain-types";
+
+// Helper function to handle BigInt serialization in JSON
+const bigintReplacer = (key: string, value: any) => {
+  if (typeof value === "bigint") {
+    return value.toString();
+  }
+  return value;
+};
 
 // Base mainnet token addresses
 export const TOKEN_ADDRESSES = {
@@ -10,75 +27,125 @@ export const TOKEN_ADDRESSES = {
   INCH: "0xc5fecC3a29Fb57B5024eEc8a2239d4621e111CBE",
 } as const;
 
+// Cache for deployed contracts
+const deploymentCache = new Map<string, BaseContract>();
+
 export interface DeploymentResult {
-  limitOrderLib: Contract;
-  stablecoinGridLib: Contract;
-  portfolioAnalysisLib?: Contract;
-  mockPriceAggregator: Contract;
-  mockLimitOrderProtocol: Contract;
-  optimizedBalancerFactory?: Contract;
+  limitOrderLib: LimitOrderLib;
+  stablecoinGridLib: StablecoinGridLib;
+  portfolioAnalysisLib?: PortfolioCoreLib;
+  mockPriceAggregator: MockSpotPriceAggregator;
+  mockLimitOrderProtocol: MockLimitOrderProtocol;
+  optimizedBalancerFactory?: OptimizedBalancerFactory;
 }
 
 /**
- * Deploy all required libraries
+ * Get or deploy a contract, reusing if already deployed
  */
-export async function deployLibraries(): Promise<{
-  limitOrderLib: Contract;
-  stablecoinGridLib: Contract;
-  portfolioAnalysisLib: Contract;
+export async function getOrDeployContract(
+  contractName: string,
+  deployArgs: any[] = [],
+  libraries?: Record<string, string>,
+): Promise<BaseContract> {
+  const cacheKey = `${contractName}-${JSON.stringify(deployArgs, bigintReplacer)}-${JSON.stringify(libraries || {}, bigintReplacer)}`;
+
+  if (deploymentCache.has(cacheKey)) {
+    console.log(`♻️  Reusing existing ${contractName}`);
+    return deploymentCache.get(cacheKey)!;
+  }
+
+  console.log(`🔄 Deploying ${contractName}...`);
+  const contractFactory = await ethers.getContractFactory(contractName, libraries ? { libraries } : undefined);
+  const contract = await contractFactory.deploy(...deployArgs);
+  await contract.waitForDeployment();
+
+  console.log(`✅ ${contractName} deployed to:`, await contract.getAddress());
+  deploymentCache.set(cacheKey, contract);
+
+  return contract;
+}
+
+/**
+ * Deploy all required libraries (with caching and conditional PortfolioAnalysisLib)
+ */
+export async function deployLibraries(includePortfolioAnalysisLib: boolean = true): Promise<{
+  limitOrderLib: BaseContract;
+  stablecoinGridLib: BaseContract;
+  portfolioAnalysisLib?: BaseContract;
 }> {
   console.log("📚 Deploying libraries...");
 
-  // Deploy LimitOrderLib
-  console.log("Deploying LimitOrderLib...");
-  const LimitOrderLib = await ethers.getContractFactory("LimitOrderLib");
-  const limitOrderLib = await LimitOrderLib.deploy();
-  await limitOrderLib.waitForDeployment();
-  console.log("✅ LimitOrderLib deployed to:", await limitOrderLib.getAddress());
+  // Deploy LimitOrderLib (cached)
+  const limitOrderLib = (await getOrDeployContract("LimitOrderLib")) as LimitOrderLib;
 
-  // Deploy StablecoinGridLib
-  console.log("Deploying StablecoinGridLib...");
-  const StablecoinGridLib = await ethers.getContractFactory("StablecoinGridLib");
-  const stablecoinGridLib = await StablecoinGridLib.deploy();
-  await stablecoinGridLib.waitForDeployment();
-  console.log("✅ StablecoinGridLib deployed to:", await stablecoinGridLib.getAddress());
+  // Deploy StablecoinGridLib (cached)
+  const stablecoinGridLib = (await getOrDeployContract("StablecoinGridLib")) as StablecoinGridLib;
 
-  // Deploy PortfolioAnalysisLib
-  console.log("Deploying PortfolioAnalysisLib...");
-  const PortfolioAnalysisLib = await ethers.getContractFactory("PortfolioAnalysisLib");
-  const portfolioAnalysisLib = await PortfolioAnalysisLib.deploy();
-  await portfolioAnalysisLib.waitForDeployment();
-  console.log("✅ PortfolioAnalysisLib deployed to:", await portfolioAnalysisLib.getAddress());
-
-  return {
+  const result: {
+    limitOrderLib: LimitOrderLib;
+    stablecoinGridLib: StablecoinGridLib;
+    portfolioAnalysisLib?: PortfolioCoreLib;
+  } = {
     limitOrderLib,
     stablecoinGridLib,
-    portfolioAnalysisLib,
+  };
+
+  // Deploy PortfolioAnalysisLib only if requested (cached)
+  if (includePortfolioAnalysisLib) {
+    const portfolioAnalysisLib = (await getOrDeployContract("PortfolioAnalysisLib")) as any;
+    result.portfolioAnalysisLib = portfolioAnalysisLib;
+  }
+
+  return result;
+}
+
+/**
+ * Deploy mock ERC20 tokens for testing
+ */
+export async function deployMockTokens(): Promise<{
+  mockUSDC: MockERC20;
+  mockUSDT: MockERC20;
+  mockDAI: MockERC20;
+  mockWETH: MockERC20;
+  mockINCH: MockERC20;
+}> {
+  console.log("🪙 Deploying mock tokens...");
+
+  const mockUSDC = (await getOrDeployContract("MockERC20", ["USD Coin", "USDC", 6])) as MockERC20;
+
+  const mockUSDT = (await getOrDeployContract("MockERC20", ["Tether USD", "USDT", 6])) as MockERC20;
+
+  const mockDAI = (await getOrDeployContract("MockERC20", ["Dai Stablecoin", "DAI", 18])) as MockERC20;
+
+  const mockWETH = (await getOrDeployContract("MockERC20", ["Wrapped Ether", "WETH", 18])) as MockERC20;
+
+  const mockINCH = (await getOrDeployContract("MockERC20", ["1inch Token", "INCH", 18])) as MockERC20;
+
+  return {
+    mockUSDC,
+    mockUSDT,
+    mockDAI,
+    mockWETH,
+    mockINCH,
   };
 }
 
 /**
- * Deploy mock contracts
+ * Deploy mock contracts (with caching)
  */
 export async function deployMockContracts(deployerAddress: string): Promise<{
-  mockPriceAggregator: Contract;
-  mockLimitOrderProtocol: Contract;
+  mockPriceAggregator: MockSpotPriceAggregator;
+  mockLimitOrderProtocol: MockLimitOrderProtocol;
 }> {
   console.log("🎭 Deploying mock contracts...");
 
-  // Deploy MockSpotPriceAggregator
-  console.log("Deploying MockSpotPriceAggregator...");
-  const MockSpotPriceAggregator = await ethers.getContractFactory("MockSpotPriceAggregator");
-  const mockPriceAggregator = await MockSpotPriceAggregator.deploy(deployerAddress);
-  await mockPriceAggregator.waitForDeployment();
-  console.log("✅ MockSpotPriceAggregator deployed to:", await mockPriceAggregator.getAddress());
+  // Deploy MockSpotPriceAggregator (cached)
+  const mockPriceAggregator = (await getOrDeployContract("MockSpotPriceAggregator", [
+    deployerAddress,
+  ])) as MockSpotPriceAggregator;
 
-  // Deploy MockLimitOrderProtocol
-  console.log("Deploying MockLimitOrderProtocol...");
-  const MockLimitOrderProtocol = await ethers.getContractFactory("MockLimitOrderProtocol");
-  const mockLimitOrderProtocol = await MockLimitOrderProtocol.deploy();
-  await mockLimitOrderProtocol.waitForDeployment();
-  console.log("✅ MockLimitOrderProtocol deployed to:", await mockLimitOrderProtocol.getAddress());
+  // Deploy MockLimitOrderProtocol (cached)
+  const mockLimitOrderProtocol = (await getOrDeployContract("MockLimitOrderProtocol")) as MockLimitOrderProtocol;
 
   return {
     mockPriceAggregator,
@@ -89,7 +156,7 @@ export async function deployMockContracts(deployerAddress: string): Promise<{
 /**
  * Configure initial prices for testing
  */
-export async function configurePrices(mockPriceAggregator: Contract): Promise<void> {
+export async function configurePrices(mockPriceAggregator: MockSpotPriceAggregator): Promise<void> {
   console.log("🔧 Configuring initial prices...");
 
   const { WETH, USDC, USDT, DAI, INCH } = TOKEN_ADDRESSES;
@@ -110,18 +177,18 @@ export async function configurePrices(mockPriceAggregator: Contract): Promise<vo
 }
 
 /**
- * Deploy OptimizedBalancerFactory with libraries
+ * Deploy OptimizedBalancerFactory with libraries (cached version)
  */
 export async function deployOptimizedBalancerFactory(
-  mockPriceAggregator: Contract,
-  mockLimitOrderProtocol: Contract,
+  mockPriceAggregator: MockSpotPriceAggregator,
+  mockLimitOrderProtocol: MockLimitOrderProtocol,
   libraries: {
-    limitOrderLib: Contract;
-    stablecoinGridLib: Contract;
-    portfolioAnalysisLib?: Contract;
+    limitOrderLib: LimitOrderLib;
+    stablecoinGridLib: StablecoinGridLib;
+    portfolioAnalysisLib?: PortfolioCoreLib;
   },
-  gasLimit?: number
-): Promise<Contract> {
+  gasLimit?: number,
+): Promise<OptimizedBalancerFactory> {
   console.log("🏭 Deploying OptimizedBalancerFactory...");
 
   const { USDC, USDT, DAI } = TOKEN_ADDRESSES;
@@ -136,63 +203,71 @@ export async function deployOptimizedBalancerFactory(
     librariesConfig.PortfolioAnalysisLib = await libraries.portfolioAnalysisLib.getAddress();
   }
 
-  // Deploy OptimizedBalancerFactory with libraries linked
-  const OptimizedBalancerFactory = await ethers.getContractFactory("OptimizedBalancerFactory", {
-    libraries: librariesConfig,
-  });
+  // Create deployment args
+  const deploymentArgs = [
+    await mockPriceAggregator.getAddress(),
+    [USDC, USDT, DAI],
+    await mockLimitOrderProtocol.getAddress(),
+  ];
 
   const deployOptions: any = {};
   if (gasLimit) {
     deployOptions.gasLimit = gasLimit;
   }
 
+  // Use cached deployment with libraries
+  const OptimizedBalancerFactory = await ethers.getContractFactory("OptimizedBalancerFactory", {
+    libraries: librariesConfig,
+  });
+
+  const cacheKey = `OptimizedBalancerFactory_${JSON.stringify(deploymentArgs)}_${JSON.stringify(librariesConfig)}`;
+
+  if (deploymentCache.has(cacheKey)) {
+    console.log("♻️ Using cached OptimizedBalancerFactory");
+    return deploymentCache.get(cacheKey) as OptimizedBalancerFactory;
+  }
+
   const optimizedBalancerFactory = await OptimizedBalancerFactory.deploy(
-    await mockPriceAggregator.getAddress(),
-    [USDC, USDT, DAI],
-    await mockLimitOrderProtocol.getAddress(),
-    deployOptions
+    deploymentArgs[0] as string,
+    deploymentArgs[1] as string[],
+    deploymentArgs[2] as string,
+    deployOptions,
   );
 
   await optimizedBalancerFactory.waitForDeployment();
+  deploymentCache.set(cacheKey, optimizedBalancerFactory as any);
+
   console.log("✅ OptimizedBalancerFactory deployed to:", await optimizedBalancerFactory.getAddress());
 
-  return optimizedBalancerFactory;
+  return optimizedBalancerFactory as OptimizedBalancerFactory;
 }
 
 /**
  * Test balancer creation and event emission
  */
-export async function testBalancerCreation(
-  optimizedBalancerFactory: Contract,
-  user: any
-): Promise<void> {
+export async function testBalancerCreation(optimizedBalancerFactory: BaseContract, user: any): Promise<void> {
   console.log("🧪 Testing balancer creation...");
 
   const { USDC, WETH, INCH } = TOKEN_ADDRESSES;
   const assetAddresses = [USDC, WETH, INCH];
   const percentages = [40, 40, 20];
   const amounts = [
-    ethers.parseUnits("1000", 6),  // 1000 USDC
-    ethers.parseEther("1"),        // 1 WETH
-    ethers.parseEther("1000")      // 1000 1INCH
+    ethers.parseUnits("1000", 6), // 1000 USDC
+    ethers.parseEther("1"), // 1 WETH
+    ethers.parseEther("1000"), // 1000 1INCH
   ];
   const driftPercentage = 5;
 
   console.log("Creating OptimizedDriftBalancer...");
-  const createTx = await optimizedBalancerFactory.connect(user).createDriftBalancer(
-    assetAddresses,
-    percentages,
-    amounts,
-    driftPercentage
-  );
+  const createTx = await optimizedBalancerFactory
+    .connect(user)
+    .createDriftBalancer(assetAddresses, percentages, amounts, driftPercentage);
 
   const receipt = await createTx.wait();
   console.log("✅ Balancer creation transaction completed");
 
   // Check for BalancerCreated event
-  const balancerCreatedEvent = receipt?.logs?.find(
-    (log: any) => log.eventName === "BalancerCreated"
-  );
+  const balancerCreatedEvent = receipt?.logs?.find((log: any) => log.eventName === "BalancerCreated");
 
   if (balancerCreatedEvent) {
     console.log("✅ BalancerCreated event emitted");
@@ -209,7 +284,7 @@ export async function testBalancerCreation(
  */
 export async function deployCompleteSystem(
   includePortfolioAnalysisLib: boolean = false,
-  gasLimit?: number
+  gasLimit?: number,
 ): Promise<DeploymentResult> {
   const [deployer] = await ethers.getSigners();
   console.log("🚀 Starting complete system deployment...");
@@ -217,10 +292,13 @@ export async function deployCompleteSystem(
 
   try {
     // Deploy libraries
-    const libraries = await deployLibraries();
-    if (!includePortfolioAnalysisLib) {
-      delete libraries.portfolioAnalysisLib;
-    }
+    const allLibraries = await deployLibraries(includePortfolioAnalysisLib);
+    const libraries = includePortfolioAnalysisLib
+      ? allLibraries
+      : {
+          limitOrderLib: allLibraries.limitOrderLib,
+          stablecoinGridLib: allLibraries.stablecoinGridLib,
+        };
 
     // Deploy mock contracts
     const mocks = await deployMockContracts(await deployer.getAddress());
@@ -233,7 +311,7 @@ export async function deployCompleteSystem(
       mocks.mockPriceAggregator,
       mocks.mockLimitOrderProtocol,
       libraries,
-      gasLimit
+      gasLimit,
     );
 
     console.log("🎉 Complete system deployment successful!");
@@ -247,4 +325,4 @@ export async function deployCompleteSystem(
     console.error("❌ Deployment failed:", error);
     throw error;
   }
-} 
+}

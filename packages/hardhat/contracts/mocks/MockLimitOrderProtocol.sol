@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.23;
 
-import "../interfaces/ILimitOrderProtocol.sol";
+import "../portfolio/interfaces/ILimitOrderProtocol.sol";
 
 /**
  * @title MockLimitOrderProtocol

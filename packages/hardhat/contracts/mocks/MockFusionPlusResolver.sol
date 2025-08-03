@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "../../interfaces/IFusionPlusHub.sol";
-import "../../libraries/TimelocksLib.sol";
-import "../../libraries/ImmutablesLib.sol";
+import "../ethereum-hub/interfaces/IFusionPlusHub.sol";
+import "../ethereum-hub/libraries/TimelocksLib.sol";
+import "../ethereum-hub/libraries/ImmutablesLib.sol";
 
 /**
  * @title MockFusionPlusResolver
