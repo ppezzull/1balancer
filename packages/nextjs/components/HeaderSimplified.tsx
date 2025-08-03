@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { usePrivy } from "@privy-io/react-auth";
 import { Button } from "./ui/button";
-import { ThemeToggle } from "./ui/theme-toggle";
+import { SwitchTheme } from "./SwitchTheme";
 import { useIsMobile } from "./ui/use-mobile";
 import { Wallet, Copy, LogOut, Check, Menu, X, Home, PieChart, TrendingUp, Users, User } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -26,24 +27,17 @@ export function HeaderSimplified({
   showWalletNavigation = false,
   onLogoClick
 }: HeaderProps) {
-  const [isWalletConnected, setIsWalletConnected] = useState(propIsWalletConnected || false);
-  const [walletAddress, setWalletAddress] = useState<string>("");
+  const { ready, authenticated, login, logout, user } = usePrivy();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const buttonContainerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonWrapperRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  // Sync wallet connection state with prop
-  useEffect(() => {
-    if (propIsWalletConnected !== undefined) {
-      setIsWalletConnected(propIsWalletConnected);
-    }
-  }, [propIsWalletConnected]);
+  const isWalletConnected = ready && authenticated;
+  const walletAddress = user?.wallet?.address || "";
 
   // Emit wallet connection event
   const emitWalletConnectionEvent = (connected: boolean) => {
@@ -53,43 +47,30 @@ export function HeaderSimplified({
     window.dispatchEvent(event);
   };
 
-  // Function to simulate wallet connection
+  // Watch for authentication changes
+  useEffect(() => {
+    emitWalletConnectionEvent(isWalletConnected);
+  }, [isWalletConnected]);
+
+  // Function to connect wallet using Privy
   const connectWallet = async () => {
     try {
-      setIsConnecting(true);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const mockAddress = "0x" + Math.random().toString(16).substring(2, 42);
-      setWalletAddress(mockAddress);
-      setIsWalletConnected(true);
-      
-      emitWalletConnectionEvent(true);
-      
-      toast.success("Wallet connected successfully!", {
-        description: `Address: ${mockAddress.slice(0, 6)}...${mockAddress.slice(-4)}`,
-        duration: 3000,
-      });
+      await login();
     } catch (error) {
       console.error("Error connecting wallet:", error);
       toast.error("Error connecting wallet", {
         description: "Please try again later",
         duration: 3000,
       });
-    } finally {
-      setIsConnecting(false);
     }
   };
 
-  // Function to disconnect wallet
+  // Function to disconnect wallet using Privy
   const disconnectWallet = () => {
-    console.log('Disconnecting wallet');
-    setIsWalletConnected(false);
-    setWalletAddress("");
+    logout();
     setShowDropdown(false);
     setShowMobileMenu(false);
     setCopied(false);
-    
-    emitWalletConnectionEvent(false);
     
     toast.info("Wallet disconnected", {
       description: "Your wallet has been disconnected successfully",
@@ -371,7 +352,7 @@ export function HeaderSimplified({
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-3 relative">
             {/* Theme Toggle - Only show when not in wallet section */}
-            {!shouldShowWalletNavigation && <ThemeToggle />}
+            {!shouldShowWalletNavigation && <SwitchTheme />}
             
             {/* Wallet Button */}
             {!isWalletConnected ? (
@@ -381,7 +362,7 @@ export function HeaderSimplified({
               >
                 <Button 
                   onClick={connectWallet}
-                  disabled={isConnecting}
+                  disabled={!ready}
                   className="relative overflow-hidden px-4 lg:px-6 py-2 rounded-lg transition-all duration-300 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm lg:text-base text-white border-none"
                   style={{
                     background: 'var(--gradient-primary)',
@@ -400,21 +381,8 @@ export function HeaderSimplified({
                   
                   {/* Content */}
                   <div className="relative z-10 flex items-center gap-2">
-                    {isConnecting ? (
-                      <>
-                        <motion.div
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                        />
-                        Connecting...
-                      </>
-                    ) : (
-                      <>
-                        <Wallet className="w-4 h-4" />
-                        Connect Wallet
-                      </>
-                    )}
+                    <Wallet className="w-4 h-4" />
+                    Connect Wallet
                   </div>
                 </Button>
               </motion.div>
@@ -454,7 +422,7 @@ export function HeaderSimplified({
           {/* Mobile Actions */}
           <div className="md:hidden flex items-center gap-2">
             {/* Mobile Theme Toggle - Only show when not in wallet section */}
-            {!shouldShowWalletNavigation && <ThemeToggle isMobile />}
+            {!shouldShowWalletNavigation && <SwitchTheme />}
             
             {/* Mobile Wallet Button */}
             {isWalletConnected && (
@@ -552,7 +520,7 @@ export function HeaderSimplified({
                       <motion.div className="px-4" whileTap={{ scale: 0.98 }}>
                         <Button 
                           onClick={connectWallet}
-                          disabled={isConnecting}
+                          disabled={!ready}
                           className="w-full relative overflow-hidden px-4 py-3 rounded-lg transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-white border-none"
                           style={{
                             background: 'var(--gradient-primary)',
@@ -564,21 +532,8 @@ export function HeaderSimplified({
                           
                           {/* Content */}
                           <div className="relative z-10 flex items-center gap-2">
-                            {isConnecting ? (
-                              <>
-                                <motion.div
-                                  animate={{ rotate: 360 }}
-                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                  className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
-                                />
-                                Connecting...
-                              </>
-                            ) : (
-                              <>
-                                <Wallet className="w-4 h-4" />
-                                Connect Wallet
-                              </>
-                            )}
+                            <Wallet className="w-4 h-4" />
+                            Connect Wallet
                           </div>
                         </Button>
                       </motion.div>

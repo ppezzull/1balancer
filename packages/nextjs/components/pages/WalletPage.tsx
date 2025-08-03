@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { WalletHomeSectionSimplified } from "../components/WalletHomeSectionSimplified";
-import { PieChartCreator } from "../components/PieChartCreator";
+import { WalletHomeSectionSimplified } from "../WalletHomeSectionSimplified";
+import { PieChartCreator } from "../PieChartCreator";
 
 interface WalletPageProps {
   activeWalletTab: 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio';

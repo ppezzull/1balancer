@@ -1,4 +1,4 @@
-import { InteractiveMainContent } from "../components/InteractiveMainContent";
+import { InteractiveMainContent } from "../InteractiveMainContent";
 
 interface HomePageProps {
   activeTab: 'home' | 'about' | 'rebalance' | 'top-performers';

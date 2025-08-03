@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { HeroSection } from "./HeroSection";
 import { AboutSection } from "./AboutSection";
 import { RebalanceSection } from "./RebalanceSection"; 
-import { TopPerformersSection } from "./sections/TopPerformersSection";
+import { TopPerformersSection } from "./TopPerformersSection";
 
 interface InteractiveMainContentProps {
   activeTab: 'home' | 'about' | 'rebalance' | 'top-performers';

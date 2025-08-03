@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "~~/components/ui/button";
 
 export const SwitchTheme = ({ className }: { className?: string }) => {
   const { setTheme, resolvedTheme } = useTheme();
@@ -11,11 +12,7 @@ export const SwitchTheme = ({ className }: { className?: string }) => {
   const isDarkMode = resolvedTheme === "dark";
 
   const handleToggle = () => {
-    if (isDarkMode) {
-      setTheme("light");
-      return;
-    }
-    setTheme("dark");
+    setTheme(isDarkMode ? "light" : "dark");
   };
 
   useEffect(() => {
@@ -25,18 +22,18 @@ export const SwitchTheme = ({ className }: { className?: string }) => {
   if (!mounted) return null;
 
   return (
-    <div className={`flex space-x-2 h-8 items-center justify-center text-sm ${className}`}>
-      <input
-        id="theme-toggle"
-        type="checkbox"
-        className="toggle bg-secondary toggle-primary hover:bg-accent transition-all"
-        onChange={handleToggle}
-        checked={isDarkMode}
-      />
-      <label htmlFor="theme-toggle" className={`swap swap-rotate ${!isDarkMode ? "swap-active" : ""}`}>
-        <SunIcon className="swap-on h-5 w-5" />
-        <MoonIcon className="swap-off h-5 w-5" />
-      </label>
-    </div>
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={handleToggle}
+      className={className}
+    >
+      {isDarkMode ? (
+        <Sun className="h-4 w-4" />
+      ) : (
+        <Moon className="h-4 w-4" />
+      )}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   );
 };
