@@ -823,6 +823,99 @@ export class NEARChainCoordinator {
     }
   }
 
+  /**
+   * Get revealed secret from a completed HTLC withdrawal
+   * This method queries the NEAR contract to check if the secret has been revealed
+   */
+  async getRevealedSecret(htlcId: string): Promise<string | null> {
+    const timestamp = new Date().toISOString();
+    
+    try {
+      logger.info(`[${timestamp}][NEAR] Checking for revealed secret`, {
+        htlcId,
+        contract: this.htlcContract,
+        action: 'query_revealed_secret'
+      });
+
+      // Query the contract to get HTLC details including revealed secret
+      const result = await this.provider.query({
+        request_type: 'call_function',
+        finality: 'final',
+        account_id: this.htlcContract,
+        method_name: 'get_htlc',
+        args_base64: Buffer.from(JSON.stringify({ htlc_id: htlcId })).toString('base64'),
+      });
+
+      if ((result as any).result) {
+        const htlcData = JSON.parse(Buffer.from((result as any).result).toString());
+        
+        logger.info(`[${timestamp}][NEAR] HTLC query result`, {
+          htlcId,
+          hasData: !!htlcData,
+          status: htlcData?.status,
+          hasSecret: !!htlcData?.revealed_secret,
+          isWithdrawn: htlcData?.is_withdrawn,
+          secretLength: htlcData?.revealed_secret?.length || 0
+        });
+
+        // Check if secret has been revealed (HTLC is withdrawn)
+        if (htlcData?.revealed_secret) {
+          const revealedSecret = htlcData.revealed_secret;
+          
+          logger.info(`[${timestamp}][NEAR] Secret found in HTLC`, {
+            htlcId,
+            secretLength: revealedSecret.length,
+            secretPrefix: revealedSecret.substring(0, 10) + '...',
+            htlcStatus: htlcData.status,
+            withdrawalComplete: htlcData.is_withdrawn
+          });
+          
+          return revealedSecret;
+        } else {
+          logger.debug(`[${timestamp}][NEAR] Secret not yet revealed`, {
+            htlcId,
+            htlcStatus: htlcData?.status || 'unknown',
+            isWithdrawn: htlcData?.is_withdrawn || false,
+            timeRemaining: htlcData?.timelock ? Math.max(0, htlcData.timelock - Date.now()) : 'unknown'
+          });
+          
+          return null;
+        }
+      } else {
+        logger.warn(`[${timestamp}][NEAR] No result from HTLC query`, {
+          htlcId,
+          resultType: typeof result,
+          hasResult: !!(result as any).result
+        });
+        
+        return null;
+      }
+    } catch (error) {
+      const err = error as Error;
+      
+      // Handle specific error types gracefully
+      if (err.message?.includes('HTLC not found') || err.message?.includes('wasm execution failed')) {
+        logger.debug(`[${timestamp}][NEAR] HTLC not found or not yet withdrawn`, {
+          htlcId,
+          error: err.message,
+          hint: 'This is expected if secret not yet revealed'
+        });
+        return null;
+      } else {
+        logger.error(`[${timestamp}][NEAR] Error querying revealed secret`, {
+          htlcId,
+          error: err.message,
+          stack: err.stack,
+          errorType: err.constructor.name,
+          contract: this.htlcContract
+        });
+        
+        // Don't throw error, return null to allow retry
+        return null;
+      }
+    }
+  }
+
   shutdown(): void {
     logger.info('Shutting down NEAR coordinator');
     // Cleanup if needed

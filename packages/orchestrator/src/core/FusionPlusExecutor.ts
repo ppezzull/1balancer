@@ -127,31 +127,79 @@ export class FusionPlusExecutor {
 
   /**
    * Execute a complete fusion+ swap with real blockchain transactions
+   * This method now implements the full atomic swap including secret revelation and token exchange
    */
   async executeFullSwap(sessionId: string): Promise<void> {
+    const timestamp = new Date().toISOString();
     const session = await this.sessionManager.getSession(sessionId);
     if (!session) {
       throw ApiErrorFactory.notFound('Session not found');
     }
 
-    logger.info('Starting full Fusion+ swap execution', { sessionId });
+    logger.info(`[${timestamp}][FUSION+] Starting complete Fusion+ atomic swap execution`, {
+      sessionId,
+      maker: session.maker,
+      taker: session.taker,
+      sourceChain: session.sourceChain,
+      destinationChain: session.destinationChain,
+      sourceToken: session.sourceToken,
+      destinationToken: session.destinationToken,
+      sourceAmount: session.sourceAmount,
+      destinationAmount: session.destinationAmount,
+      flow: 'COMPLETE_ATOMIC_SWAP_WITH_TOKEN_EXCHANGE'
+    });
+    
     this.executionSteps.set(sessionId, []);
 
     try {
-      // Step 1: Deploy escrow on BASE
+      // Step 1: Deploy escrow on BASE (Source Chain Locking)
+      logger.info(`[${timestamp}][FUSION+] Step 1: Deploying escrow on BASE source chain`, {
+        sessionId,
+        action: 'source_chain_locking'
+      });
       await this.deployBaseEscrow(session);
       
-      // Step 2: Create HTLC on NEAR
+      // Step 2: Create HTLC on NEAR (Destination Chain Locking)  
+      logger.info(`[${timestamp}][FUSION+] Step 2: Creating HTLC on NEAR destination chain`, {
+        sessionId,
+        action: 'destination_chain_locking'
+      });
       await this.createNearHTLC(session);
       
-      // Step 3: Monitor for completion
-      await this.startMonitoring(session);
+      // Step 3: Wait for both chains to be confirmed locked
+      logger.info(`[${timestamp}][FUSION+] Step 3: Waiting for both chains to be locked`, {
+        sessionId,
+        action: 'verify_both_locked'
+      });
+      await this.waitForBothLocked(session);
       
-      logger.info('Fusion+ swap initiated successfully', { sessionId });
+      // Step 4: Initiate secret revelation and complete token exchange (THE MISSING PIECE!)
+      logger.info(`[${timestamp}][FUSION+] Step 4: Initiating secret revelation and token exchange`, {
+        sessionId,
+        action: 'complete_token_exchange',
+        note: 'This is where the actual atomic swap happens!'
+      });
+      await this.initiateSecretRevelation(session);
+      
+      logger.info(`[${timestamp}][FUSION+] Complete Fusion+ atomic swap executed successfully`, {
+        sessionId,
+        finalStatus: 'completed',
+        tokenExchangeComplete: true,
+        aliceReceived: `${session.destinationAmount} ${session.destinationToken}`,
+        bobReceived: `${session.sourceAmount} ${session.sourceToken}`,
+        result: 'ATOMIC_SWAP_SUCCESS'
+      });
       
     } catch (error) {
-      logger.error('Failed to execute Fusion+ swap', { sessionId, error });
-      await this.handleExecutionFailure(session, error as Error);
+      const err = error as Error;
+      logger.error(`[${timestamp}][FUSION+] Failed to execute complete Fusion+ swap`, {
+        sessionId,
+        error: err.message,
+        stack: err.stack,
+        errorType: err.constructor.name,
+        phase: 'atomic_swap_execution'
+      });
+      await this.handleExecutionFailure(session, err);
       throw error;
     }
   }
@@ -627,98 +675,396 @@ export class FusionPlusExecutor {
   }
 
   /**
-   * Start monitoring both chains for secret revelation
+   * Wait for both chains to be locked before proceeding to secret revelation
+   * This method polls the session status until both_locked is achieved
    */
-  private async startMonitoring(session: SwapSession): Promise<void> {
-    logger.info('Starting cross-chain monitoring', { sessionId: session.sessionId });
+  private async waitForBothLocked(session: SwapSession): Promise<void> {
+    const timestamp = new Date().toISOString();
+    const maxWaitTime = 10 * 60 * 1000; // 10 minutes
+    const checkInterval = 5000; // 5 seconds
+    const startTime = Date.now();
     
-    // Monitor BASE escrow for withdrawals
-    if (session.srcEscrowAddress) {
-      const escrow = new ethers.Contract(
-        session.srcEscrowAddress,
-        ESCROW_SRC_ABI,
-        this.baseProvider
-      );
+    logger.info(`[${timestamp}][FUSION+] Waiting for both chains to be locked`, {
+      sessionId: session.sessionId,
+      currentStatus: session.status,
+      maxWaitTime: `${maxWaitTime / 1000}s`,
+      checkInterval: `${checkInterval / 1000}s`,
+      srcEscrowAddress: session.srcEscrowAddress,
+      nearHTLCId: session.nearHTLCId
+    });
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      const currentSession = await this.sessionManager.getSession(session.sessionId);
       
-      escrow.on('Withdrawn', async (secret: string) => {
-        logger.info('Secret revealed on BASE', {
-          sessionId: session.sessionId,
-          secret: secret.slice(0, 10) + '...'
-        });
-        
-        // Withdraw on NEAR using the revealed secret
-        await this.completeNearWithdrawal(session, secret);
+      if (!currentSession) {
+        throw new Error(`Session ${session.sessionId} not found during wait`);
+      }
+      
+      logger.debug(`[${timestamp}][FUSION+] Checking session status`, {
+        sessionId: session.sessionId,
+        currentStatus: currentSession.status,
+        timeElapsed: `${(Date.now() - startTime) / 1000}s`,
+        srcEscrowAddress: currentSession.srcEscrowAddress,
+        nearHTLCId: currentSession.nearHTLCId
       });
+      
+      if (currentSession.status === 'both_locked') {
+        logger.info(`[${timestamp}][FUSION+] Both chains confirmed locked - proceeding to secret revelation`, {
+          sessionId: session.sessionId,
+          totalWaitTime: `${(Date.now() - startTime) / 1000}s`,
+          srcEscrowAddress: currentSession.srcEscrowAddress,
+          nearHTLCId: currentSession.nearHTLCId,
+          nextPhase: 'secret_revelation'
+        });
+        return;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
     }
     
-    // Monitor NEAR for secret revelations
-    this.nearCoordinator.monitorEvents(async (event: any) => {
-      if (event.eventName === 'secret_revealed' && event.htlc_id === session.nearHTLCId) {
-        logger.info('Secret revealed on NEAR', {
-          sessionId: session.sessionId,
-          secret: event.secret?.slice(0, 10) + '...'
-        });
-        
-        // Withdraw on BASE using the revealed secret
-        await this.completeBaseWithdrawal(session, event.secret);
-      }
+    const finalStatus = await this.sessionManager.getSession(session.sessionId);
+    logger.error(`[${timestamp}][FUSION+] Timeout waiting for both chains to be locked`, {
+      sessionId: session.sessionId,
+      finalStatus: finalStatus?.status,
+      timeoutAfter: `${maxWaitTime / 1000}s`,
+      srcEscrowAddress: finalStatus?.srcEscrowAddress,
+      nearHTLCId: finalStatus?.nearHTLCId
     });
+    
+    throw new Error('Timeout waiting for both chains to be locked');
   }
 
   /**
-   * Complete withdrawal on NEAR after secret is revealed
+   * Initiate the secret revelation and token exchange phase
+   * This is the core method that completes the atomic swap
    */
-  private async completeNearWithdrawal(session: SwapSession, secret: string): Promise<void> {
+  private async initiateSecretRevelation(session: SwapSession): Promise<void> {
+    const timestamp = new Date().toISOString();
+    
+    logger.info(`[${timestamp}][FUSION+] Initiating secret revelation phase - the actual token exchange`, {
+      sessionId: session.sessionId,
+      srcEscrowAddress: session.srcEscrowAddress,
+      nearHTLCId: session.nearHTLCId,
+      maker: session.maker,
+      taker: session.taker,
+      phase: 'secret_revelation_start'
+    });
+    
+    const step: ExecutionStep = {
+      function: 'reveal_secret_and_complete_swap',
+      contract: 'Cross-Chain Coordinator',
+      params: { 
+        sessionId: session.sessionId,
+        action: 'complete_atomic_swap'
+      },
+      status: 'pending'
+    };
+    
+    this.addExecutionStep(session.sessionId, step);
+    
+    try {
+      step.status = 'executing';
+      this.updateExecutionStep(session.sessionId, step);
+      
+      // Update session status to indicate secret revelation in progress
+      await this.sessionManager.updateSessionStatus(session.sessionId, 'revealing_secret');
+      
+      this.wsManager.sendToSession(session.sessionId, {
+        type: 'session_update',
+        status: 'revealing_secret',
+        data: {
+          phase: 'revealing_secret',
+          progress: 75,
+          message: 'Starting secret revelation to complete token exchange...'
+        }
+      });
+      
+      // Step 1: Reveal secret on NEAR (destination first for safety)
+      logger.info(`[${timestamp}][FUSION+] Phase 1: Revealing secret on NEAR destination chain`, {
+        sessionId: session.sessionId,
+        nearHTLCId: session.nearHTLCId,
+        action: 'reveal_secret_near'
+      });
+      await this.revealSecretOnNear(session);
+      
+      // Step 2: Wait for NEAR confirmation and get the revealed secret
+      logger.info(`[${timestamp}][FUSION+] Phase 2: Monitoring NEAR for secret revelation`, {
+        sessionId: session.sessionId,
+        nearHTLCId: session.nearHTLCId,
+        action: 'monitor_secret_revelation'
+      });
+      const revealedSecret = await this.waitForSecretRevealedOnNear(session);
+      
+      // Step 3: Use revealed secret to complete BASE withdrawal
+      logger.info(`[${timestamp}][FUSION+] Phase 3: Completing BASE withdrawal with revealed secret`, {
+        sessionId: session.sessionId,
+        srcEscrowAddress: session.srcEscrowAddress,
+        hasRevealedSecret: !!revealedSecret,
+        action: 'complete_base_withdrawal'
+      });
+      await this.completeBaseWithRevealedSecret(session, revealedSecret);
+      
+      step.status = 'completed';
+      step.result = { 
+        phase: 'swap_completed',
+        tokenExchangeComplete: true,
+        aliceReceived: 'NEAR tokens',
+        bobReceived: 'BASE tokens'
+      };
+      this.updateExecutionStep(session.sessionId, step);
+      
+      // Final status update
+      await this.sessionManager.updateSessionStatus(session.sessionId, 'completed');
+      
+      this.wsManager.sendToSession(session.sessionId, {
+        type: 'swap_completed',
+        data: {
+          phase: 'completed',
+          progress: 100,
+          message: 'Atomic swap completed successfully! Tokens have been exchanged.',
+          details: {
+            aliceReceived: `${session.destinationAmount} ${session.destinationToken} on NEAR`,
+            bobReceived: `${session.sourceAmount} ${session.sourceToken} on BASE`,
+            srcTxExplorer: session.srcEscrowAddress ? `https://sepolia.basescan.org/address/${session.srcEscrowAddress}` : null,
+            nearTxExplorer: session.nearHTLCId ? `https://testnet.nearblocks.io/address/${session.nearHTLCId}` : null
+          }
+        }
+      });
+      
+      logger.info(`[${timestamp}][FUSION+] Secret revelation and token exchange completed successfully`, {
+        sessionId: session.sessionId,
+        finalStatus: 'completed',
+        tokenExchangeComplete: true,
+        srcEscrowAddress: session.srcEscrowAddress,
+        nearHTLCId: session.nearHTLCId
+      });
+      
+    } catch (error) {
+      const err = error as Error;
+      step.status = 'failed';
+      step.error = err.message;
+      this.updateExecutionStep(session.sessionId, step);
+      
+      logger.error(`[${timestamp}][FUSION+] Secret revelation failed`, {
+        sessionId: session.sessionId,
+        error: err.message,
+        stack: err.stack,
+        phase: 'secret_revelation_failed',
+        srcEscrowAddress: session.srcEscrowAddress,
+        nearHTLCId: session.nearHTLCId
+      });
+      
+      this.wsManager.sendToSession(session.sessionId, {
+        type: 'execution_error',
+        data: {
+          phase: 'secret_revelation',
+          error: err.message,
+          details: 'Failed to complete token exchange - secret revelation failed',
+          step: step
+        }
+      });
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Reveal secret on NEAR to claim destination tokens
+   * This is where Alice (maker) claims her NEAR tokens and reveals the secret
+   */
+  private async revealSecretOnNear(session: SwapSession): Promise<void> {
+    const timestamp = new Date().toISOString();
+    
+    logger.info(`[${timestamp}][FUSION+] Revealing secret on NEAR to claim tokens`, {
+      sessionId: session.sessionId,
+      nearHTLCId: session.nearHTLCId,
+      taker: session.taker,
+      action: 'reveal_secret_near',
+      purpose: 'Alice claims NEAR tokens and reveals secret'
+    });
+    
     const step: ExecutionStep = {
       function: 'withdraw',
       contract: session.nearHTLCId || 'NEAR HTLC',
-      params: { secret },
+      params: { 
+        action: 'reveal_secret_and_claim',
+        htlcId: session.nearHTLCId,
+        claimer: session.taker
+      },
       status: 'executing'
     };
     
     this.addExecutionStep(session.sessionId, step);
     
     try {
+      // Get the secret from session manager
+      logger.info(`[${timestamp}][FUSION+] Retrieving secret for revelation`, {
+        sessionId: session.sessionId,
+        hashlockHash: session.hashlockHash?.substring(0, 10) + '...',
+        action: 'retrieve_secret'
+      });
+      
+      const secret = await this.sessionManager.revealSecret(session.sessionId);
+      
+      if (!secret) {
+        throw new Error('No secret available in session for revelation');
+      }
+      
+      logger.info(`[${timestamp}][FUSION+] Secret retrieved successfully`, {
+        sessionId: session.sessionId,
+        secretLength: secret.length,
+        secretPrefix: secret.substring(0, 10) + '...',
+        action: 'secret_retrieved'
+      });
+      
+      // Call NEAR coordinator to withdraw with secret (this reveals the secret publicly)
+      logger.info(`[${timestamp}][FUSION+] Calling NEAR coordinator to withdraw HTLC with secret`, {
+        sessionId: session.sessionId,
+        nearHTLCId: session.nearHTLCId,
+        receiver: session.taker,
+        action: 'near_withdraw_call'
+      });
+      
       await this.nearCoordinator.withdrawHTLC(
         session.nearHTLCId!,
         secret,
-        session.taker
+        session.taker // Alice (maker) claims on NEAR destination
       );
       
       step.status = 'completed';
+      step.result = { 
+        secretRevealed: true,
+        aliceClaimedTokens: true,
+        nearHTLCId: session.nearHTLCId
+      };
       this.updateExecutionStep(session.sessionId, step);
       
-      await this.sessionManager.updateSessionStatus(session.sessionId, 'completed');
-      
-      // Send completion update
-      this.wsManager.sendToSession(session.sessionId, {
-        type: 'session_update',
-        status: 'completed',
-        data: {
-          phase: 'completed',
-          progress: 100,
-          message: 'Swap completed successfully!'
-        }
+      logger.info(`[${timestamp}][FUSION+] Secret successfully revealed on NEAR`, {
+        sessionId: session.sessionId,
+        nearHTLCId: session.nearHTLCId,
+        secretRevealed: true,
+        aliceClaimedTokens: true,
+        nextStep: 'monitor_for_secret_on_near'
       });
       
     } catch (error) {
+      const err = error as Error;
       step.status = 'failed';
-      step.error = (error as Error).message;
+      step.error = err.message;
       this.updateExecutionStep(session.sessionId, step);
+      
+      logger.error(`[${timestamp}][FUSION+] Failed to reveal secret on NEAR`, {
+        sessionId: session.sessionId,
+        nearHTLCId: session.nearHTLCId,
+        error: err.message,
+        stack: err.stack,
+        action: 'reveal_secret_near_failed'
+      });
+      
       throw error;
     }
   }
 
   /**
-   * Complete withdrawal on BASE after secret is revealed
+   * Wait for secret to be revealed on NEAR and retrieve it
+   * This method polls NEAR contract until the secret becomes publicly visible
    */
-  private async completeBaseWithdrawal(session: SwapSession, secret: string): Promise<void> {
-    if (!session.srcEscrowAddress) return;
+  private async waitForSecretRevealedOnNear(session: SwapSession): Promise<string> {
+    const timestamp = new Date().toISOString();
+    const maxWaitTime = 5 * 60 * 1000; // 5 minutes
+    const checkInterval = 3000; // 3 seconds
+    const startTime = Date.now();
+    
+    logger.info(`[${timestamp}][FUSION+] Waiting for secret to be revealed on NEAR`, {
+      sessionId: session.sessionId,
+      nearHTLCId: session.nearHTLCId,
+      maxWaitTime: `${maxWaitTime / 1000}s`,
+      checkInterval: `${checkInterval / 1000}s`,
+      action: 'monitor_secret_revelation'
+    });
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        const timeElapsed = (Date.now() - startTime) / 1000;
+        
+        logger.debug(`[${timestamp}][FUSION+] Checking NEAR contract for revealed secret`, {
+          sessionId: session.sessionId,
+          nearHTLCId: session.nearHTLCId,
+          timeElapsed: `${timeElapsed}s`,
+          attempt: Math.floor(timeElapsed / (checkInterval / 1000)) + 1
+        });
+        
+        // Query NEAR contract to check if secret was revealed
+        const revealedSecret = await this.nearCoordinator.getRevealedSecret(session.nearHTLCId!);
+        
+        if (revealedSecret) {
+          logger.info(`[${timestamp}][FUSION+] Secret revealed on NEAR - proceeding to BASE completion`, {
+            sessionId: session.sessionId,
+            nearHTLCId: session.nearHTLCId,
+            secretLength: revealedSecret.length,
+            secretPrefix: revealedSecret.substring(0, 10) + '...',
+            timeToReveal: `${timeElapsed}s`,
+            nextAction: 'complete_base_withdrawal'
+          });
+          
+          return revealedSecret;
+        } else {
+          logger.debug(`[${timestamp}][FUSION+] Secret not yet revealed, continuing to monitor`, {
+            sessionId: session.sessionId,
+            nearHTLCId: session.nearHTLCId,
+            timeElapsed: `${timeElapsed}s`,
+            nextCheck: `${checkInterval / 1000}s`
+          });
+        }
+        
+      } catch (error) {
+        const err = error as Error;
+        logger.warn(`[${timestamp}][FUSION+] Error checking NEAR secret status`, { 
+          sessionId: session.sessionId,
+          nearHTLCId: session.nearHTLCId,
+          error: err.message,
+          timeElapsed: `${(Date.now() - startTime) / 1000}s`,
+          action: 'continue_monitoring'
+        });
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
+    }
+    
+    logger.error(`[${timestamp}][FUSION+] Timeout waiting for secret revelation on NEAR`, {
+      sessionId: session.sessionId,
+      nearHTLCId: session.nearHTLCId,
+      timeoutAfter: `${maxWaitTime / 1000}s`,
+      action: 'secret_revelation_timeout'
+    });
+    
+    throw new Error('Timeout waiting for secret revelation on NEAR');
+  }
+
+  /**
+   * Complete BASE withdrawal using the revealed secret from NEAR
+   * This is where Bob gets his BASE tokens using the publicly revealed secret
+   */
+  private async completeBaseWithRevealedSecret(session: SwapSession, secret: string): Promise<void> {
+    const timestamp = new Date().toISOString();
+    
+    logger.info(`[${timestamp}][FUSION+] Completing BASE withdrawal with revealed secret`, {
+      sessionId: session.sessionId,
+      srcEscrowAddress: session.srcEscrowAddress,
+      secretLength: secret.length,
+      secretPrefix: secret.substring(0, 10) + '...',
+      action: 'complete_base_withdrawal',
+      purpose: 'Bob claims BASE tokens using revealed secret'
+    });
     
     const step: ExecutionStep = {
       function: 'withdraw',
-      contract: session.srcEscrowAddress,
-      params: { secret },
+      contract: session.srcEscrowAddress || 'BASE Escrow',
+      params: { 
+        secret: secret.substring(0, 10) + '...',
+        escrowAddress: session.srcEscrowAddress,
+        action: 'withdraw_with_revealed_secret'
+      },
       status: 'executing'
     };
     
@@ -732,40 +1078,84 @@ export class FusionPlusExecutor {
       
       const wallet = new ethers.Wallet(privateKey, this.baseProvider);
       const escrow = new ethers.Contract(
-        session.srcEscrowAddress,
+        session.srcEscrowAddress!,
         ESCROW_SRC_ABI,
         wallet
       );
       
-      const tx = await (escrow as any).withdraw(secret);
+      logger.info(`[${timestamp}][FUSION+] Prepared BASE escrow withdrawal`, {
+        sessionId: session.sessionId,
+        escrowAddress: session.srcEscrowAddress,
+        walletAddress: wallet.address,
+        contractMethods: escrow.interface.fragments
+          .filter(f => f.type === 'function')
+          .map(f => f.format().split('(')[0]),
+        action: 'prepare_withdrawal'
+      });
+      
+      // Call withdraw with the revealed secret
+      logger.info(`[${timestamp}][FUSION+] Executing withdraw transaction on BASE escrow`, {
+        sessionId: session.sessionId,
+        escrowAddress: session.srcEscrowAddress,
+        action: 'execute_withdraw'
+      });
+      
+      const tx = await escrow.withdraw(secret);
       step.txHash = tx.hash;
       
-      await tx.wait();
+      logger.info(`[${timestamp}][FUSION+] BASE withdrawal transaction sent`, {
+        sessionId: session.sessionId,
+        txHash: tx.hash,
+        explorer: `https://sepolia.basescan.org/tx/${tx.hash}`,
+        escrowAddress: session.srcEscrowAddress,
+        action: 'transaction_sent'
+      });
+      
+      // Wait for confirmation
+      const receipt = await tx.wait();
       
       step.status = 'completed';
+      step.result = {
+        txHash: tx.hash,
+        gasUsed: receipt.gasUsed.toString(),
+        blockNumber: receipt.blockNumber,
+        bobClaimedTokens: true,
+        tokenExchangeComplete: true
+      };
       this.updateExecutionStep(session.sessionId, step);
       
-      await this.sessionManager.updateSessionStatus(session.sessionId, 'completed');
-      
-      // Send completion update
-      this.wsManager.sendToSession(session.sessionId, {
-        type: 'session_update',
-        status: 'completed',
-        data: {
-          phase: 'completed',
-          progress: 100,
-          message: 'Swap completed successfully!',
-          txHash: tx.hash
-        }
+      logger.info(`[${timestamp}][FUSION+] BASE withdrawal completed - Bob received tokens`, {
+        sessionId: session.sessionId,
+        txHash: tx.hash,
+        gasUsed: receipt.gasUsed.toString(),
+        blockNumber: receipt.blockNumber,
+        explorer: `https://sepolia.basescan.org/tx/${tx.hash}`,
+        bobClaimedTokens: true,
+        tokenExchangeComplete: true,
+        finalResult: 'ATOMIC_SWAP_SUCCESS'
       });
       
     } catch (error) {
+      const err = error as Error;
       step.status = 'failed';
-      step.error = (error as Error).message;
+      step.error = err.message;
       this.updateExecutionStep(session.sessionId, step);
+      
+      logger.error(`[${timestamp}][FUSION+] BASE withdrawal failed`, {
+        sessionId: session.sessionId,
+        srcEscrowAddress: session.srcEscrowAddress,
+        error: err.message,
+        stack: err.stack,
+        errorCode: (err as any).code,
+        errorReason: (err as any).reason,
+        action: 'base_withdrawal_failed'
+      });
+      
       throw error;
     }
   }
+
+
 
   /**
    * Get execution steps for transparency
