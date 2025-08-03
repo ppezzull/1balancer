@@ -18,7 +18,10 @@ export function LiveCryptoTicker() {
   const [cryptoData, setCryptoData] = useState<CryptoData[]>([]);
   const [hoveredCrypto, setHoveredCrypto] = useState<string | null>(null);
   const [clickedCrypto, setClickedCrypto] = useState<string | null>(null);
-  const { isDark } = useTheme();
+  const { isDark, mounted } = useTheme();
+
+  // Use a safe theme value for SSR
+  const safeIsDark = mounted ? isDark : true; // default to dark theme during SSR
 
   const cryptoSymbols = ['USDC', 'USDT', 'UNI', 'AAVE', 'LINK', 'COMP', 'MKR', 'MATIC'];
 
@@ -74,7 +77,7 @@ export function LiveCryptoTicker() {
       <motion.div
         className="backdrop-blur-md overflow-hidden transition-colors duration-300"
         style={{ 
-          backgroundColor: isDark 
+          backgroundColor: safeIsDark 
             ? 'rgba(0, 0, 0, 0.9)' 
             : 'rgba(255, 255, 255, 0.9)' 
         }}
@@ -117,10 +120,10 @@ export function LiveCryptoTicker() {
                 <motion.div 
                   className="font-bold text-sm transition-colors duration-300"
                   style={{ 
-                    color: isDark ? '#ffffff' : '#1f2937' 
+                    color: safeIsDark ? '#ffffff' : '#1f2937' 
                   }}
                   animate={hoveredCrypto === crypto.symbol ? {
-                    color: isDark 
+                    color: safeIsDark 
                       ? ["#ffffff", "#22d3ee", "#ffffff"]
                       : ["#1f2937", "#3b82f6", "#1f2937"]
                   } : {}}
@@ -133,7 +136,7 @@ export function LiveCryptoTicker() {
                 <div 
                   className="text-sm transition-colors duration-300"
                   style={{ 
-                    color: isDark ? '#d1d5db' : '#6b7280' 
+                    color: safeIsDark ? '#d1d5db' : '#6b7280' 
                   }}
                 >
                   ${crypto.price.toFixed(crypto.symbol === 'MKR' ? 0 : 2)}
