@@ -67,6 +67,13 @@ export function HeaderSimplified({
     emitWalletConnectionEvent(isWalletConnected);
   }, [isWalletConnected]);
 
+  // Redirect to root when disconnected while on wallet pages
+  useEffect(() => {
+    if (ready && !authenticated && pathname.startsWith('/wallet')) {
+      router.push('/');
+    }
+  }, [ready, authenticated, pathname, router]);
+
   // Function to connect wallet using Privy
   const connectWallet = async () => {
     try {
@@ -86,6 +93,11 @@ export function HeaderSimplified({
     setShowDropdown(false);
     setShowMobileMenu(false);
     setCopied(false);
+    
+    // If user is on a wallet page, redirect to root
+    if (pathname.startsWith('/wallet')) {
+      router.push('/');
+    }
     
     toast.info("Wallet disconnected", {
       description: "Your wallet has been disconnected successfully",

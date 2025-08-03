@@ -29,15 +29,18 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   // Check if we're on a wallet page
   const isWalletPage = pathname.startsWith('/wallet');
   
+  // Check if we're on the root page
+  const isRootPage = pathname === '/';
+  
   // Show footer on non-wallet pages only
   const showFooter = !isWalletPage;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className={`min-h-screen flex flex-col ${isRootPage ? 'h-screen overflow-hidden' : ''}`}>
       <HeaderSimplified />
       
       {/* Main content with proper spacing for fixed header and footer */}
-      <main className={`flex-1 ${showFooter ? 'pt-16 sm:pt-20 pb-20' : 'pt-16 sm:pt-20'}`}>
+      <main className={`flex-1 ${showFooter ? 'pt-16 sm:pt-20 pb-20' : 'pt-16 sm:pt-20'} ${isRootPage ? 'overflow-hidden' : 'overflow-auto'}`}>
         {children}
       </main>
       
