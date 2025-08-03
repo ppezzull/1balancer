@@ -331,12 +331,18 @@ export class CrossChainCoordinator {
   }
 
   // Event handlers for blockchain monitoring
-  async handleEscrowCreated(event: any): Promise<void> {
-    const { orderHash, escrow, maker } = event;
+  async handleEscrowCreated(event: {
+    orderHash: string;
+    escrow: string;
+    maker: string;
+    chain: string;
+    isSource: boolean;
+  }): Promise<void> {
+    const { orderHash, escrow, maker, chain, isSource } = event;
     
     const session = await this.sessionManager.getSessionByOrderHash(orderHash);
     if (!session) {
-      logger.warn('Received event for unknown order', { orderHash });
+      logger.warn('Received event for unknown order', { orderHash, escrow, chain });
       return;
     }
 
@@ -344,11 +350,18 @@ export class CrossChainCoordinator {
       sessionId: session.sessionId,
       escrow,
       maker,
+      chain,
+      isSource,
     });
 
-    // Update session
-    await this.sessionManager.updateSessionWithEscrow(session.sessionId, 'src', escrow);
-    await this.sessionManager.updateSessionStatus(session.sessionId, 'source_locked');
+    // Update session based on whether it's source or destination
+    if (isSource) {
+      await this.sessionManager.updateSessionWithEscrow(session.sessionId, 'src', escrow);
+      await this.sessionManager.updateSessionStatus(session.sessionId, 'source_locked');
+    } else {
+      await this.sessionManager.updateSessionWithEscrow(session.sessionId, 'dst', escrow);
+      await this.sessionManager.updateSessionStatus(session.sessionId, 'both_locked');
+    }
   }
 
   async handleSecretRevealed(event: any): Promise<void> {

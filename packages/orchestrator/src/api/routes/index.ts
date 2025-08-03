@@ -1,6 +1,7 @@
 import { Express } from 'express';
 import { sessionsRouter } from './sessions';
 import { quoteRouter } from './quote';
+import { demoRouter } from './demo';
 import { authenticate } from '../middleware/authenticate';
 import { SessionManager } from '../../core/SessionManager';
 import { DutchAuctionSimulator } from '../../core/DutchAuctionSimulator';
@@ -28,6 +29,7 @@ export function setupRoutes(app: Express, services: Services): void {
   // Mount routers
   app.use(`${apiV1}/sessions`, sessionsRouter(services));
   app.use(`${apiV1}/quote`, quoteRouter(services));
+  app.use(`${apiV1}/demo`, demoRouter(services));
   
   // Version endpoint
   app.get(`${apiV1}/version`, (_req, res) => {

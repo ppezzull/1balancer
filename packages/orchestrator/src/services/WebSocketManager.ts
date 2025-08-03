@@ -81,6 +81,27 @@ export class WebSocketManager {
     });
   }
 
+  sendToSession(sessionId: string, message: any): void {
+    const subscribers = this.sessionSubscribers.get(sessionId);
+    if (!subscribers || subscribers.size === 0) {
+      logger.debug('No subscribers for session', { sessionId });
+      return;
+    }
+
+    for (const clientId of subscribers) {
+      const socket = this.clients.get(clientId);
+      if (socket) {
+        socket.emit(message.type || 'message', message);
+      }
+    }
+
+    logger.debug('Sent message to session subscribers', {
+      sessionId,
+      subscriberCount: subscribers.size,
+      messageType: message.type
+    });
+  }
+
   broadcastAlert(alert: {
     severity: 'info' | 'warning' | 'error';
     message: string;

@@ -92,6 +92,41 @@ interface Config {
   };
 }
 
+// Helper function to get contract address from deployment files or env
+function getContractAddress(contractName: string, envValue?: string): string {
+  // First check environment variable
+  if (envValue && envValue !== ethers.ZeroAddress) {
+    return envValue;
+  }
+  
+  // Try to read from deployment files
+  try {
+    const deploymentPath = path.join(__dirname, '../../../hardhat/deployments/baseSepolia', `${contractName}.json`);
+    if (fs.existsSync(deploymentPath)) {
+      const deployment = JSON.parse(fs.readFileSync(deploymentPath, 'utf8'));
+      if (deployment.address) {
+        console.log(`Loaded ${contractName} address from deployment: ${deployment.address}`);
+        return deployment.address;
+      }
+    }
+  } catch (error) {
+    console.warn(`Could not load ${contractName} from deployment files:`, error);
+  }
+  
+  // Fallback to hardcoded addresses for known contracts
+  const knownAddresses: Record<string, string> = {
+    EscrowFactory: '0x135aCf86351F2113726318dE6b4ca66FA90d54Fd',
+    FusionPlusHub: '0x5938297bfdeeF3ac56EB4198E0B484b2A0B3adD8',
+  };
+  
+  if (knownAddresses[contractName]) {
+    console.log(`Using known address for ${contractName}: ${knownAddresses[contractName]}`);
+    return knownAddresses[contractName];
+  }
+  
+  return ethers.ZeroAddress;
+}
+
 // Helper function to read NEAR contract address from deployment file
 function getNearContractAddress(): string {
   // First check environment variable
@@ -112,8 +147,9 @@ function getNearContractAddress(): string {
     // Ignore errors, fall back to default
   }
   
-  // Default fallback
-  return 'fusion-htlc.testnet';
+  // Default fallback - using the account's subaccount
+  const account = process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || 'rog_eth.testnet';
+  return `fusion-htlc.${account}`;
 }
 
 function getConfig(): Config {
@@ -135,8 +171,8 @@ function getConfig(): Config {
       near: {
         rpcUrl: process.env.NEAR_RPC_URL || 'https://rpc.testnet.near.org',
         networkId: process.env.NEAR_NETWORK_ID || 'testnet',
-        accountId: process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || '',
-        privateKey: process.env.NEAR_PRIVATE_KEY,
+        accountId: process.env.NEAR_ORCHESTRATOR_ACCOUNT_ID || process.env.NEAR_MASTER_ACCOUNT || '',
+        privateKey: process.env.NEAR_PRIVATE_KEY || '',
         contracts: {
           htlc: getNearContractAddress(),
           solverRegistry: process.env.NEAR_SOLVER_REGISTRY || 'solver-registry.testnet',
@@ -149,8 +185,8 @@ function getConfig(): Config {
     },
     
     contracts: {
-      escrowFactory: process.env.ESCROW_FACTORY_ADDRESS || ethers.ZeroAddress,
-      fusionPlusHub: process.env.FUSION_PLUS_HUB_ADDRESS || ethers.ZeroAddress,
+      escrowFactory: getContractAddress('EscrowFactory', process.env.ESCROW_FACTORY_ADDRESS),
+      fusionPlusHub: getContractAddress('FusionPlusHub', process.env.FUSION_PLUS_HUB_ADDRESS),
       fusionPlusResolver: process.env.FUSION_PLUS_RESOLVER_ADDRESS || ethers.ZeroAddress,
       limitOrderProtocol: process.env.LIMIT_ORDER_PROTOCOL_ADDRESS || '0x111111125421ca6dc452d289314280a0f8842a65',
     },

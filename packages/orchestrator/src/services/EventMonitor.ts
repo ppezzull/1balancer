@@ -2,7 +2,6 @@ import { ethers } from 'ethers';
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 import { CrossChainCoordinator } from '../core/CrossChainCoordinator';
-import retry from 'retry';
 
 const logger = createLogger('EventMonitor');
 
@@ -26,29 +25,137 @@ export class EventMonitor {
   private isRunning = false;
 
   constructor(private coordinator: CrossChainCoordinator) {
-    this.initializeMonitors();
+    // Initialization will happen in start() method
   }
 
-  private initializeMonitors(): void {
-    // Initialize BASE chain monitor
-    const baseProvider = new ethers.JsonRpcProvider(config.chains.base.rpcUrl);
-    this.chainMonitors.set('base', {
-      provider: baseProvider,
-      contracts: new Map(),
-      lastBlock: 0,
-      polling: false,
-    });
-
-    // Initialize Ethereum monitor if configured
-    if (config.chains.ethereum.rpcUrl && config.chains.ethereum.rpcUrl.trim() !== '') {
-      const ethProvider = new ethers.JsonRpcProvider(config.chains.ethereum.rpcUrl);
-      this.chainMonitors.set('ethereum', {
-        provider: ethProvider,
+  private async initializeMonitors(): Promise<void> {
+    try {
+      // Initialize BASE chain monitor
+      logger.info('Initializing BASE provider', { url: config.chains.base.rpcUrl });
+      const baseProvider = await this.createProviderWithFallback('base', [
+        config.chains.base.rpcUrl,
+        'https://base-sepolia-rpc.publicnode.com',
+        'https://sepolia.base.org',
+      ]);
+      this.chainMonitors.set('base', {
+        provider: baseProvider,
         contracts: new Map(),
         lastBlock: 0,
         polling: false,
       });
+
+      // Initialize Ethereum monitor if configured
+      if (config.chains.ethereum.rpcUrl && config.chains.ethereum.rpcUrl.trim() !== '') {
+        logger.info('Initializing Ethereum provider', { url: config.chains.ethereum.rpcUrl });
+        try {
+          const ethProvider = await this.createProviderWithFallback('ethereum', [
+            config.chains.ethereum.rpcUrl,
+            'https://ethereum-sepolia-rpc.publicnode.com',
+            'https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+          ]);
+          this.chainMonitors.set('ethereum', {
+            provider: ethProvider,
+            contracts: new Map(),
+            lastBlock: 0,
+            polling: false,
+          });
+        } catch (error) {
+          logger.warn('Failed to initialize Ethereum provider, continuing without it', { 
+            error: (error as Error).message,
+            url: config.chains.ethereum.rpcUrl 
+          });
+        }
+      } else {
+        logger.info('Ethereum RPC URL not configured, skipping Ethereum monitoring');
+      }
+    } catch (error) {
+      logger.error('Failed to initialize monitors', { error: (error as Error).message });
+      throw error;
     }
+  }
+
+  private async createProviderWithFallback(chain: string, urls: string[]): Promise<ethers.JsonRpcProvider> {
+    const errors: string[] = [];
+    
+    // Define static network configurations to avoid network detection issues
+    const networkConfigs: Record<string, ethers.Network> = {
+      base: new ethers.Network('base-sepolia', 84532),
+      ethereum: new ethers.Network('sepolia', 11155111),
+    };
+    
+    for (const url of urls) {
+      try {
+        logger.debug(`Trying provider for ${chain}`, { url });
+        
+        let provider: ethers.JsonRpcProvider;
+        
+        // Check if it's an Alchemy URL and extract API key
+        const ethAlchemyMatch = url.match(/https:\/\/eth-sepolia\.g\.alchemy\.com\/v2\/(.+)/);
+        const baseAlchemyMatch = url.match(/https:\/\/base-sepolia\.g\.alchemy\.com\/v2\/(.+)/);
+        
+        if (ethAlchemyMatch && ethAlchemyMatch[1]) {
+          // Use AlchemyProvider for Ethereum Sepolia
+          try {
+            provider = new ethers.AlchemyProvider('sepolia', ethAlchemyMatch[1]);
+            logger.debug(`Using AlchemyProvider for ${chain} (Ethereum Sepolia)`);
+          } catch (error) {
+            logger.debug(`AlchemyProvider failed, falling back to JsonRpcProvider`);
+            provider = new ethers.JsonRpcProvider(url, networkConfigs[chain], {
+              staticNetwork: networkConfigs[chain],
+              batchMaxCount: 1,
+            });
+          }
+        } else if (baseAlchemyMatch && baseAlchemyMatch[1]) {
+          // Use JsonRpcProvider for Base Sepolia (AlchemyProvider doesn't support Base)
+          provider = new ethers.JsonRpcProvider(url, networkConfigs[chain], {
+            staticNetwork: networkConfigs[chain],
+            batchMaxCount: 1,
+          });
+          logger.debug(`Using JsonRpcProvider for ${chain} (Base Sepolia via Alchemy)`);
+        } else {
+          // Use regular JsonRpcProvider for other URLs
+          provider = new ethers.JsonRpcProvider(url, networkConfigs[chain], {
+            staticNetwork: networkConfigs[chain],
+            batchMaxCount: 1, // Disable batching for better error handling
+          });
+        }
+        
+        // Test the connection with a simple call
+        const testConnection = async () => {
+          try {
+            await provider.getBlockNumber();
+            return true;
+          } catch (error: any) {
+            if (error.code === 'SERVER_ERROR' && error.info?.responseStatus === '401 Unauthorized') {
+              logger.debug(`Auth failed for ${url}, trying next...`);
+              return false;
+            }
+            // For other errors, also try next provider
+            logger.debug(`Connection test failed for ${url}: ${error.message}`);
+            return false;
+          }
+        };
+        
+        // Test with timeout
+        const connected = await Promise.race([
+          testConnection(),
+          new Promise<boolean>(resolve => setTimeout(() => resolve(false), 5000))
+        ]);
+        
+        if (connected) {
+          logger.info(`Successfully connected to ${chain} provider`, { url });
+          return provider;
+        } else {
+          throw new Error(`Connection test failed for ${url}`);
+        }
+      } catch (error) {
+        const errorMsg = (error as Error).message;
+        errors.push(`${url}: ${errorMsg}`);
+        logger.debug(`Failed to create provider for ${chain}`, { url, error: errorMsg });
+      }
+    }
+    
+    throw new Error(`Failed to create provider for ${chain}. Tried URLs: ${errors.join(', ')}`);
   }
 
   async start(): Promise<void> {
@@ -61,6 +168,9 @@ export class EventMonitor {
     this.isRunning = true;
 
     try {
+      // Initialize monitors first
+      await this.initializeMonitors();
+
       // Setup contract monitoring
       await this.setupContractMonitoring();
 
@@ -169,73 +279,42 @@ export class EventMonitor {
     logger.info('Starting chain monitoring', { chain });
 
     try {
-      // Get current block
-      const currentBlock = await monitor.provider.getBlockNumber();
+      // Get current block with timeout
+      const currentBlock = await Promise.race([
+        monitor.provider.getBlockNumber(),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error(`Timeout connecting to ${chain} RPC`)), 10000)
+        )
+      ]);
       monitor.lastBlock = currentBlock - config.eventMonitoring.maxReorgDepth;
 
-      // Setup event listeners
-      for (const [_address, contract] of monitor.contracts) {
-        this.setupEventListeners(chain, contract);
-      }
+      // Skip event listeners for HTTP providers - we'll use polling instead
+      logger.info('Using polling mechanism for event monitoring (HTTP provider)');
 
       // Start polling for new blocks
       monitor.polling = true;
       monitor.pollInterval = setInterval(
-        () => this.pollChain(chain, monitor),
+        () => this.pollChain(chain, monitor).catch(error => {
+          logger.error('Error polling chain', { chain, error: (error as Error).message });
+        }),
         config.eventMonitoring.pollingInterval
       );
 
       logger.info('Chain monitoring started', { chain, startBlock: monitor.lastBlock });
     } catch (error) {
-      logger.error('Failed to start chain monitoring', { chain, error });
-      throw error;
+      logger.error('Failed to start chain monitoring', { 
+        chain, 
+        error: (error as Error).message,
+        rpcUrl: chain === 'ethereum' ? config.chains.ethereum.rpcUrl : config.chains.base.rpcUrl
+      });
+      // Don't throw, just continue without this chain
+      monitor.polling = false;
     }
   }
 
-  private setupEventListeners(chain: string, contract: ethers.Contract): void {
-    // Listen for EscrowFactory events
-    contract.on('SrcEscrowCreated', async (escrow, orderHash, maker, event) => {
-      logger.info('SrcEscrowCreated event', {
-        chain,
-        escrow,
-        orderHash,
-        maker,
-        blockNumber: event.blockNumber,
-      });
-
-      await this.handleWithRetry(() => 
-        this.coordinator.handleEscrowCreated({
-          orderHash,
-          escrow,
-          maker,
-        })
-      );
-    });
-
-    contract.on('SecretRevealed', async (secret, event) => {
-      logger.info('SecretRevealed event', {
-        chain,
-        escrow: event.address,
-        blockNumber: event.blockNumber,
-      });
-
-      await this.handleWithRetry(() =>
-        this.coordinator.handleSecretRevealed({
-          secret,
-          escrow: event.address,
-        })
-      );
-    });
-
-    // Generic error handler
-    contract.on('error', (error) => {
-      logger.error('Contract event error', {
-        chain,
-        address: contract.address,
-        error,
-      });
-    });
-  }
+  // Removed setupEventListeners - using polling instead for HTTP providers
+  // Event listeners with contract.on() don't work reliably with public HTTP endpoints
+  // The polling mechanism in pollChain() handles event detection
 
   private async pollChain(chain: string, monitor: ChainMonitor): Promise<void> {
     if (!monitor.polling) {
@@ -320,9 +399,21 @@ export class EventMonitor {
       switch (parsedLog.name) {
         case 'SrcEscrowCreated':
           await this.coordinator.handleEscrowCreated({
-            orderHash: parsedLog.args.orderHash,
+            orderHash: parsedLog.args.hashlockHash || parsedLog.args.orderHash,
             escrow: parsedLog.args.escrow,
             maker: parsedLog.args.maker,
+            chain,
+            isSource: true,
+          });
+          break;
+
+        case 'DstEscrowCreated':
+          await this.coordinator.handleEscrowCreated({
+            orderHash: parsedLog.args.hashlockHash || parsedLog.args.orderHash,
+            escrow: parsedLog.args.escrow,
+            maker: parsedLog.args.maker,
+            chain,
+            isSource: false,
           });
           break;
 
@@ -355,7 +446,8 @@ export class EventMonitor {
     }, 30000); // Every 30 seconds
   }
 
-  private async handleWithRetry(fn: () => Promise<void>): Promise<void> {
+  // Removed handleWithRetry - was only used with event listeners
+  /*private async handleWithRetry(fn: () => Promise<void>): Promise<void> {
     const operation = retry.operation({
       retries: 3,
       factor: 2,
@@ -377,7 +469,7 @@ export class EventMonitor {
         }
       });
     });
-  }
+  }*/
 
   // Admin methods
   async getMonitoringStatus(): Promise<{

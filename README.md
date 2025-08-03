@@ -128,6 +128,44 @@ For detailed setup instructions, see [Bootstrap Infrastructure](docs/BOOTSTRAP-I
 
 See [Hardhat Configuration](packages/hardhat/docs/CONFIGURATION.md) for detailed setup.
 
+## 🚀 Deployment
+
+### NEAR Contract Deployment
+
+The NEAR contracts enable cross-chain atomic swaps with BASE. Deploy to testnet:
+
+```bash
+# From 1balancer-near directory
+cd 1balancer-near
+
+# IMPORTANT: Always build before deploying to ensure optimized WASM
+make build
+
+# Initial deployment (creates new contract account)
+make deploy-testnet
+
+# Redeployment (updates existing contract code, preserves state)
+make redeploy-testnet
+```
+
+**Manual redeployment command:**
+```bash
+# The exact command used for redeployment
+near deploy fusion-htlc.rog_eth.testnet target/wasm32-unknown-unknown/release/fusion_plus_htlc.wasm --networkId testnet
+```
+
+**Requirements:**
+- NEAR CLI installed: `npm install -g near-cli`
+- NEAR testnet account with sufficient balance (3+ NEAR)
+- Environment variable: `NEAR_MASTER_ACCOUNT=your-account.testnet`
+
+**Contract Explorer:**
+- View deployed contract: `https://testnet.nearblocks.io/address/fusion-htlc.rog_eth.testnet`
+
+### BASE Contract Deployment
+
+BASE contracts are deployed via Hardhat (see Hardhat documentation for deployment commands).
+
 ## 🏗️ Architecture
 
 1Balancer implements a three-layer architecture:

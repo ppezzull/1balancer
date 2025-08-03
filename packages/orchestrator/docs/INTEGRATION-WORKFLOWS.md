@@ -27,7 +27,7 @@
 │  Orchestrator (Node.js)                                                  │
 │      ├── Events ────────────► BASE Chain                               │
 │      ├── RPC ───────────────► NEAR Chain                               │
-│      └── State ─────────────► Redis                                    │
+│      └── State ─────────────► Redis  (no!)                                  │
 │                                                                          │
 │  Smart Contracts                                                         │
 │      ├── BASE (Hardhat) ────► Deploy Scripts                           │

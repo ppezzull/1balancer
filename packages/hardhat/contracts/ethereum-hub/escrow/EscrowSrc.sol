@@ -84,7 +84,7 @@ contract EscrowSrc is ReentrancyGuard {
         if (_withdrawn) revert AlreadyWithdrawn();
         if (_cancelled) revert AlreadyCancelled();
         
-        // Verify secret
+        // Verify secret using Keccak-256 (standard for EVM chains)
         if (keccak256(abi.encodePacked(secret)) != _immutables.hashlockHash) {
             revert InvalidSecret();
         }

@@ -1,4 +1,6 @@
-import 'dotenv/config';
+// Load .env file but don't override existing environment variables
+import * as dotenv from 'dotenv';
+dotenv.config({ override: false });
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -156,8 +158,14 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason: any, promise) => {
+  logger.error('Unhandled Rejection:', {
+    reason: reason?.message || reason,
+    stack: reason?.stack,
+    promise: promise
+  });
+  // Log the full error for debugging
+  console.error('Full unhandled rejection:', reason);
   process.exit(1);
 });
 

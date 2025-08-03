@@ -183,6 +183,60 @@ export function sessionsRouter(services: Services): Router {
     })
   );
 
+  // Get revealed secret for client withdrawal (taker only)
+  router.get(
+    '/:sessionId/secret',
+    asyncHandler(async (req, res) => {
+      const { sessionId } = req.params;
+      const { walletAddress } = req.query;
+      
+      logger.debug('Getting session secret for withdrawal', { sessionId, walletAddress });
+
+      const session = await sessionManager.getSession(sessionId);
+      if (!session) {
+        res.status(404).json({ error: 'Session not found' });
+        return;
+      }
+
+      // Security: Only allow taker to access the secret
+      if (!walletAddress || session.taker.toLowerCase() !== (walletAddress as string).toLowerCase()) {
+        res.status(403).json({ 
+          error: 'Unauthorized - Only the taker can access withdrawal information',
+          taker: session.taker
+        });
+        return;
+      }
+
+      // Check if secret has been revealed
+      if (!session.revealedSecret) {
+        res.status(400).json({ 
+          error: 'Secret not yet revealed',
+          status: session.status,
+          message: 'Please wait for the atomic swap to reach the secret revelation phase'
+        });
+        return;
+      }
+
+      res.json({
+        sessionId,
+        secret: session.revealedSecret,
+        escrowAddress: session.srcEscrowAddress,
+        taker: session.taker,
+        withdrawalInstructions: {
+          action: 'Call withdraw() function on escrow contract',
+          contract: session.srcEscrowAddress,
+          function: 'withdraw(bytes32 secret)',
+          secret: session.revealedSecret,
+          note: `Must be called by taker wallet: ${session.taker}`,
+          explorerUrl: session.sourceChain === 'base' 
+            ? `https://basescan.org/address/${session.srcEscrowAddress}`
+            : `https://etherscan.io/address/${session.srcEscrowAddress}`
+        },
+        timestamp: session.updatedAt
+      });
+    })
+  );
+
   // Get all sessions (admin endpoint)
   router.get(
     '/',

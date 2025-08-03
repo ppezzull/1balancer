@@ -1,0 +1,1298 @@
+{
+  "address": "0x69D9f549E19a3FCF77F02a39363698cc5fFDf1E7",
+  "abi": [
+    {
+      "inputs": [],
+      "name": "AccessControlBadConfirmation",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "neededRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "AccessControlUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "EnforcedPause",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ExpectedPause",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FusionPlusHub__InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FusionPlusHub__InvalidAmount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FusionPlusHub__InvalidFee",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FusionPlusHub__InvalidOrderStatus",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FusionPlusHub__OrderAlreadyExists",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FusionPlusHub__UnauthorizedAccess",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidInitialization",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotInitializing",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ReentrancyGuardReentrantCall",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "limitOrderProtocol",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "aggregationRouter",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "escrowFactory",
+          "type": "address"
+        }
+      ],
+      "name": "ContractsUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "newRecipient",
+          "type": "address"
+        }
+      ],
+      "name": "FeeRecipientUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "maker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "destinationChain",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "srcToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "dstToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "srcAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "dstAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "FusionPlusOrderCreated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint64",
+          "name": "version",
+          "type": "uint64"
+        }
+      ],
+      "name": "Initialized",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum FusionPlusHub_V2.OrderStatus",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "name": "OrderStatusUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Paused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newFee",
+          "type": "uint256"
+        }
+      ],
+      "name": "ProtocolFeeUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "previousAdminRole",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "Unpaused",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "DEFAULT_ADMIN_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_FEE",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "OPERATOR_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "RESOLVER_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "UPGRADER_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "aggregationRouter",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "taker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "safetyDeposit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "hashlockHash",
+              "type": "bytes32"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint32",
+                  "name": "srcWithdrawal",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "srcPublicWithdrawal",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "srcCancellation",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "srcDeployedAt",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "dstWithdrawal",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "dstCancellation",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "dstDeployedAt",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct TimelocksLib.Timelocks",
+              "name": "timelocks",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "orderHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "chainId",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ImmutablesLib.Immutables",
+          "name": "srcImmutables",
+          "type": "tuple"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "taker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "amount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "safetyDeposit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "hashlockHash",
+              "type": "bytes32"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint32",
+                  "name": "srcWithdrawal",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "srcPublicWithdrawal",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "srcCancellation",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "srcDeployedAt",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "dstWithdrawal",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "dstCancellation",
+                  "type": "uint32"
+                },
+                {
+                  "internalType": "uint32",
+                  "name": "dstDeployedAt",
+                  "type": "uint32"
+                }
+              ],
+              "internalType": "struct TimelocksLib.Timelocks",
+              "name": "timelocks",
+              "type": "tuple"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "orderHash",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "chainId",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ImmutablesLib.Immutables",
+          "name": "dstImmutables",
+          "type": "tuple"
+        }
+      ],
+      "name": "createEscrowsForOrder",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "srcEscrow",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "dstEscrow",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "destinationChain",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "srcToken",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "dstToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "srcAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "dstAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "orderData",
+          "type": "bytes"
+        }
+      ],
+      "name": "createFusionPlusOrder",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "escrowFactory",
+      "outputs": [
+        {
+          "internalType": "contract IEscrowFactory",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "feeRecipient",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getContractAddresses",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "_limitOrderProtocol",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_aggregationRouter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_escrowFactory",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getOrderStatus",
+      "outputs": [
+        {
+          "internalType": "enum FusionPlusHub_V2.OrderStatus",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getRoleAdmin",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "grantRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "hasRole",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_limitOrderProtocol",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_aggregationRouter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_escrowFactory",
+          "type": "address"
+        }
+      ],
+      "name": "initialize",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "limitOrderProtocol",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "orderStatuses",
+      "outputs": [
+        {
+          "internalType": "enum FusionPlusHub_V2.OrderStatus",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "pause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "paused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "protocolFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "callerConfirmation",
+          "type": "address"
+        }
+      ],
+      "name": "renounceRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "role",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_recipient",
+          "type": "address"
+        }
+      ],
+      "name": "setFeeRecipient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_fee",
+          "type": "uint256"
+        }
+      ],
+      "name": "setProtocolFee",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        }
+      ],
+      "name": "supportsInterface",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "unpause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_limitOrderProtocol",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_aggregationRouter",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_escrowFactory",
+          "type": "address"
+        }
+      ],
+      "name": "updateContracts",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "enum FusionPlusHub_V2.OrderStatus",
+          "name": "newStatus",
+          "type": "uint8"
+        }
+      ],
+      "name": "updateOrderStatus",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xbfaecdf6a13c0e0c9cd159ac9c2c48356cf2df7b15b40b1f804881854c0f3a72",
+  "receipt": {
+    "to": null,
+    "from": "0x3861C9ff421C9b2Af29811B5030122E0c23Ea74C",
+    "contractAddress": "0x69D9f549E19a3FCF77F02a39363698cc5fFDf1E7",
+    "transactionIndex": 1,
+    "gasUsed": "1974692",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x77ba15cbd02df945e4cddf392b1e192e2175a17bd8f6a17a0bb0073e47695f44",
+    "transactionHash": "0xbfaecdf6a13c0e0c9cd159ac9c2c48356cf2df7b15b40b1f804881854c0f3a72",
+    "logs": [],
+    "blockNumber": 29187960,
+    "cumulativeGasUsed": "2020824",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 2,
+  "solcInputHash": "ff6b231b8e9ed4cc6ee3e5ff2718dde3",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"AccessControlBadConfirmation\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"neededRole\",\"type\":\"bytes32\"}],\"name\":\"AccessControlUnauthorizedAccount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"EnforcedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ExpectedPause\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FusionPlusHub__InvalidAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FusionPlusHub__InvalidAmount\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FusionPlusHub__InvalidFee\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FusionPlusHub__InvalidOrderStatus\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FusionPlusHub__OrderAlreadyExists\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"FusionPlusHub__UnauthorizedAccess\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"InvalidInitialization\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotInitializing\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ReentrancyGuardReentrantCall\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"limitOrderProtocol\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"aggregationRouter\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"escrowFactory\",\"type\":\"address\"}],\"name\":\"ContractsUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newRecipient\",\"type\":\"address\"}],\"name\":\"FeeRecipientUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"destinationChain\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"srcToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"dstToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"srcAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"dstAmount\",\"type\":\"uint256\"}],\"name\":\"FusionPlusOrderCreated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"version\",\"type\":\"uint64\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"enum FusionPlusHub_V2.OrderStatus\",\"name\":\"status\",\"type\":\"uint8\"}],\"name\":\"OrderStatusUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Paused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newFee\",\"type\":\"uint256\"}],\"name\":\"ProtocolFeeUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"previousAdminRole\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"newAdminRole\",\"type\":\"bytes32\"}],\"name\":\"RoleAdminChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleGranted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"}],\"name\":\"RoleRevoked\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"Unpaused\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"DEFAULT_ADMIN_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"MAX_FEE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"OPERATOR_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"RESOLVER_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"UPGRADER_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"aggregationRouter\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"calculateFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"taker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"safetyDeposit\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"hashlockHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"srcWithdrawal\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"srcPublicWithdrawal\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"srcCancellation\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"srcDeployedAt\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"dstWithdrawal\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"dstCancellation\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"dstDeployedAt\",\"type\":\"uint32\"}],\"internalType\":\"struct TimelocksLib.Timelocks\",\"name\":\"timelocks\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"}],\"internalType\":\"struct ImmutablesLib.Immutables\",\"name\":\"srcImmutables\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"taker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"safetyDeposit\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"hashlockHash\",\"type\":\"bytes32\"},{\"components\":[{\"internalType\":\"uint32\",\"name\":\"srcWithdrawal\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"srcPublicWithdrawal\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"srcCancellation\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"srcDeployedAt\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"dstWithdrawal\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"dstCancellation\",\"type\":\"uint32\"},{\"internalType\":\"uint32\",\"name\":\"dstDeployedAt\",\"type\":\"uint32\"}],\"internalType\":\"struct TimelocksLib.Timelocks\",\"name\":\"timelocks\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"chainId\",\"type\":\"uint256\"}],\"internalType\":\"struct ImmutablesLib.Immutables\",\"name\":\"dstImmutables\",\"type\":\"tuple\"}],\"name\":\"createEscrowsForOrder\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"srcEscrow\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"dstEscrow\",\"type\":\"address\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"destinationChain\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"srcToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"dstToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"srcAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"dstAmount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"orderData\",\"type\":\"bytes\"}],\"name\":\"createFusionPlusOrder\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"escrowFactory\",\"outputs\":[{\"internalType\":\"contract IEscrowFactory\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"feeRecipient\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getContractAddresses\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"_limitOrderProtocol\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_aggregationRouter\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_escrowFactory\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"}],\"name\":\"getOrderStatus\",\"outputs\":[{\"internalType\":\"enum FusionPlusHub_V2.OrderStatus\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"getRoleAdmin\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"grantRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"hasRole\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_limitOrderProtocol\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_aggregationRouter\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_escrowFactory\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"limitOrderProtocol\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"orderStatuses\",\"outputs\":[{\"internalType\":\"enum FusionPlusHub_V2.OrderStatus\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"pause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"paused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"protocolFee\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"callerConfirmation\",\"type\":\"address\"}],\"name\":\"renounceRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"},{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"revokeRole\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_recipient\",\"type\":\"address\"}],\"name\":\"setFeeRecipient\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_fee\",\"type\":\"uint256\"}],\"name\":\"setProtocolFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"}],\"name\":\"supportsInterface\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unpause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_limitOrderProtocol\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_aggregationRouter\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"_escrowFactory\",\"type\":\"address\"}],\"name\":\"updateContracts\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"internalType\":\"enum FusionPlusHub_V2.OrderStatus\",\"name\":\"newStatus\",\"type\":\"uint8\"}],\"name\":\"updateOrderStatus\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"1Balancer Team\",\"details\":\"Integrates with 1inch foundation contracts and manages cross-chain coordination\",\"errors\":{\"AccessControlBadConfirmation()\":[{\"details\":\"The caller of a function is not the expected one. NOTE: Don't confuse with {AccessControlUnauthorizedAccount}.\"}],\"AccessControlUnauthorizedAccount(address,bytes32)\":[{\"details\":\"The `account` is missing a role.\"}],\"EnforcedPause()\":[{\"details\":\"The operation failed because the contract is paused.\"}],\"ExpectedPause()\":[{\"details\":\"The operation failed because the contract is not paused.\"}],\"InvalidInitialization()\":[{\"details\":\"The contract is already initialized.\"}],\"NotInitializing()\":[{\"details\":\"The contract is not initializing.\"}],\"ReentrancyGuardReentrantCall()\":[{\"details\":\"Unauthorized reentrant call.\"}]},\"events\":{\"Initialized(uint64)\":{\"details\":\"Triggered when the contract has been initialized or reinitialized.\"},\"Paused(address)\":{\"details\":\"Emitted when the pause is triggered by `account`.\"},\"RoleAdminChanged(bytes32,bytes32,bytes32)\":{\"details\":\"Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole` `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite {RoleAdminChanged} not being emitted to signal this.\"},\"RoleGranted(bytes32,address,address)\":{\"details\":\"Emitted when `account` is granted `role`. `sender` is the account that originated the contract call. This account bears the admin role (for the granted role). Expected in cases where the role was granted using the internal {AccessControl-_grantRole}.\"},\"RoleRevoked(bytes32,address,address)\":{\"details\":\"Emitted when `account` is revoked `role`. `sender` is the account that originated the contract call:   - if using `revokeRole`, it is the admin role bearer   - if using `renounceRole`, it is the role bearer (i.e. `account`)\"},\"Unpaused(address)\":{\"details\":\"Emitted when the pause is lifted by `account`.\"}},\"kind\":\"dev\",\"methods\":{\"calculateFee(uint256)\":{\"params\":{\"amount\":\"The amount to calculate fee for\"},\"returns\":{\"_0\":\"The fee amount\"}},\"createEscrowsForOrder(bytes32,(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256),(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256))\":{\"details\":\"Called by resolver after order validation\"},\"createFusionPlusOrder(bytes32,address,address,uint256,uint256,bytes)\":{\"details\":\"Validates amounts and creates order hash for tracking\",\"params\":{\"destinationChain\":\"The destination chain identifier\",\"dstAmount\":\"Expected amount on destination chain\",\"dstToken\":\"Destination chain token address\",\"orderData\":\"Additional order parameters\",\"srcAmount\":\"Amount on source chain\",\"srcToken\":\"Source chain token address\"}},\"getContractAddresses()\":{\"returns\":{\"_aggregationRouter\":\"The aggregation router address\",\"_escrowFactory\":\"The escrow factory address\",\"_limitOrderProtocol\":\"The limit order protocol address\"}},\"getOrderStatus(bytes32)\":{\"params\":{\"orderHash\":\"The order hash to check\"},\"returns\":{\"_0\":\"The order status\"}},\"getRoleAdmin(bytes32)\":{\"details\":\"Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}.\"},\"grantRole(bytes32,address)\":{\"details\":\"Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleGranted} event.\"},\"hasRole(bytes32,address)\":{\"details\":\"Returns `true` if `account` has been granted `role`.\"},\"paused()\":{\"details\":\"Returns true if the contract is paused, and false otherwise.\"},\"renounceRole(bytes32,address)\":{\"details\":\"Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `callerConfirmation`. May emit a {RoleRevoked} event.\"},\"revokeRole(bytes32,address)\":{\"details\":\"Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleRevoked} event.\"},\"setFeeRecipient(address)\":{\"params\":{\"_recipient\":\"New fee recipient address\"}},\"setProtocolFee(uint256)\":{\"params\":{\"_fee\":\"New fee in basis points\"}},\"supportsInterface(bytes4)\":{\"details\":\"Returns true if this contract implements the interface defined by `interfaceId`. See the corresponding https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[ERC section] to learn more about how these ids are created. This function call must use less than 30 000 gas.\"},\"updateContracts(address,address,address)\":{\"params\":{\"_aggregationRouter\":\"New aggregation router address\",\"_escrowFactory\":\"New escrow factory address\",\"_limitOrderProtocol\":\"New limit order protocol address\"}},\"updateOrderStatus(bytes32,uint8)\":{\"params\":{\"newStatus\":\"The new status\",\"orderHash\":\"The order hash to update\"}}},\"title\":\"FusionPlusHub V2\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"calculateFee(uint256)\":{\"notice\":\"Calculates fee for an amount\"},\"createEscrowsForOrder(bytes32,(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256),(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256))\":{\"notice\":\"Creates escrow pair for cross-chain atomic swap\"},\"createFusionPlusOrder(bytes32,address,address,uint256,uint256,bytes)\":{\"notice\":\"Creates a cross-chain Fusion+ order with proper validation\"},\"getContractAddresses()\":{\"notice\":\"Gets all contract addresses\"},\"getOrderStatus(bytes32)\":{\"notice\":\"Gets order status\"},\"pause()\":{\"notice\":\"Pauses the contract\"},\"setFeeRecipient(address)\":{\"notice\":\"Updates fee recipient\"},\"setProtocolFee(uint256)\":{\"notice\":\"Updates protocol fee\"},\"unpause()\":{\"notice\":\"Unpauses the contract\"},\"updateContracts(address,address,address)\":{\"notice\":\"Updates contract addresses\"},\"updateOrderStatus(bytes32,uint8)\":{\"notice\":\"Updates order status (called by resolver/orchestrator)\"}},\"notice\":\"Enhanced hub contract for Fusion+ cross-chain swaps on BASE with better 1inch integration\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/ethereum-hub/FusionPlusHub_V2.sol\":\"FusionPlusHub_V2\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":1000000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (access/AccessControl.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {IAccessControl} from \\\"@openzeppelin/contracts/access/IAccessControl.sol\\\";\\nimport {ContextUpgradeable} from \\\"../utils/ContextUpgradeable.sol\\\";\\nimport {IERC165} from \\\"@openzeppelin/contracts/utils/introspection/IERC165.sol\\\";\\nimport {ERC165Upgradeable} from \\\"../utils/introspection/ERC165Upgradeable.sol\\\";\\nimport {Initializable} from \\\"../proxy/utils/Initializable.sol\\\";\\n\\n/**\\n * @dev Contract module that allows children to implement role-based access\\n * control mechanisms. This is a lightweight version that doesn't allow enumerating role\\n * members except through off-chain means by accessing the contract event logs. Some\\n * applications may benefit from on-chain enumerability, for those cases see\\n * {AccessControlEnumerable}.\\n *\\n * Roles are referred to by their `bytes32` identifier. These should be exposed\\n * in the external API and be unique. The best way to achieve this is by\\n * using `public constant` hash digests:\\n *\\n * ```solidity\\n * bytes32 public constant MY_ROLE = keccak256(\\\"MY_ROLE\\\");\\n * ```\\n *\\n * Roles can be used to represent a set of permissions. To restrict access to a\\n * function call, use {hasRole}:\\n *\\n * ```solidity\\n * function foo() public {\\n *     require(hasRole(MY_ROLE, msg.sender));\\n *     ...\\n * }\\n * ```\\n *\\n * Roles can be granted and revoked dynamically via the {grantRole} and\\n * {revokeRole} functions. Each role has an associated admin role, and only\\n * accounts that have a role's admin role can call {grantRole} and {revokeRole}.\\n *\\n * By default, the admin role for all roles is `DEFAULT_ADMIN_ROLE`, which means\\n * that only accounts with this role will be able to grant or revoke other\\n * roles. More complex role relationships can be created by using\\n * {_setRoleAdmin}.\\n *\\n * WARNING: The `DEFAULT_ADMIN_ROLE` is also its own admin: it has permission to\\n * grant and revoke this role. Extra precautions should be taken to secure\\n * accounts that have been granted it. We recommend using {AccessControlDefaultAdminRules}\\n * to enforce additional security measures for this role.\\n */\\nabstract contract AccessControlUpgradeable is Initializable, ContextUpgradeable, IAccessControl, ERC165Upgradeable {\\n    struct RoleData {\\n        mapping(address account => bool) hasRole;\\n        bytes32 adminRole;\\n    }\\n\\n    bytes32 public constant DEFAULT_ADMIN_ROLE = 0x00;\\n\\n\\n    /// @custom:storage-location erc7201:openzeppelin.storage.AccessControl\\n    struct AccessControlStorage {\\n        mapping(bytes32 role => RoleData) _roles;\\n    }\\n\\n    // keccak256(abi.encode(uint256(keccak256(\\\"openzeppelin.storage.AccessControl\\\")) - 1)) & ~bytes32(uint256(0xff))\\n    bytes32 private constant AccessControlStorageLocation = 0x02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b626800;\\n\\n    function _getAccessControlStorage() private pure returns (AccessControlStorage storage $) {\\n        assembly {\\n            $.slot := AccessControlStorageLocation\\n        }\\n    }\\n\\n    /**\\n     * @dev Modifier that checks that an account has a specific role. Reverts\\n     * with an {AccessControlUnauthorizedAccount} error including the required role.\\n     */\\n    modifier onlyRole(bytes32 role) {\\n        _checkRole(role);\\n        _;\\n    }\\n\\n    function __AccessControl_init() internal onlyInitializing {\\n    }\\n\\n    function __AccessControl_init_unchained() internal onlyInitializing {\\n    }\\n    /// @inheritdoc IERC165\\n    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {\\n        return interfaceId == type(IAccessControl).interfaceId || super.supportsInterface(interfaceId);\\n    }\\n\\n    /**\\n     * @dev Returns `true` if `account` has been granted `role`.\\n     */\\n    function hasRole(bytes32 role, address account) public view virtual returns (bool) {\\n        AccessControlStorage storage $ = _getAccessControlStorage();\\n        return $._roles[role].hasRole[account];\\n    }\\n\\n    /**\\n     * @dev Reverts with an {AccessControlUnauthorizedAccount} error if `_msgSender()`\\n     * is missing `role`. Overriding this function changes the behavior of the {onlyRole} modifier.\\n     */\\n    function _checkRole(bytes32 role) internal view virtual {\\n        _checkRole(role, _msgSender());\\n    }\\n\\n    /**\\n     * @dev Reverts with an {AccessControlUnauthorizedAccount} error if `account`\\n     * is missing `role`.\\n     */\\n    function _checkRole(bytes32 role, address account) internal view virtual {\\n        if (!hasRole(role, account)) {\\n            revert AccessControlUnauthorizedAccount(account, role);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the admin role that controls `role`. See {grantRole} and\\n     * {revokeRole}.\\n     *\\n     * To change a role's admin, use {_setRoleAdmin}.\\n     */\\n    function getRoleAdmin(bytes32 role) public view virtual returns (bytes32) {\\n        AccessControlStorage storage $ = _getAccessControlStorage();\\n        return $._roles[role].adminRole;\\n    }\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * If `account` had not been already granted `role`, emits a {RoleGranted}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     *\\n     * May emit a {RoleGranted} event.\\n     */\\n    function grantRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {\\n        _grantRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Revokes `role` from `account`.\\n     *\\n     * If `account` had been granted `role`, emits a {RoleRevoked} event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     *\\n     * May emit a {RoleRevoked} event.\\n     */\\n    function revokeRole(bytes32 role, address account) public virtual onlyRole(getRoleAdmin(role)) {\\n        _revokeRole(role, account);\\n    }\\n\\n    /**\\n     * @dev Revokes `role` from the calling account.\\n     *\\n     * Roles are often managed via {grantRole} and {revokeRole}: this function's\\n     * purpose is to provide a mechanism for accounts to lose their privileges\\n     * if they are compromised (such as when a trusted device is misplaced).\\n     *\\n     * If the calling account had been revoked `role`, emits a {RoleRevoked}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must be `callerConfirmation`.\\n     *\\n     * May emit a {RoleRevoked} event.\\n     */\\n    function renounceRole(bytes32 role, address callerConfirmation) public virtual {\\n        if (callerConfirmation != _msgSender()) {\\n            revert AccessControlBadConfirmation();\\n        }\\n\\n        _revokeRole(role, callerConfirmation);\\n    }\\n\\n    /**\\n     * @dev Sets `adminRole` as ``role``'s admin role.\\n     *\\n     * Emits a {RoleAdminChanged} event.\\n     */\\n    function _setRoleAdmin(bytes32 role, bytes32 adminRole) internal virtual {\\n        AccessControlStorage storage $ = _getAccessControlStorage();\\n        bytes32 previousAdminRole = getRoleAdmin(role);\\n        $._roles[role].adminRole = adminRole;\\n        emit RoleAdminChanged(role, previousAdminRole, adminRole);\\n    }\\n\\n    /**\\n     * @dev Attempts to grant `role` to `account` and returns a boolean indicating if `role` was granted.\\n     *\\n     * Internal function without access restriction.\\n     *\\n     * May emit a {RoleGranted} event.\\n     */\\n    function _grantRole(bytes32 role, address account) internal virtual returns (bool) {\\n        AccessControlStorage storage $ = _getAccessControlStorage();\\n        if (!hasRole(role, account)) {\\n            $._roles[role].hasRole[account] = true;\\n            emit RoleGranted(role, account, _msgSender());\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n\\n    /**\\n     * @dev Attempts to revoke `role` from `account` and returns a boolean indicating if `role` was revoked.\\n     *\\n     * Internal function without access restriction.\\n     *\\n     * May emit a {RoleRevoked} event.\\n     */\\n    function _revokeRole(bytes32 role, address account) internal virtual returns (bool) {\\n        AccessControlStorage storage $ = _getAccessControlStorage();\\n        if (hasRole(role, account)) {\\n            $._roles[role].hasRole[account] = false;\\n            emit RoleRevoked(role, account, _msgSender());\\n            return true;\\n        } else {\\n            return false;\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x85a70e2b1b65e9ba456add364d22b97eb9944083df1c39c0b4bd6a4b5aa386a4\",\"license\":\"MIT\"},\"@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.3.0) (proxy/utils/Initializable.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev This is a base contract to aid in writing upgradeable contracts, or any kind of contract that will be deployed\\n * behind a proxy. Since proxied contracts do not make use of a constructor, it's common to move constructor logic to an\\n * external initializer function, usually called `initialize`. It then becomes necessary to protect this initializer\\n * function so it can only be called once. The {initializer} modifier provided by this contract will have this effect.\\n *\\n * The initialization functions use a version number. Once a version number is used, it is consumed and cannot be\\n * reused. This mechanism prevents re-execution of each \\\"step\\\" but allows the creation of new initialization steps in\\n * case an upgrade adds a module that needs to be initialized.\\n *\\n * For example:\\n *\\n * [.hljs-theme-light.nopadding]\\n * ```solidity\\n * contract MyToken is ERC20Upgradeable {\\n *     function initialize() initializer public {\\n *         __ERC20_init(\\\"MyToken\\\", \\\"MTK\\\");\\n *     }\\n * }\\n *\\n * contract MyTokenV2 is MyToken, ERC20PermitUpgradeable {\\n *     function initializeV2() reinitializer(2) public {\\n *         __ERC20Permit_init(\\\"MyToken\\\");\\n *     }\\n * }\\n * ```\\n *\\n * TIP: To avoid leaving the proxy in an uninitialized state, the initializer function should be called as early as\\n * possible by providing the encoded function call as the `_data` argument to {ERC1967Proxy-constructor}.\\n *\\n * CAUTION: When used with inheritance, manual care must be taken to not invoke a parent initializer twice, or to ensure\\n * that all initializers are idempotent. This is not verified automatically as constructors are by Solidity.\\n *\\n * [CAUTION]\\n * ====\\n * Avoid leaving a contract uninitialized.\\n *\\n * An uninitialized contract can be taken over by an attacker. This applies to both a proxy and its implementation\\n * contract, which may impact the proxy. To prevent the implementation contract from being used, you should invoke\\n * the {_disableInitializers} function in the constructor to automatically lock it when it is deployed:\\n *\\n * [.hljs-theme-light.nopadding]\\n * ```\\n * /// @custom:oz-upgrades-unsafe-allow constructor\\n * constructor() {\\n *     _disableInitializers();\\n * }\\n * ```\\n * ====\\n */\\nabstract contract Initializable {\\n    /**\\n     * @dev Storage of the initializable contract.\\n     *\\n     * It's implemented on a custom ERC-7201 namespace to reduce the risk of storage collisions\\n     * when using with upgradeable contracts.\\n     *\\n     * @custom:storage-location erc7201:openzeppelin.storage.Initializable\\n     */\\n    struct InitializableStorage {\\n        /**\\n         * @dev Indicates that the contract has been initialized.\\n         */\\n        uint64 _initialized;\\n        /**\\n         * @dev Indicates that the contract is in the process of being initialized.\\n         */\\n        bool _initializing;\\n    }\\n\\n    // keccak256(abi.encode(uint256(keccak256(\\\"openzeppelin.storage.Initializable\\\")) - 1)) & ~bytes32(uint256(0xff))\\n    bytes32 private constant INITIALIZABLE_STORAGE = 0xf0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00;\\n\\n    /**\\n     * @dev The contract is already initialized.\\n     */\\n    error InvalidInitialization();\\n\\n    /**\\n     * @dev The contract is not initializing.\\n     */\\n    error NotInitializing();\\n\\n    /**\\n     * @dev Triggered when the contract has been initialized or reinitialized.\\n     */\\n    event Initialized(uint64 version);\\n\\n    /**\\n     * @dev A modifier that defines a protected initializer function that can be invoked at most once. In its scope,\\n     * `onlyInitializing` functions can be used to initialize parent contracts.\\n     *\\n     * Similar to `reinitializer(1)`, except that in the context of a constructor an `initializer` may be invoked any\\n     * number of times. This behavior in the constructor can be useful during testing and is not expected to be used in\\n     * production.\\n     *\\n     * Emits an {Initialized} event.\\n     */\\n    modifier initializer() {\\n        // solhint-disable-next-line var-name-mixedcase\\n        InitializableStorage storage $ = _getInitializableStorage();\\n\\n        // Cache values to avoid duplicated sloads\\n        bool isTopLevelCall = !$._initializing;\\n        uint64 initialized = $._initialized;\\n\\n        // Allowed calls:\\n        // - initialSetup: the contract is not in the initializing state and no previous version was\\n        //                 initialized\\n        // - construction: the contract is initialized at version 1 (no reinitialization) and the\\n        //                 current contract is just being deployed\\n        bool initialSetup = initialized == 0 && isTopLevelCall;\\n        bool construction = initialized == 1 && address(this).code.length == 0;\\n\\n        if (!initialSetup && !construction) {\\n            revert InvalidInitialization();\\n        }\\n        $._initialized = 1;\\n        if (isTopLevelCall) {\\n            $._initializing = true;\\n        }\\n        _;\\n        if (isTopLevelCall) {\\n            $._initializing = false;\\n            emit Initialized(1);\\n        }\\n    }\\n\\n    /**\\n     * @dev A modifier that defines a protected reinitializer function that can be invoked at most once, and only if the\\n     * contract hasn't been initialized to a greater version before. In its scope, `onlyInitializing` functions can be\\n     * used to initialize parent contracts.\\n     *\\n     * A reinitializer may be used after the original initialization step. This is essential to configure modules that\\n     * are added through upgrades and that require initialization.\\n     *\\n     * When `version` is 1, this modifier is similar to `initializer`, except that functions marked with `reinitializer`\\n     * cannot be nested. If one is invoked in the context of another, execution will revert.\\n     *\\n     * Note that versions can jump in increments greater than 1; this implies that if multiple reinitializers coexist in\\n     * a contract, executing them in the right order is up to the developer or operator.\\n     *\\n     * WARNING: Setting the version to 2**64 - 1 will prevent any future reinitialization.\\n     *\\n     * Emits an {Initialized} event.\\n     */\\n    modifier reinitializer(uint64 version) {\\n        // solhint-disable-next-line var-name-mixedcase\\n        InitializableStorage storage $ = _getInitializableStorage();\\n\\n        if ($._initializing || $._initialized >= version) {\\n            revert InvalidInitialization();\\n        }\\n        $._initialized = version;\\n        $._initializing = true;\\n        _;\\n        $._initializing = false;\\n        emit Initialized(version);\\n    }\\n\\n    /**\\n     * @dev Modifier to protect an initialization function so that it can only be invoked by functions with the\\n     * {initializer} and {reinitializer} modifiers, directly or indirectly.\\n     */\\n    modifier onlyInitializing() {\\n        _checkInitializing();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Reverts if the contract is not in an initializing state. See {onlyInitializing}.\\n     */\\n    function _checkInitializing() internal view virtual {\\n        if (!_isInitializing()) {\\n            revert NotInitializing();\\n        }\\n    }\\n\\n    /**\\n     * @dev Locks the contract, preventing any future reinitialization. This cannot be part of an initializer call.\\n     * Calling this in the constructor of a contract will prevent that contract from being initialized or reinitialized\\n     * to any version. It is recommended to use this to lock implementation contracts that are designed to be called\\n     * through proxies.\\n     *\\n     * Emits an {Initialized} event the first time it is successfully executed.\\n     */\\n    function _disableInitializers() internal virtual {\\n        // solhint-disable-next-line var-name-mixedcase\\n        InitializableStorage storage $ = _getInitializableStorage();\\n\\n        if ($._initializing) {\\n            revert InvalidInitialization();\\n        }\\n        if ($._initialized != type(uint64).max) {\\n            $._initialized = type(uint64).max;\\n            emit Initialized(type(uint64).max);\\n        }\\n    }\\n\\n    /**\\n     * @dev Returns the highest version that has been initialized. See {reinitializer}.\\n     */\\n    function _getInitializedVersion() internal view returns (uint64) {\\n        return _getInitializableStorage()._initialized;\\n    }\\n\\n    /**\\n     * @dev Returns `true` if the contract is currently initializing. See {onlyInitializing}.\\n     */\\n    function _isInitializing() internal view returns (bool) {\\n        return _getInitializableStorage()._initializing;\\n    }\\n\\n    /**\\n     * @dev Pointer to storage slot. Allows integrators to override it with a custom storage location.\\n     *\\n     * NOTE: Consider following the ERC-7201 formula to derive storage locations.\\n     */\\n    function _initializableStorageSlot() internal pure virtual returns (bytes32) {\\n        return INITIALIZABLE_STORAGE;\\n    }\\n\\n    /**\\n     * @dev Returns a pointer to the storage namespace.\\n     */\\n    // solhint-disable-next-line var-name-mixedcase\\n    function _getInitializableStorage() private pure returns (InitializableStorage storage $) {\\n        bytes32 slot = _initializableStorageSlot();\\n        assembly {\\n            $.slot := slot\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0xdb4d24ee2c087c391d587cd17adfe5b3f9d93b3110b1388c2ab6c7c0ad1dcd05\",\"license\":\"MIT\"},\"@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.1) (utils/Context.sol)\\n\\npragma solidity ^0.8.20;\\nimport {Initializable} from \\\"../proxy/utils/Initializable.sol\\\";\\n\\n/**\\n * @dev Provides information about the current execution context, including the\\n * sender of the transaction and its data. While these are generally available\\n * via msg.sender and msg.data, they should not be accessed in such a direct\\n * manner, since when dealing with meta-transactions the account sending and\\n * paying for execution may not be the actual sender (as far as an application\\n * is concerned).\\n *\\n * This contract is only required for intermediate, library-like contracts.\\n */\\nabstract contract ContextUpgradeable is Initializable {\\n    function __Context_init() internal onlyInitializing {\\n    }\\n\\n    function __Context_init_unchained() internal onlyInitializing {\\n    }\\n    function _msgSender() internal view virtual returns (address) {\\n        return msg.sender;\\n    }\\n\\n    function _msgData() internal view virtual returns (bytes calldata) {\\n        return msg.data;\\n    }\\n\\n    function _contextSuffixLength() internal view virtual returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0xdbef5f0c787055227243a7318ef74c8a5a1108ca3a07f2b3a00ef67769e1e397\",\"license\":\"MIT\"},\"@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.3.0) (utils/Pausable.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {ContextUpgradeable} from \\\"../utils/ContextUpgradeable.sol\\\";\\nimport {Initializable} from \\\"../proxy/utils/Initializable.sol\\\";\\n\\n/**\\n * @dev Contract module which allows children to implement an emergency stop\\n * mechanism that can be triggered by an authorized account.\\n *\\n * This module is used through inheritance. It will make available the\\n * modifiers `whenNotPaused` and `whenPaused`, which can be applied to\\n * the functions of your contract. Note that they will not be pausable by\\n * simply including this module, only once the modifiers are put in place.\\n */\\nabstract contract PausableUpgradeable is Initializable, ContextUpgradeable {\\n    /// @custom:storage-location erc7201:openzeppelin.storage.Pausable\\n    struct PausableStorage {\\n        bool _paused;\\n    }\\n\\n    // keccak256(abi.encode(uint256(keccak256(\\\"openzeppelin.storage.Pausable\\\")) - 1)) & ~bytes32(uint256(0xff))\\n    bytes32 private constant PausableStorageLocation = 0xcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f03300;\\n\\n    function _getPausableStorage() private pure returns (PausableStorage storage $) {\\n        assembly {\\n            $.slot := PausableStorageLocation\\n        }\\n    }\\n\\n    /**\\n     * @dev Emitted when the pause is triggered by `account`.\\n     */\\n    event Paused(address account);\\n\\n    /**\\n     * @dev Emitted when the pause is lifted by `account`.\\n     */\\n    event Unpaused(address account);\\n\\n    /**\\n     * @dev The operation failed because the contract is paused.\\n     */\\n    error EnforcedPause();\\n\\n    /**\\n     * @dev The operation failed because the contract is not paused.\\n     */\\n    error ExpectedPause();\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the contract is not paused.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must not be paused.\\n     */\\n    modifier whenNotPaused() {\\n        _requireNotPaused();\\n        _;\\n    }\\n\\n    /**\\n     * @dev Modifier to make a function callable only when the contract is paused.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must be paused.\\n     */\\n    modifier whenPaused() {\\n        _requirePaused();\\n        _;\\n    }\\n\\n    function __Pausable_init() internal onlyInitializing {\\n    }\\n\\n    function __Pausable_init_unchained() internal onlyInitializing {\\n    }\\n    /**\\n     * @dev Returns true if the contract is paused, and false otherwise.\\n     */\\n    function paused() public view virtual returns (bool) {\\n        PausableStorage storage $ = _getPausableStorage();\\n        return $._paused;\\n    }\\n\\n    /**\\n     * @dev Throws if the contract is paused.\\n     */\\n    function _requireNotPaused() internal view virtual {\\n        if (paused()) {\\n            revert EnforcedPause();\\n        }\\n    }\\n\\n    /**\\n     * @dev Throws if the contract is not paused.\\n     */\\n    function _requirePaused() internal view virtual {\\n        if (!paused()) {\\n            revert ExpectedPause();\\n        }\\n    }\\n\\n    /**\\n     * @dev Triggers stopped state.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must not be paused.\\n     */\\n    function _pause() internal virtual whenNotPaused {\\n        PausableStorage storage $ = _getPausableStorage();\\n        $._paused = true;\\n        emit Paused(_msgSender());\\n    }\\n\\n    /**\\n     * @dev Returns to normal state.\\n     *\\n     * Requirements:\\n     *\\n     * - The contract must be paused.\\n     */\\n    function _unpause() internal virtual whenPaused {\\n        PausableStorage storage $ = _getPausableStorage();\\n        $._paused = false;\\n        emit Unpaused(_msgSender());\\n    }\\n}\\n\",\"keccak256\":\"0xa6bf6b7efe0e6625a9dcd30c5ddf52c4c24fe8372f37c7de9dbf5034746768d5\",\"license\":\"MIT\"},\"@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.1.0) (utils/ReentrancyGuard.sol)\\n\\npragma solidity ^0.8.20;\\nimport {Initializable} from \\\"../proxy/utils/Initializable.sol\\\";\\n\\n/**\\n * @dev Contract module that helps prevent reentrant calls to a function.\\n *\\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\\n * available, which can be applied to functions to make sure there are no nested\\n * (reentrant) calls to them.\\n *\\n * Note that because there is a single `nonReentrant` guard, functions marked as\\n * `nonReentrant` may not call one another. This can be worked around by making\\n * those functions `private`, and then adding `external` `nonReentrant` entry\\n * points to them.\\n *\\n * TIP: If EIP-1153 (transient storage) is available on the chain you're deploying at,\\n * consider using {ReentrancyGuardTransient} instead.\\n *\\n * TIP: If you would like to learn more about reentrancy and alternative ways\\n * to protect against it, check out our blog post\\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\\n */\\nabstract contract ReentrancyGuardUpgradeable is Initializable {\\n    // Booleans are more expensive than uint256 or any type that takes up a full\\n    // word because each write operation emits an extra SLOAD to first read the\\n    // slot's contents, replace the bits taken up by the boolean, and then write\\n    // back. This is the compiler's defense against contract upgrades and\\n    // pointer aliasing, and it cannot be disabled.\\n\\n    // The values being non-zero value makes deployment a bit more expensive,\\n    // but in exchange the refund on every call to nonReentrant will be lower in\\n    // amount. Since refunds are capped to a percentage of the total\\n    // transaction's gas, it is best to keep them low in cases like this one, to\\n    // increase the likelihood of the full refund coming into effect.\\n    uint256 private constant NOT_ENTERED = 1;\\n    uint256 private constant ENTERED = 2;\\n\\n    /// @custom:storage-location erc7201:openzeppelin.storage.ReentrancyGuard\\n    struct ReentrancyGuardStorage {\\n        uint256 _status;\\n    }\\n\\n    // keccak256(abi.encode(uint256(keccak256(\\\"openzeppelin.storage.ReentrancyGuard\\\")) - 1)) & ~bytes32(uint256(0xff))\\n    bytes32 private constant ReentrancyGuardStorageLocation = 0x9b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f00;\\n\\n    function _getReentrancyGuardStorage() private pure returns (ReentrancyGuardStorage storage $) {\\n        assembly {\\n            $.slot := ReentrancyGuardStorageLocation\\n        }\\n    }\\n\\n    /**\\n     * @dev Unauthorized reentrant call.\\n     */\\n    error ReentrancyGuardReentrantCall();\\n\\n    function __ReentrancyGuard_init() internal onlyInitializing {\\n        __ReentrancyGuard_init_unchained();\\n    }\\n\\n    function __ReentrancyGuard_init_unchained() internal onlyInitializing {\\n        ReentrancyGuardStorage storage $ = _getReentrancyGuardStorage();\\n        $._status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Prevents a contract from calling itself, directly or indirectly.\\n     * Calling a `nonReentrant` function from another `nonReentrant`\\n     * function is not supported. It is possible to prevent this from happening\\n     * by making the `nonReentrant` function external, and making it call a\\n     * `private` function that does the actual work.\\n     */\\n    modifier nonReentrant() {\\n        _nonReentrantBefore();\\n        _;\\n        _nonReentrantAfter();\\n    }\\n\\n    function _nonReentrantBefore() private {\\n        ReentrancyGuardStorage storage $ = _getReentrancyGuardStorage();\\n        // On the first call to nonReentrant, _status will be NOT_ENTERED\\n        if ($._status == ENTERED) {\\n            revert ReentrancyGuardReentrantCall();\\n        }\\n\\n        // Any calls to nonReentrant after this point will fail\\n        $._status = ENTERED;\\n    }\\n\\n    function _nonReentrantAfter() private {\\n        ReentrancyGuardStorage storage $ = _getReentrancyGuardStorage();\\n        // By storing the original value once again, a refund is triggered (see\\n        // https://eips.ethereum.org/EIPS/eip-2200)\\n        $._status = NOT_ENTERED;\\n    }\\n\\n    /**\\n     * @dev Returns true if the reentrancy guard is currently set to \\\"entered\\\", which indicates there is a\\n     * `nonReentrant` function in the call stack.\\n     */\\n    function _reentrancyGuardEntered() internal view returns (bool) {\\n        ReentrancyGuardStorage storage $ = _getReentrancyGuardStorage();\\n        return $._status == ENTERED;\\n    }\\n}\\n\",\"keccak256\":\"0x361126a17677994081cd9cb69c3f50cffff6e920d25cb7e428acdb1ae41d1866\",\"license\":\"MIT\"},\"@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (utils/introspection/ERC165.sol)\\n\\npragma solidity ^0.8.20;\\n\\nimport {IERC165} from \\\"@openzeppelin/contracts/utils/introspection/IERC165.sol\\\";\\nimport {Initializable} from \\\"../../proxy/utils/Initializable.sol\\\";\\n\\n/**\\n * @dev Implementation of the {IERC165} interface.\\n *\\n * Contracts that want to implement ERC-165 should inherit from this contract and override {supportsInterface} to check\\n * for the additional interface id that will be supported. For example:\\n *\\n * ```solidity\\n * function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {\\n *     return interfaceId == type(MyInterface).interfaceId || super.supportsInterface(interfaceId);\\n * }\\n * ```\\n */\\nabstract contract ERC165Upgradeable is Initializable, IERC165 {\\n    function __ERC165_init() internal onlyInitializing {\\n    }\\n\\n    function __ERC165_init_unchained() internal onlyInitializing {\\n    }\\n    /// @inheritdoc IERC165\\n    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {\\n        return interfaceId == type(IERC165).interfaceId;\\n    }\\n}\\n\",\"keccak256\":\"0x6694b63ddb2c59bbe341c846171798350e8f72fa02189fcdeaca864e28b54e1f\",\"license\":\"MIT\"},\"@openzeppelin/contracts/access/IAccessControl.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (access/IAccessControl.sol)\\n\\npragma solidity >=0.8.4;\\n\\n/**\\n * @dev External interface of AccessControl declared to support ERC-165 detection.\\n */\\ninterface IAccessControl {\\n    /**\\n     * @dev The `account` is missing a role.\\n     */\\n    error AccessControlUnauthorizedAccount(address account, bytes32 neededRole);\\n\\n    /**\\n     * @dev The caller of a function is not the expected one.\\n     *\\n     * NOTE: Don't confuse with {AccessControlUnauthorizedAccount}.\\n     */\\n    error AccessControlBadConfirmation();\\n\\n    /**\\n     * @dev Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole`\\n     *\\n     * `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite\\n     * {RoleAdminChanged} not being emitted to signal this.\\n     */\\n    event RoleAdminChanged(bytes32 indexed role, bytes32 indexed previousAdminRole, bytes32 indexed newAdminRole);\\n\\n    /**\\n     * @dev Emitted when `account` is granted `role`.\\n     *\\n     * `sender` is the account that originated the contract call. This account bears the admin role (for the granted role).\\n     * Expected in cases where the role was granted using the internal {AccessControl-_grantRole}.\\n     */\\n    event RoleGranted(bytes32 indexed role, address indexed account, address indexed sender);\\n\\n    /**\\n     * @dev Emitted when `account` is revoked `role`.\\n     *\\n     * `sender` is the account that originated the contract call:\\n     *   - if using `revokeRole`, it is the admin role bearer\\n     *   - if using `renounceRole`, it is the role bearer (i.e. `account`)\\n     */\\n    event RoleRevoked(bytes32 indexed role, address indexed account, address indexed sender);\\n\\n    /**\\n     * @dev Returns `true` if `account` has been granted `role`.\\n     */\\n    function hasRole(bytes32 role, address account) external view returns (bool);\\n\\n    /**\\n     * @dev Returns the admin role that controls `role`. See {grantRole} and\\n     * {revokeRole}.\\n     *\\n     * To change a role's admin, use {AccessControl-_setRoleAdmin}.\\n     */\\n    function getRoleAdmin(bytes32 role) external view returns (bytes32);\\n\\n    /**\\n     * @dev Grants `role` to `account`.\\n     *\\n     * If `account` had not been already granted `role`, emits a {RoleGranted}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function grantRole(bytes32 role, address account) external;\\n\\n    /**\\n     * @dev Revokes `role` from `account`.\\n     *\\n     * If `account` had been granted `role`, emits a {RoleRevoked} event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must have ``role``'s admin role.\\n     */\\n    function revokeRole(bytes32 role, address account) external;\\n\\n    /**\\n     * @dev Revokes `role` from the calling account.\\n     *\\n     * Roles are often managed via {grantRole} and {revokeRole}: this function's\\n     * purpose is to provide a mechanism for accounts to lose their privileges\\n     * if they are compromised (such as when a trusted device is misplaced).\\n     *\\n     * If the calling account had been granted `role`, emits a {RoleRevoked}\\n     * event.\\n     *\\n     * Requirements:\\n     *\\n     * - the caller must be `callerConfirmation`.\\n     */\\n    function renounceRole(bytes32 role, address callerConfirmation) external;\\n}\\n\",\"keccak256\":\"0xbff9f59c84e5337689161ce7641c0ef8e872d6a7536fbc1f5133f128887aba3c\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.4.0) (utils/introspection/IERC165.sol)\\n\\npragma solidity >=0.4.16;\\n\\n/**\\n * @dev Interface of the ERC-165 standard, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-165[ERC].\\n *\\n * Implementers can declare support of contract interfaces, which can then be\\n * queried by others ({ERC165Checker}).\\n *\\n * For an implementation, see {ERC165}.\\n */\\ninterface IERC165 {\\n    /**\\n     * @dev Returns true if this contract implements the interface defined by\\n     * `interfaceId`. See the corresponding\\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[ERC section]\\n     * to learn more about how these ids are created.\\n     *\\n     * This function call must use less than 30 000 gas.\\n     */\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x8891738ffe910f0cf2da09566928589bf5d63f4524dd734fd9cedbac3274dd5c\",\"license\":\"MIT\"},\"contracts/ethereum-hub/FusionPlusHub_V2.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\nimport \\\"@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol\\\";\\nimport \\\"@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol\\\";\\nimport \\\"@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol\\\";\\nimport \\\"@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol\\\";\\nimport \\\"./interfaces/IEscrowFactory.sol\\\";\\nimport \\\"./interfaces/ILimitOrderProtocol.sol\\\";\\nimport \\\"./libraries/ImmutablesLib.sol\\\";\\nimport \\\"./libraries/TimelocksLib.sol\\\";\\n\\n/**\\n * @title FusionPlusHub V2\\n * @author 1Balancer Team\\n * @notice Enhanced hub contract for Fusion+ cross-chain swaps on BASE with better 1inch integration\\n * @dev Integrates with 1inch foundation contracts and manages cross-chain coordination\\n */\\ncontract FusionPlusHub_V2 is \\n    Initializable, \\n    AccessControlUpgradeable, \\n    PausableUpgradeable, \\n    ReentrancyGuardUpgradeable \\n{\\n    // -- Constants --\\n    bytes32 public constant OPERATOR_ROLE = keccak256(\\\"OPERATOR_ROLE\\\");\\n    bytes32 public constant RESOLVER_ROLE = keccak256(\\\"RESOLVER_ROLE\\\");\\n    bytes32 public constant UPGRADER_ROLE = keccak256(\\\"UPGRADER_ROLE\\\");\\n\\n    // -- State --\\n    address public limitOrderProtocol;\\n    address public aggregationRouter;\\n    IEscrowFactory public escrowFactory;\\n\\n    // Protocol fee configuration\\n    uint256 public protocolFee; // basis points (e.g., 30 = 0.3%)\\n    uint256 public constant MAX_FEE = 1000; // 10%\\n    address public feeRecipient;\\n\\n    // Order tracking for cross-chain coordination\\n    mapping(bytes32 => OrderStatus) public orderStatuses;\\n    \\n    enum OrderStatus {\\n        None,\\n        Created,\\n        Filled,\\n        Completed,\\n        Cancelled\\n    }\\n\\n    // -- Events --\\n    event FusionPlusOrderCreated(\\n        bytes32 indexed orderHash,\\n        address indexed maker,\\n        bytes32 destinationChain,\\n        address srcToken,\\n        address dstToken,\\n        uint256 srcAmount,\\n        uint256 dstAmount\\n    );\\n    \\n    event OrderStatusUpdated(\\n        bytes32 indexed orderHash,\\n        OrderStatus status\\n    );\\n    \\n    event ProtocolFeeUpdated(uint256 newFee);\\n    event FeeRecipientUpdated(address newRecipient);\\n    event ContractsUpdated(\\n        address limitOrderProtocol,\\n        address aggregationRouter,\\n        address escrowFactory\\n    );\\n\\n    // -- Errors --\\n    error FusionPlusHub__InvalidAddress();\\n    error FusionPlusHub__InvalidFee();\\n    error FusionPlusHub__UnauthorizedAccess();\\n    error FusionPlusHub__InvalidAmount();\\n    error FusionPlusHub__OrderAlreadyExists();\\n    error FusionPlusHub__InvalidOrderStatus();\\n\\n    // -- Modifier --\\n    modifier onlyAdmin() {\\n        if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {\\n            revert FusionPlusHub__UnauthorizedAccess();\\n        }\\n        _;\\n    }\\n\\n    modifier validAddress(address addr) {\\n        if (addr == address(0)) {\\n            revert FusionPlusHub__InvalidAddress();\\n        }\\n        _;\\n    }\\n\\n    // -- Initializer --\\n    function initialize(\\n        address _limitOrderProtocol,\\n        address _aggregationRouter,\\n        address _escrowFactory\\n    ) public initializer {\\n        __AccessControl_init();\\n        __Pausable_init();\\n        __ReentrancyGuard_init();\\n\\n        // Validate addresses\\n        if (_limitOrderProtocol == address(0) || \\n            _aggregationRouter == address(0) ||\\n            _escrowFactory == address(0)) {\\n            revert FusionPlusHub__InvalidAddress();\\n        }\\n\\n        // Set foundation contracts\\n        limitOrderProtocol = _limitOrderProtocol;\\n        aggregationRouter = _aggregationRouter;\\n        escrowFactory = IEscrowFactory(_escrowFactory);\\n\\n        // Grant roles\\n        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);\\n        _grantRole(OPERATOR_ROLE, msg.sender);\\n        _grantRole(RESOLVER_ROLE, msg.sender);\\n        _grantRole(UPGRADER_ROLE, msg.sender);\\n\\n        // Set initial fee configuration\\n        protocolFee = 30; // 0.3%\\n        feeRecipient = msg.sender;\\n    }\\n\\n    // -- External Functions --\\n\\n    /**\\n     * @notice Creates a cross-chain Fusion+ order with proper validation\\n     * @dev Validates amounts and creates order hash for tracking\\n     * @param destinationChain The destination chain identifier\\n     * @param srcToken Source chain token address\\n     * @param dstToken Destination chain token address\\n     * @param srcAmount Amount on source chain\\n     * @param dstAmount Expected amount on destination chain\\n     * @param orderData Additional order parameters\\n     */\\n    function createFusionPlusOrder(\\n        bytes32 destinationChain,\\n        address srcToken,\\n        address dstToken,\\n        uint256 srcAmount,\\n        uint256 dstAmount,\\n        bytes calldata orderData\\n    ) external nonReentrant whenNotPaused returns (bytes32 orderHash) {\\n        // Validate inputs\\n        if (srcAmount == 0 || dstAmount == 0) {\\n            revert FusionPlusHub__InvalidAmount();\\n        }\\n        \\n        if (srcToken == address(0) || dstToken == address(0)) {\\n            revert FusionPlusHub__InvalidAddress();\\n        }\\n        \\n        // Generate unique order hash\\n        orderHash = keccak256(abi.encodePacked(\\n            msg.sender,\\n            destinationChain,\\n            srcToken,\\n            dstToken,\\n            srcAmount,\\n            dstAmount,\\n            block.timestamp,\\n            block.number\\n        ));\\n        \\n        // Check if order already exists\\n        if (orderStatuses[orderHash] != OrderStatus.None) {\\n            revert FusionPlusHub__OrderAlreadyExists();\\n        }\\n        \\n        // Mark order as created\\n        orderStatuses[orderHash] = OrderStatus.Created;\\n        \\n        // Emit event for off-chain orchestration service\\n        emit FusionPlusOrderCreated(\\n            orderHash,\\n            msg.sender,\\n            destinationChain,\\n            srcToken,\\n            dstToken,\\n            srcAmount,\\n            dstAmount\\n        );\\n        \\n        emit OrderStatusUpdated(orderHash, OrderStatus.Created);\\n    }\\n\\n    /**\\n     * @notice Updates order status (called by resolver/orchestrator)\\n     * @param orderHash The order hash to update\\n     * @param newStatus The new status\\n     */\\n    function updateOrderStatus(\\n        bytes32 orderHash,\\n        OrderStatus newStatus\\n    ) external onlyRole(RESOLVER_ROLE) {\\n        OrderStatus currentStatus = orderStatuses[orderHash];\\n        \\n        // Validate status transition\\n        if (currentStatus == OrderStatus.None) {\\n            revert FusionPlusHub__InvalidOrderStatus();\\n        }\\n        \\n        if (currentStatus == OrderStatus.Cancelled || \\n            currentStatus == OrderStatus.Completed) {\\n            revert FusionPlusHub__InvalidOrderStatus();\\n        }\\n        \\n        orderStatuses[orderHash] = newStatus;\\n        emit OrderStatusUpdated(orderHash, newStatus);\\n    }\\n\\n    /**\\n     * @notice Creates escrow pair for cross-chain atomic swap\\n     * @dev Called by resolver after order validation\\n     */\\n    function createEscrowsForOrder(\\n        bytes32 orderHash,\\n        ImmutablesLib.Immutables calldata srcImmutables,\\n        ImmutablesLib.Immutables calldata dstImmutables\\n    ) external payable onlyRole(RESOLVER_ROLE) returns (\\n        address srcEscrow,\\n        address dstEscrow\\n    ) {\\n        // Verify order exists and is in correct state\\n        if (orderStatuses[orderHash] != OrderStatus.Created) {\\n            revert FusionPlusHub__InvalidOrderStatus();\\n        }\\n        \\n        // Create escrows through factory\\n        (srcEscrow, dstEscrow) = escrowFactory.createEscrowPair{value: msg.value}(\\n            srcImmutables,\\n            dstImmutables\\n        );\\n        \\n        // Update order status\\n        orderStatuses[orderHash] = OrderStatus.Filled;\\n        emit OrderStatusUpdated(orderHash, OrderStatus.Filled);\\n    }\\n\\n    // -- Admin Functions --\\n\\n    /**\\n     * @notice Updates protocol fee\\n     * @param _fee New fee in basis points\\n     */\\n    function setProtocolFee(uint256 _fee) external onlyAdmin {\\n        if (_fee > MAX_FEE) {\\n            revert FusionPlusHub__InvalidFee();\\n        }\\n        protocolFee = _fee;\\n        emit ProtocolFeeUpdated(_fee);\\n    }\\n\\n    /**\\n     * @notice Updates fee recipient\\n     * @param _recipient New fee recipient address\\n     */\\n    function setFeeRecipient(address _recipient) external onlyAdmin validAddress(_recipient) {\\n        feeRecipient = _recipient;\\n        emit FeeRecipientUpdated(_recipient);\\n    }\\n\\n    /**\\n     * @notice Updates contract addresses\\n     * @param _limitOrderProtocol New limit order protocol address\\n     * @param _aggregationRouter New aggregation router address\\n     * @param _escrowFactory New escrow factory address\\n     */\\n    function updateContracts(\\n        address _limitOrderProtocol,\\n        address _aggregationRouter,\\n        address _escrowFactory\\n    ) external onlyAdmin {\\n        if (_limitOrderProtocol != address(0)) {\\n            limitOrderProtocol = _limitOrderProtocol;\\n        }\\n        if (_aggregationRouter != address(0)) {\\n            aggregationRouter = _aggregationRouter;\\n        }\\n        if (_escrowFactory != address(0)) {\\n            escrowFactory = IEscrowFactory(_escrowFactory);\\n        }\\n\\n        emit ContractsUpdated(\\n            limitOrderProtocol,\\n            aggregationRouter,\\n            _escrowFactory\\n        );\\n    }\\n\\n    /**\\n     * @notice Pauses the contract\\n     */\\n    function pause() external onlyRole(OPERATOR_ROLE) {\\n        _pause();\\n    }\\n\\n    /**\\n     * @notice Unpauses the contract\\n     */\\n    function unpause() external onlyRole(OPERATOR_ROLE) {\\n        _unpause();\\n    }\\n\\n    // -- View Functions --\\n\\n    /**\\n     * @notice Calculates fee for an amount\\n     * @param amount The amount to calculate fee for\\n     * @return The fee amount\\n     */\\n    function calculateFee(uint256 amount) public view returns (uint256) {\\n        return (amount * protocolFee) / 10000;\\n    }\\n\\n    /**\\n     * @notice Gets order status\\n     * @param orderHash The order hash to check\\n     * @return The order status\\n     */\\n    function getOrderStatus(bytes32 orderHash) external view returns (OrderStatus) {\\n        return orderStatuses[orderHash];\\n    }\\n\\n    /**\\n     * @notice Gets all contract addresses\\n     * @return _limitOrderProtocol The limit order protocol address\\n     * @return _aggregationRouter The aggregation router address\\n     * @return _escrowFactory The escrow factory address\\n     */\\n    function getContractAddresses() external view returns (\\n        address _limitOrderProtocol,\\n        address _aggregationRouter,\\n        address _escrowFactory\\n    ) {\\n        return (\\n            limitOrderProtocol,\\n            aggregationRouter,\\n            address(escrowFactory)\\n        );\\n    }\\n}\",\"keccak256\":\"0xb1bb6532c97f387ee09ad901c28a28ed3b7df8693722f2dac8dcb94fc1fa815a\",\"license\":\"MIT\"},\"contracts/ethereum-hub/interfaces/IEscrowFactory.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\nimport \\\"../libraries/ImmutablesLib.sol\\\";\\n\\n/**\\n * @title IEscrowFactory\\n * @notice Interface for 1inch-compatible escrow factory\\n * @dev Creates escrows for cross-chain atomic swaps following 1inch patterns\\n */\\ninterface IEscrowFactory {\\n\\n    /**\\n     * @notice Creates a source chain escrow\\n     * @param immutables Escrow parameters\\n     * @return escrow Address of created escrow\\n     */\\n    function createSrcEscrow(ImmutablesLib.Immutables calldata immutables) \\n        external \\n        payable \\n        returns (address escrow);\\n\\n    /**\\n     * @notice Creates a destination chain escrow\\n     * @param immutables Escrow parameters\\n     * @param srcCancellationTimestamp Source chain cancellation timestamp\\n     * @return escrow Address of created escrow\\n     */\\n    function createDstEscrow(\\n        ImmutablesLib.Immutables calldata immutables,\\n        uint256 srcCancellationTimestamp\\n    ) external payable returns (address escrow);\\n\\n    /**\\n     * @notice Computes the address of a source escrow\\n     * @param immutables Escrow parameters\\n     * @return escrowAddress Computed escrow address\\n     */\\n    function addressOfEscrowSrc(ImmutablesLib.Immutables calldata immutables) \\n        external \\n        view \\n        returns (address escrowAddress);\\n\\n    /**\\n     * @notice Computes the address of a destination escrow\\n     * @param immutables Escrow parameters\\n     * @return escrowAddress Computed escrow address\\n     */\\n    function addressOfEscrowDst(ImmutablesLib.Immutables calldata immutables)\\n        external\\n        view\\n        returns (address escrowAddress);\\n\\n    /**\\n     * @notice Creates escrows for orchestration service\\n     * @dev Batch creation for efficiency\\n     * @param srcImmutables Source chain immutables\\n     * @param dstImmutables Destination chain immutables\\n     * @return srcEscrow Source escrow address\\n     * @return dstEscrow Destination escrow address\\n     */\\n    function createEscrowPair(\\n        ImmutablesLib.Immutables calldata srcImmutables,\\n        ImmutablesLib.Immutables calldata dstImmutables\\n    ) external payable returns (\\n        address srcEscrow,\\n        address dstEscrow\\n    );\\n\\n    /**\\n     * @notice Checks if an address is a valid escrow created by this factory\\n     * @param escrow Address to check\\n     * @return True if the address is a valid escrow\\n     */\\n    function isValidEscrow(address escrow) external view returns (bool);\\n\\n    /**\\n     * @notice Emitted when source escrow is created\\n     */\\n    event SrcEscrowCreated(\\n        address indexed escrow,\\n        address indexed maker,\\n        address indexed taker,\\n        bytes32 hashlockHash\\n    );\\n\\n    /**\\n     * @notice Emitted when destination escrow is created\\n     */\\n    event DstEscrowCreated(\\n        address indexed escrow,\\n        address indexed maker,\\n        address indexed taker,\\n        bytes32 hashlockHash\\n    );\\n}\",\"keccak256\":\"0x9fb663f17a1b8ed0235701ee5939e18a90adaf8685d079864af09ea096b91e14\",\"license\":\"MIT\"},\"contracts/ethereum-hub/interfaces/ILimitOrderProtocol.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\n/**\\n * @title ILimitOrderProtocol\\n * @notice Interface for 1inch Limit Order Protocol integration\\n * @dev This interface enables cross-chain swaps through 1inch foundation\\n */\\ninterface ILimitOrderProtocol {\\n    struct Order {\\n        uint256 salt;\\n        address makerAsset;\\n        address takerAsset;\\n        address maker;\\n        address receiver;\\n        address allowedSender;  // 0x0 for public orders\\n        uint256 makingAmount;\\n        uint256 takingAmount;\\n        uint256 offsets;\\n        bytes interactions;     // Encoded interactions for hooks\\n    }\\n\\n    struct Signature {\\n        bytes32 r;\\n        bytes32 vs;\\n    }\\n\\n    /**\\n     * @notice Fills a limit order\\n     * @param order The order to fill\\n     * @param signature Order signature\\n     * @param interaction Additional interaction data\\n     * @param makingAmount Amount of maker asset\\n     * @param takingAmount Amount of taker asset\\n     * @param skipPermitAndThresholdAmount Skip permit and threshold checks\\n     * @return actualMakingAmount Actual amount of maker asset filled\\n     * @return actualTakingAmount Actual amount of taker asset filled\\n     * @return orderHash Hash of the filled order\\n     */\\n    function fillOrder(\\n        Order calldata order,\\n        bytes calldata signature,\\n        bytes calldata interaction,\\n        uint256 makingAmount,\\n        uint256 takingAmount,\\n        uint256 skipPermitAndThresholdAmount\\n    ) external payable returns (\\n        uint256 actualMakingAmount,\\n        uint256 actualTakingAmount,\\n        bytes32 orderHash\\n    );\\n\\n    /**\\n     * @notice Fills an order with compact signature\\n     * @param order The order to fill\\n     * @param r Signature r value\\n     * @param vs Signature vs value\\n     * @param amount Fill amount\\n     * @param takerTraits Taker traits for advanced features\\n     * @param args Additional arguments\\n     */\\n    function fillOrderArgs(\\n        Order calldata order,\\n        bytes32 r,\\n        bytes32 vs,\\n        uint256 amount,\\n        uint256 takerTraits,\\n        bytes calldata args\\n    ) external payable returns (\\n        uint256 actualMakingAmount,\\n        uint256 actualTakingAmount,\\n        bytes32 orderHash\\n    );\\n\\n    /**\\n     * @notice Cancels an order\\n     * @param orderInfo Order info for cancellation\\n     */\\n    function cancelOrder(uint256 orderInfo) external;\\n\\n    /**\\n     * @notice Checks if an order is valid\\n     * @param order The order to check\\n     * @param signature Order signature\\n     * @return isValid True if order is valid\\n     */\\n    function checkOrder(Order calldata order, bytes calldata signature)\\n        external\\n        view\\n        returns (bool isValid);\\n\\n    /**\\n     * @notice Gets remaining fill amount for an order\\n     * @param orderHash Hash of the order\\n     * @return remaining Remaining amount that can be filled\\n     */\\n    function remaining(bytes32 orderHash) external view returns (uint256);\\n\\n    /**\\n     * @notice Emitted when an order is filled\\n     */\\n    event OrderFilled(\\n        bytes32 indexed orderHash,\\n        address indexed maker,\\n        address indexed taker,\\n        uint256 makingAmount,\\n        uint256 takingAmount\\n    );\\n\\n    /**\\n     * @notice Emitted when an order is cancelled\\n     */\\n    event OrderCancelled(bytes32 indexed orderHash);\\n}\",\"keccak256\":\"0xe44b1bcb5fdd8ce2c611af2df9e675572d83ae9ee4e691ba2f55a2285349598a\",\"license\":\"MIT\"},\"contracts/ethereum-hub/libraries/ImmutablesLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\nimport \\\"./TimelocksLib.sol\\\";\\n\\n/**\\n * @title ImmutablesLib\\n * @notice Library for managing escrow immutable parameters\\n * @dev Based on 1inch cross-chain-swap pattern for parameter encoding\\n */\\nlibrary ImmutablesLib {\\n    using TimelocksLib for TimelocksLib.Timelocks;\\n\\n    struct Immutables {\\n        address maker;\\n        address taker;\\n        address token;\\n        uint256 amount;\\n        uint256 safetyDeposit;\\n        bytes32 hashlockHash;\\n        TimelocksLib.Timelocks timelocks;\\n        bytes32 orderHash;       // Link to 1inch order\\n        uint256 chainId;         // Target chain for cross-chain swaps\\n    }\\n\\n    /**\\n     * @notice Hashes the immutable parameters for escrow address calculation\\n     * @param immutables The immutable parameters\\n     * @return hash The hash of the parameters\\n     */\\n    function hash(Immutables memory immutables) internal pure returns (bytes32) {\\n        return keccak256(abi.encode(\\n            immutables.maker,\\n            immutables.taker,\\n            immutables.token,\\n            immutables.amount,\\n            immutables.safetyDeposit,\\n            immutables.hashlockHash,\\n            immutables.timelocks.encode(),\\n            immutables.orderHash,\\n            immutables.chainId\\n        ));\\n    }\\n\\n    /**\\n     * @notice Validates immutable parameters\\n     * @param immutables The parameters to validate\\n     * @return valid True if parameters are valid\\n     */\\n    function validate(Immutables calldata immutables) internal view returns (bool valid) {\\n        valid = immutables.maker != address(0) &&\\n                immutables.taker != address(0) &&\\n                immutables.token != address(0) &&\\n                immutables.amount > 0 &&\\n                immutables.hashlockHash != bytes32(0) &&\\n                immutables.timelocks.validate() &&\\n                immutables.chainId > 0;\\n    }\\n\\n    /**\\n     * @notice Creates immutables for source chain escrow\\n     * @param maker The maker address\\n     * @param taker The taker address\\n     * @param token The token address\\n     * @param amount The token amount\\n     * @param hashlockHash The hashlock hash\\n     * @param duration The swap duration\\n     * @param orderHash The 1inch order hash\\n     * @param destinationChainId The destination chain ID\\n     * @return immutables The created immutables\\n     */\\n    function createForSource(\\n        address maker,\\n        address taker,\\n        address token,\\n        uint256 amount,\\n        bytes32 hashlockHash,\\n        uint32 duration,\\n        bytes32 orderHash,\\n        uint256 destinationChainId\\n    ) internal view returns (Immutables memory immutables) {\\n        immutables = Immutables({\\n            maker: maker,\\n            taker: taker,\\n            token: token,\\n            amount: amount,\\n            safetyDeposit: calculateSafetyDeposit(amount),\\n            hashlockHash: hashlockHash,\\n            timelocks: TimelocksLib.create(duration),\\n            orderHash: orderHash,\\n            chainId: destinationChainId\\n        });\\n    }\\n\\n    /**\\n     * @notice Creates immutables for destination chain escrow\\n     * @param sourceImmutables The source chain immutables\\n     * @param destinationToken The token on destination chain\\n     * @param destinationAmount The amount on destination chain\\n     * @return immutables The created immutables\\n     */\\n    function createForDestination(\\n        Immutables memory sourceImmutables,\\n        address destinationToken,\\n        uint256 destinationAmount\\n    ) internal view returns (Immutables memory immutables) {\\n        // Swap maker and taker for destination chain\\n        immutables = Immutables({\\n            maker: sourceImmutables.taker,  // Taker becomes maker on destination\\n            taker: sourceImmutables.maker,  // Maker becomes taker on destination\\n            token: destinationToken,\\n            amount: destinationAmount,\\n            safetyDeposit: calculateSafetyDeposit(destinationAmount),\\n            hashlockHash: sourceImmutables.hashlockHash,  // Same hashlock\\n            timelocks: sourceImmutables.timelocks,        // Same timelocks\\n            orderHash: sourceImmutables.orderHash,         // Same order hash\\n            chainId: block.chainid                         // Current chain ID\\n        });\\n    }\\n\\n    /**\\n     * @notice Calculates safety deposit amount (0.1% of swap amount)\\n     * @param amount The swap amount\\n     * @return deposit The safety deposit amount\\n     */\\n    function calculateSafetyDeposit(uint256 amount) internal pure returns (uint256 deposit) {\\n        deposit = amount / 1000; // 0.1%\\n        if (deposit == 0) {\\n            deposit = 1; // Minimum 1 wei\\n        }\\n    }\\n\\n    /**\\n     * @notice Encodes immutables for efficient storage/transmission\\n     * @param immutables The immutables to encode\\n     * @return encoded The encoded immutables\\n     */\\n    function encode(Immutables memory immutables) internal pure returns (bytes memory encoded) {\\n        encoded = abi.encode(\\n            immutables.maker,\\n            immutables.taker,\\n            immutables.token,\\n            immutables.amount,\\n            immutables.safetyDeposit,\\n            immutables.hashlockHash,\\n            immutables.timelocks.encode(),\\n            immutables.orderHash,\\n            immutables.chainId\\n        );\\n    }\\n\\n    /**\\n     * @notice Decodes immutables from bytes\\n     * @param encoded The encoded immutables\\n     * @return immutables The decoded immutables\\n     */\\n    function decode(bytes memory encoded) internal pure returns (Immutables memory immutables) {\\n        // Decode in two steps to avoid stack too deep\\n        address maker;\\n        address taker;\\n        address token;\\n        uint256 amount;\\n        uint256 safetyDeposit;\\n        \\n        (maker, taker, token, amount, safetyDeposit) = abi.decode(\\n            encoded, \\n            (address, address, address, uint256, uint256)\\n        );\\n        \\n        // Decode remaining fields\\n        bytes32 hashlockHash;\\n        bytes32 timelocksEncoded;\\n        bytes32 orderHash;\\n        uint256 chainId;\\n        \\n        assembly {\\n            let dataPtr := add(encoded, 0x20)\\n            hashlockHash := mload(add(dataPtr, 0xA0))\\n            timelocksEncoded := mload(add(dataPtr, 0xC0))\\n            orderHash := mload(add(dataPtr, 0xE0))\\n            chainId := mload(add(dataPtr, 0x100))\\n        }\\n        \\n        immutables = Immutables({\\n            maker: maker,\\n            taker: taker,\\n            token: token,\\n            amount: amount,\\n            safetyDeposit: safetyDeposit,\\n            hashlockHash: hashlockHash,\\n            timelocks: TimelocksLib.decode(timelocksEncoded),\\n            orderHash: orderHash,\\n            chainId: chainId\\n        });\\n    }\\n\\n    /**\\n     * @notice Checks if the maker can withdraw (during withdrawal window)\\n     * @param immutables The immutables to check\\n     * @param isSource True if checking source chain\\n     * @return canWithdraw True if maker can withdraw\\n     */\\n    function makerCanWithdraw(\\n        Immutables memory immutables,\\n        bool isSource\\n    ) internal view returns (bool) {\\n        return immutables.timelocks.canWithdraw(isSource, false);\\n    }\\n\\n    /**\\n     * @notice Checks if anyone can withdraw (public withdrawal phase)\\n     * @param immutables The immutables to check\\n     * @param isSource True if checking source chain\\n     * @return canWithdraw True if public withdrawal is allowed\\n     */\\n    function publicCanWithdraw(\\n        Immutables memory immutables,\\n        bool isSource\\n    ) internal view returns (bool) {\\n        return immutables.timelocks.canWithdraw(isSource, true);\\n    }\\n\\n    /**\\n     * @notice Checks if the escrow can be cancelled\\n     * @param immutables The immutables to check\\n     * @param isSource True if checking source chain\\n     * @return canCancel True if cancellation is allowed\\n     */\\n    function canCancel(\\n        Immutables memory immutables,\\n        bool isSource\\n    ) internal view returns (bool) {\\n        return immutables.timelocks.canCancel(isSource);\\n    }\\n}\",\"keccak256\":\"0x48eb27b6fedcfa8013b912932e0a2d39be4470c691d91d478fee9c0a368709bf\",\"license\":\"MIT\"},\"contracts/ethereum-hub/libraries/TimelocksLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\n/**\\n * @title TimelocksLib\\n * @notice Library for managing cross-chain timelock coordination\\n * @dev Based on 1inch cross-chain-swap timelock pattern\\n */\\nlibrary TimelocksLib {\\n    struct Timelocks {\\n        uint32 srcWithdrawal;        // Withdrawal time on source chain\\n        uint32 srcPublicWithdrawal;  // Public withdrawal time on source chain\\n        uint32 srcCancellation;      // Cancellation time on source chain\\n        uint32 srcDeployedAt;        // Deployment timestamp on source chain\\n        uint32 dstWithdrawal;        // Withdrawal time on destination chain\\n        uint32 dstCancellation;      // Cancellation time on destination chain\\n        uint32 dstDeployedAt;        // Deployment timestamp on destination chain\\n    }\\n\\n    // Constants for timeout calculations\\n    uint32 private constant MIN_CROSS_CHAIN_DELAY = 30 minutes;\\n    uint32 private constant SAFETY_BUFFER = 2 hours;\\n    uint32 private constant MAX_DURATION = 7 days;\\n\\n    /**\\n     * @notice Creates timelocks for cross-chain atomic swap\\n     * @param baseDuration Base duration for the swap\\n     * @return timelocks Configured timelock structure\\n     */\\n    function create(uint32 baseDuration) internal view returns (Timelocks memory timelocks) {\\n        require(baseDuration >= MIN_CROSS_CHAIN_DELAY, \\\"Duration too short\\\");\\n        require(baseDuration <= MAX_DURATION, \\\"Duration too long\\\");\\n\\n        uint32 currentTime = uint32(block.timestamp);\\n        \\n        // Source chain timelocks\\n        timelocks.srcDeployedAt = currentTime;\\n        timelocks.srcWithdrawal = currentTime + baseDuration;\\n        timelocks.srcPublicWithdrawal = currentTime + baseDuration + SAFETY_BUFFER;\\n        timelocks.srcCancellation = currentTime + baseDuration + (2 * SAFETY_BUFFER);\\n        \\n        // Destination chain timelocks (shorter to ensure atomic execution)\\n        timelocks.dstDeployedAt = currentTime;\\n        timelocks.dstWithdrawal = currentTime + (baseDuration / 2);\\n        timelocks.dstCancellation = currentTime + baseDuration - SAFETY_BUFFER;\\n    }\\n\\n    /**\\n     * @notice Validates timelocks for safety\\n     * @param timelocks Timelocks to validate\\n     * @return valid True if timelocks are safe for cross-chain execution\\n     */\\n    function validate(Timelocks memory timelocks) internal view returns (bool valid) {\\n        uint32 currentTime = uint32(block.timestamp);\\n        \\n        // Basic timestamp ordering validation\\n        valid = timelocks.srcWithdrawal > timelocks.srcDeployedAt &&\\n                timelocks.srcPublicWithdrawal > timelocks.srcWithdrawal &&\\n                timelocks.srcCancellation > timelocks.srcPublicWithdrawal &&\\n                timelocks.dstWithdrawal > timelocks.dstDeployedAt &&\\n                timelocks.dstCancellation > timelocks.dstWithdrawal &&\\n                // Cross-chain safety: dst cancellation before src withdrawal\\n                timelocks.dstCancellation < timelocks.srcWithdrawal &&\\n                // Current time validation\\n                currentTime >= timelocks.srcDeployedAt;\\n    }\\n\\n    /**\\n     * @notice Sets the deployed timestamp for a chain\\n     * @param timelocks Timelocks structure\\n     * @param timestamp Deployment timestamp\\n     * @param isSource True for source chain, false for destination\\n     */\\n    function setDeployedAt(\\n        Timelocks memory timelocks,\\n        uint32 timestamp,\\n        bool isSource\\n    ) internal pure returns (Timelocks memory) {\\n        if (isSource) {\\n            timelocks.srcDeployedAt = timestamp;\\n        } else {\\n            timelocks.dstDeployedAt = timestamp;\\n        }\\n        return timelocks;\\n    }\\n\\n    /**\\n     * @notice Checks if withdrawal is allowed\\n     * @param timelocks Timelocks structure\\n     * @param isSource True for source chain, false for destination\\n     * @param isPublic True for public withdrawal phase\\n     * @return allowed True if withdrawal is allowed\\n     */\\n    function canWithdraw(\\n        Timelocks memory timelocks,\\n        bool isSource,\\n        bool isPublic\\n    ) internal view returns (bool allowed) {\\n        uint32 currentTime = uint32(block.timestamp);\\n        \\n        if (isSource) {\\n            if (isPublic) {\\n                allowed = currentTime >= timelocks.srcPublicWithdrawal &&\\n                         currentTime < timelocks.srcCancellation;\\n            } else {\\n                allowed = currentTime >= timelocks.srcWithdrawal &&\\n                         currentTime < timelocks.srcCancellation;\\n            }\\n        } else {\\n            allowed = currentTime >= timelocks.dstWithdrawal &&\\n                     currentTime < timelocks.dstCancellation;\\n        }\\n    }\\n\\n    /**\\n     * @notice Checks if cancellation is allowed\\n     * @param timelocks Timelocks structure\\n     * @param isSource True for source chain, false for destination\\n     * @return allowed True if cancellation is allowed\\n     */\\n    function canCancel(\\n        Timelocks memory timelocks,\\n        bool isSource\\n    ) internal view returns (bool allowed) {\\n        uint32 currentTime = uint32(block.timestamp);\\n        \\n        if (isSource) {\\n            allowed = currentTime >= timelocks.srcCancellation;\\n        } else {\\n            allowed = currentTime >= timelocks.dstCancellation;\\n        }\\n    }\\n\\n    /**\\n     * @notice Encodes timelocks into bytes32 for efficient storage\\n     * @param timelocks Timelocks to encode\\n     * @return encoded Encoded timelocks\\n     */\\n    function encode(Timelocks memory timelocks) internal pure returns (bytes32 encoded) {\\n        encoded = bytes32(\\n            (uint256(timelocks.srcWithdrawal) << 224) |\\n            (uint256(timelocks.srcPublicWithdrawal) << 192) |\\n            (uint256(timelocks.srcCancellation) << 160) |\\n            (uint256(timelocks.srcDeployedAt) << 128) |\\n            (uint256(timelocks.dstWithdrawal) << 96) |\\n            (uint256(timelocks.dstCancellation) << 64) |\\n            (uint256(timelocks.dstDeployedAt) << 32)\\n        );\\n    }\\n\\n    /**\\n     * @notice Decodes timelocks from bytes32\\n     * @param encoded Encoded timelocks\\n     * @return timelocks Decoded timelocks\\n     */\\n    function decode(bytes32 encoded) internal pure returns (Timelocks memory timelocks) {\\n        timelocks.srcWithdrawal = uint32(uint256(encoded) >> 224);\\n        timelocks.srcPublicWithdrawal = uint32(uint256(encoded) >> 192);\\n        timelocks.srcCancellation = uint32(uint256(encoded) >> 160);\\n        timelocks.srcDeployedAt = uint32(uint256(encoded) >> 128);\\n        timelocks.dstWithdrawal = uint32(uint256(encoded) >> 96);\\n        timelocks.dstCancellation = uint32(uint256(encoded) >> 64);\\n        timelocks.dstDeployedAt = uint32(uint256(encoded) >> 32);\\n    }\\n}\",\"keccak256\":\"0xd0f1ba2b2c8df9e749a251b34d52a931c4eeecb0df82aabe2c49e2948b66d17f\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60808060405234610016576122ed908161001c8239f35b600080fdfe608060408181526004918236101561001657600080fd5b600092833560e01c91826301ffc9a7146119f45750816312d35eed1461188b578163248a9ca3146118235781632f2ff15d146117db578163314afedd1461135f57816336568abe146112d55781633f4ba83a146111f657816346423aa714610dc557816346904840146111a45781635c975abb146111435781636dca4d4414610f67578163787dce3d14610e6d57816378fab26014610e145781637f665ee514610dc55781637f94dd3314610d745781638456cb5914610cbe57816391d1485414610c2e578163953874d214610bc257816399a5d74714610b3d578163a217fddf14610b04578163b0e21e8a14610ac7578163bc063e1a14610a8c578163bdd1daaa14610a39578163c0831150146106f1578163c0c53b8b1461042b578163d547741f146103ae578163e74b981b1461027457508063f5b541a61461021c578063f72c0d8b146101c45763fcdfd9461461016f57600080fd5b346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760209073ffffffffffffffffffffffffffffffffffffffff600154169051908152f35b5080fd5b50346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090517f189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e38152f35b50346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090517f97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b9298152f35b919050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa576102ae611ad8565b8380527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205281842033855260205260ff8285205416156103835773ffffffffffffffffffffffffffffffffffffffff1691821561035c5780547fffffffffffffffffffffffff00000000000000000000000000000000000000001683179055519081527f7a7b5a0a132f9e0581eb8527f66eae9ee89c2a3e79d4ac7e41a1f1f4d48a7fc290602090a180f35b90517fa51965bf000000000000000000000000000000000000000000000000000000008152fd5b50517f7c37ed5c000000000000000000000000000000000000000000000000000000008152fd5b8280fd5b919050346103aa57807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610427913561042260016103f1611ab0565b938387527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205286200154611c70565b612148565b5080f35b9050346103aa5760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610464611ad8565b61046c611ab0565b91610475611afb565b907ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a009384549360ff85881c16159367ffffffffffffffff8616958615806106ea575b600180981490816106e0575b1590816106d7575b506106af5785877fffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000831617895561067a575b5061050661225e565b61050e61225e565b61051661225e565b61051e61225e565b857f9b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f005573ffffffffffffffffffffffffffffffffffffffff8092169283158015610670575b8015610666575b61063e5782907fffffffffffffffffffffffff000000000000000000000000000000000000000094858c5416178b551683875416178655168160025416176002556105b433611cb5565b506105be33611d92565b506105c833611e91565b506105d233611f8a565b50601e600355815416331790556105e7578380f35b7fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d292827fffffffffffffffffffffffffffffffffffffffffffffff00ffffffffffffffff6020945416905551908152a13880808380f35b8489517fa51965bf000000000000000000000000000000000000000000000000000000008152fd5b508282161561056a565b5082811615610563565b7fffffffffffffffffffffffffffffffffffffffffffffff0000000000000000001668010000000000000001178755386104fd565b8489517ff92ee8a9000000000000000000000000000000000000000000000000000000008152fd5b905015386104cb565b303b1591506104c3565b50856104b7565b8383346101c05760c07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05782359061072d611ab0565b91610736611afb565b9060843560643567ffffffffffffffff60a435818111610a355736602382011215610a3557808a0135828111610a315736910160240111610a2d577f9b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f00946002865414610a0557600286556107a8612209565b821580156109fd575b6109d55773ffffffffffffffffffffffffffffffffffffffff9182891690811580156109cb575b6109a35788519960209a8b8101913360601b83528960348301527fffffffffffffffffffffffffffffffffffffffff000000000000000000000000809160601b1660548301528560601b16606882015286607c82015287609c8201524260bc8201524360dc82015260dc815261010081019281841090841117610976578a8d9e93929d60058e9f60ff948685525190209e8f835252205416600581101561094a57610925575050878b8a60019a9b9c9d5260058d5220887fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905588519586528a860152168684015260608301526080820152847f87f0ef1d75cf49899ca001f6cc273ece3f0b0635759f3916dd9447ffa2f81a7860a03393a3837f7911d3e33ea22efc46a7d349370a83ab304c214048076037a23443e95da88ee1868551858152a25551908152f35b7f4c9cb0be000000000000000000000000000000000000000000000000000000008152fd5b60248e6021857f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b5060248c60418f7f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b8b89517fa51965bf000000000000000000000000000000000000000000000000000000008152fd5b50838316156107d8565b8987517f2fe85368000000000000000000000000000000000000000000000000000000008152fd5b5083156107b1565b8987517f3ee5aeb5000000000000000000000000000000000000000000000000000000008152fd5b8780fd5b8980fd5b8880fd5b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760209073ffffffffffffffffffffffffffffffffffffffff600254169051908152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090516103e88152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c0576020906003549051908152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05751908152602090f35b90508234610bbf5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610bbf57600354823581810293918115918504141715610b9357602083612710865191048152f35b9060116024927f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b80fd5b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c0579054600154600254925173ffffffffffffffffffffffffffffffffffffffff9283168152908216602082015291166040820152606090f35b0390f35b9050346103aa57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa578160209360ff92610c6d611ab0565b903582527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b626800865273ffffffffffffffffffffffffffffffffffffffff83832091168252855220541690519015158152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760207f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a25891610d1a611c14565b610d22612209565b7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f0330060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905551338152a180f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05773ffffffffffffffffffffffffffffffffffffffff60209254169051908152f35b9050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa5781610c2a9360ff923581526005602052205416905191829182611b1e565b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090517f92a19c77d2ea87c7f81d50c74403cb2f401780f3ad919571121efe2bdb427eb18152f35b919050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa578135918380527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205281842033855260205260ff828520541615610f40576103e88311610f195750816020917fd10d75876659a287a59a6ccfa2e3fff42f84d94b542837acd30bc184d562de409360035551908152a180f35b90517fa22a7a0e000000000000000000000000000000000000000000000000000000008152fd5b90517f7c37ed5c000000000000000000000000000000000000000000000000000000008152fd5b9050346103aa5760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610fa0611ad8565b90610fa9611ab0565b91610fb2611afb565b918580527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205284862033875260205260ff85872054161561111c57507fe008bc55cceb8bb7dc36a3bbaa95481f36a3537e2b4cdc39770a19cf94e754a593929161108b9173ffffffffffffffffffffffffffffffffffffffff9384809216806110ef575b5016806110c0575b5082811680611091575b508554600154945173ffffffffffffffffffffffffffffffffffffffff91851682168152949093168316602085015291909116604083015281906060820190565b0390a180f35b7fffffffffffffffffffffffff000000000000000000000000000000000000000060025416176002553861104a565b7fffffffffffffffffffffffff0000000000000000000000000000000000000000600154161760015538611040565b7fffffffffffffffffffffffff000000000000000000000000000000000000000089541617885538611038565b84517f7c37ed5c000000000000000000000000000000000000000000000000000000008152fd5b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760209060ff7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f03300541690519015158152f35b828434610bbf57807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610bbf575073ffffffffffffffffffffffffffffffffffffffff60209254169051908152f35b9050346103aa57827ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa5761122e611c14565b7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f033009081549060ff8216156112ae57507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00169055513381527f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa90602090a180f35b83517f8dfc202b000000000000000000000000000000000000000000000000000000008152fd5b8383346101c057807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05761130d611ab0565b903373ffffffffffffffffffffffffffffffffffffffff8316036113375750610427919235612148565b8390517f6697b232000000000000000000000000000000000000000000000000000000008152fd5b9050826103e07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610bbf578135906101e0807fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc3601126101c0577ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdfc360112610bbf576113ec611b81565b818152600560205260ff848220541660058110156117af576001036117875773ffffffffffffffffffffffffffffffffffffffff918260025416918551927fe8e076770000000000000000000000000000000000000000000000000000000084526024358581168091036103aa57868501526044358581168091036103aa5760248501526064358581168091036103aa576044850152608435606485015260a435608485015260c43560a485015260e4359063ffffffff918281168091036117835760c486015261010491823581811680910361177b5760e48701526101249283359082821680920361177f578701526101449283359082821680920361177f578701526101649283359082821680920361177f578701526101849283359082821680920361177f578701526101a49283359082821680920361177f578701526101c4928335908701526101e4928335908701526102049283359088821680920361177f578701526102249283359088821680920361177f578701526102449283359088821680920361177f5787015261026492833590870152610284928335908701526102a4928335908701526102c49283359082821680920361177f578701526102e49283359082821680920361177f578701526103049283359082821680920361177f578701526103249283359082821680920361177f578701526103449283359082821680920361177f578701526103649283359082821680920361177f5787015261038492833591821680920361177b5786928a949284928301526103a4928335908301526103c49283359083015234905af192831561176f57908691819682956116c4575b505082815260056020522060027fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f7911d3e33ea22efc46a7d349370a83ab304c214048076037a23443e95da88ee16020865160028152a281845193168352166020820152f35b9096509093503d8711611767575b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f83011686019086821067ffffffffffffffff83111761173b5750869186918352810103126101c05784611733602061172c87611b60565b9601611b60565b928780611657565b8460416024927f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b3d91506116d2565b508551903d90823e3d90fd5b8480fd5b8580fd5b8380fd5b8284517f91d33ce6000000000000000000000000000000000000000000000000000000008152fd5b6024826021867f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b919050346103aa57807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610427913561181e60016103f1611ab0565b612083565b9050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57816020936001923581527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680085522001549051908152f35b9050346103aa57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa5780359160243591600583101561177b576118d3611b81565b838552600560205260ff828620541660058110156119c85780156119a057818114908115611995575b5061196e57507f7911d3e33ea22efc46a7d349370a83ab304c214048076037a23443e95da88ee1916119689184865260056020528086207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0081541660ff84161790555191829182611b1e565b0390a280f35b90517f91d33ce6000000000000000000000000000000000000000000000000000000008152fd5b6003915014386118fc565b5090517f91d33ce6000000000000000000000000000000000000000000000000000000008152fd5b6024866021847f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b8491346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57357fffffffff0000000000000000000000000000000000000000000000000000000081168091036103aa57602092507f7965db0b000000000000000000000000000000000000000000000000000000008114908115611a86575b5015158152f35b7f01ffc9a70000000000000000000000000000000000000000000000000000000091501483611a7f565b6024359073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b600080fd5b6004359073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b6044359073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b919060208301926005821015611b315752565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b519073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b3360009081527f756534422b3cb82a54d88d2dca71cfb1a3297222856e6ddc952d9ca5a7fc4b8860205260409020547f92a19c77d2ea87c7f81d50c74403cb2f401780f3ad919571121efe2bdb427eb19060ff1615611bdd5750565b604490604051907fe2517d3f0000000000000000000000000000000000000000000000000000000082523360048301526024820152fd5b3360009081527f448256db8f8fb95ee3eaaf89c1051414494e85cebb6057fcf996cc3d0ccfb45660205260409020547f97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b9299060ff1615611bdd5750565b806000527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205260406000203360005260205260ff6040600020541615611bdd5750565b73ffffffffffffffffffffffffffffffffffffffff1660008181527fb7db2dd08fcb62d0c9e08c51941cae53c267786a0b75803fb7960902fc8ef97d60205260408120549091907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611d8d57828052602052604082208183526020526040822060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905533917f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d8180a4600190565b505090565b73ffffffffffffffffffffffffffffffffffffffff1660008181527f448256db8f8fb95ee3eaaf89c1051414494e85cebb6057fcf996cc3d0ccfb45660205260408120549091907f97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b50505090565b73ffffffffffffffffffffffffffffffffffffffff1660008181527f756534422b3cb82a54d88d2dca71cfb1a3297222856e6ddc952d9ca5a7fc4b8860205260408120549091907f92a19c77d2ea87c7f81d50c74403cb2f401780f3ad919571121efe2bdb427eb1907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b73ffffffffffffffffffffffffffffffffffffffff1660008181527fab71e3f32666744d246edff3f96e4bdafee2e9867098cdd118a979a7464786a860205260408120549091907f189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b906000918083527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268008060205273ffffffffffffffffffffffffffffffffffffffff6040852093169283855260205260ff60408520541615600014611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b906000918083527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268008060205273ffffffffffffffffffffffffffffffffffffffff6040852093169283855260205260ff604085205416600014611e8b5781845260205260408320828452602052604083207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0081541690557ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b339380a4600190565b60ff7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f03300541661223457565b60046040517fd93c0665000000000000000000000000000000000000000000000000000000008152fd5b60ff7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a005460401c161561228d57565b60046040517fd7e6bcf8000000000000000000000000000000000000000000000000000000008152fdfea264697066735822122075fea297741df4ffc259d9aa8068f2e8f161e12fdc41ceb2b11f025f6a16fe4d64736f6c63430008170033",
+  "deployedBytecode": "0x608060408181526004918236101561001657600080fd5b600092833560e01c91826301ffc9a7146119f45750816312d35eed1461188b578163248a9ca3146118235781632f2ff15d146117db578163314afedd1461135f57816336568abe146112d55781633f4ba83a146111f657816346423aa714610dc557816346904840146111a45781635c975abb146111435781636dca4d4414610f67578163787dce3d14610e6d57816378fab26014610e145781637f665ee514610dc55781637f94dd3314610d745781638456cb5914610cbe57816391d1485414610c2e578163953874d214610bc257816399a5d74714610b3d578163a217fddf14610b04578163b0e21e8a14610ac7578163bc063e1a14610a8c578163bdd1daaa14610a39578163c0831150146106f1578163c0c53b8b1461042b578163d547741f146103ae578163e74b981b1461027457508063f5b541a61461021c578063f72c0d8b146101c45763fcdfd9461461016f57600080fd5b346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760209073ffffffffffffffffffffffffffffffffffffffff600154169051908152f35b5080fd5b50346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090517f189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e38152f35b50346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090517f97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b9298152f35b919050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa576102ae611ad8565b8380527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205281842033855260205260ff8285205416156103835773ffffffffffffffffffffffffffffffffffffffff1691821561035c5780547fffffffffffffffffffffffff00000000000000000000000000000000000000001683179055519081527f7a7b5a0a132f9e0581eb8527f66eae9ee89c2a3e79d4ac7e41a1f1f4d48a7fc290602090a180f35b90517fa51965bf000000000000000000000000000000000000000000000000000000008152fd5b50517f7c37ed5c000000000000000000000000000000000000000000000000000000008152fd5b8280fd5b919050346103aa57807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610427913561042260016103f1611ab0565b938387527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205286200154611c70565b612148565b5080f35b9050346103aa5760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610464611ad8565b61046c611ab0565b91610475611afb565b907ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a009384549360ff85881c16159367ffffffffffffffff8616958615806106ea575b600180981490816106e0575b1590816106d7575b506106af5785877fffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000831617895561067a575b5061050661225e565b61050e61225e565b61051661225e565b61051e61225e565b857f9b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f005573ffffffffffffffffffffffffffffffffffffffff8092169283158015610670575b8015610666575b61063e5782907fffffffffffffffffffffffff000000000000000000000000000000000000000094858c5416178b551683875416178655168160025416176002556105b433611cb5565b506105be33611d92565b506105c833611e91565b506105d233611f8a565b50601e600355815416331790556105e7578380f35b7fc7f505b2f371ae2175ee4913f4499e1f2633a7b5936321eed1cdaeb6115181d292827fffffffffffffffffffffffffffffffffffffffffffffff00ffffffffffffffff6020945416905551908152a13880808380f35b8489517fa51965bf000000000000000000000000000000000000000000000000000000008152fd5b508282161561056a565b5082811615610563565b7fffffffffffffffffffffffffffffffffffffffffffffff0000000000000000001668010000000000000001178755386104fd565b8489517ff92ee8a9000000000000000000000000000000000000000000000000000000008152fd5b905015386104cb565b303b1591506104c3565b50856104b7565b8383346101c05760c07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05782359061072d611ab0565b91610736611afb565b9060843560643567ffffffffffffffff60a435818111610a355736602382011215610a3557808a0135828111610a315736910160240111610a2d577f9b779b17422d0df92223018b32b4d1fa46e071723d6817e2486d003becc55f00946002865414610a0557600286556107a8612209565b821580156109fd575b6109d55773ffffffffffffffffffffffffffffffffffffffff9182891690811580156109cb575b6109a35788519960209a8b8101913360601b83528960348301527fffffffffffffffffffffffffffffffffffffffff000000000000000000000000809160601b1660548301528560601b16606882015286607c82015287609c8201524260bc8201524360dc82015260dc815261010081019281841090841117610976578a8d9e93929d60058e9f60ff948685525190209e8f835252205416600581101561094a57610925575050878b8a60019a9b9c9d5260058d5220887fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905588519586528a860152168684015260608301526080820152847f87f0ef1d75cf49899ca001f6cc273ece3f0b0635759f3916dd9447ffa2f81a7860a03393a3837f7911d3e33ea22efc46a7d349370a83ab304c214048076037a23443e95da88ee1868551858152a25551908152f35b7f4c9cb0be000000000000000000000000000000000000000000000000000000008152fd5b60248e6021857f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b5060248c60418f7f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b8b89517fa51965bf000000000000000000000000000000000000000000000000000000008152fd5b50838316156107d8565b8987517f2fe85368000000000000000000000000000000000000000000000000000000008152fd5b5083156107b1565b8987517f3ee5aeb5000000000000000000000000000000000000000000000000000000008152fd5b8780fd5b8980fd5b8880fd5b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760209073ffffffffffffffffffffffffffffffffffffffff600254169051908152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090516103e88152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c0576020906003549051908152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05751908152602090f35b90508234610bbf5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610bbf57600354823581810293918115918504141715610b9357602083612710865191048152f35b9060116024927f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b80fd5b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c0579054600154600254925173ffffffffffffffffffffffffffffffffffffffff9283168152908216602082015291166040820152606090f35b0390f35b9050346103aa57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa578160209360ff92610c6d611ab0565b903582527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b626800865273ffffffffffffffffffffffffffffffffffffffff83832091168252855220541690519015158152f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760207f62e78cea01bee320cd4e420270b5ea74000d11b0c9f74754ebdbfc544b05a25891610d1a611c14565b610d22612209565b7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f0330060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905551338152a180f35b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05773ffffffffffffffffffffffffffffffffffffffff60209254169051908152f35b9050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa5781610c2a9360ff923581526005602052205416905191829182611b1e565b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c057602090517f92a19c77d2ea87c7f81d50c74403cb2f401780f3ad919571121efe2bdb427eb18152f35b919050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa578135918380527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205281842033855260205260ff828520541615610f40576103e88311610f195750816020917fd10d75876659a287a59a6ccfa2e3fff42f84d94b542837acd30bc184d562de409360035551908152a180f35b90517fa22a7a0e000000000000000000000000000000000000000000000000000000008152fd5b90517f7c37ed5c000000000000000000000000000000000000000000000000000000008152fd5b9050346103aa5760607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610fa0611ad8565b90610fa9611ab0565b91610fb2611afb565b918580527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205284862033875260205260ff85872054161561111c57507fe008bc55cceb8bb7dc36a3bbaa95481f36a3537e2b4cdc39770a19cf94e754a593929161108b9173ffffffffffffffffffffffffffffffffffffffff9384809216806110ef575b5016806110c0575b5082811680611091575b508554600154945173ffffffffffffffffffffffffffffffffffffffff91851682168152949093168316602085015291909116604083015281906060820190565b0390a180f35b7fffffffffffffffffffffffff000000000000000000000000000000000000000060025416176002553861104a565b7fffffffffffffffffffffffff0000000000000000000000000000000000000000600154161760015538611040565b7fffffffffffffffffffffffff000000000000000000000000000000000000000089541617885538611038565b84517f7c37ed5c000000000000000000000000000000000000000000000000000000008152fd5b5050346101c057817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05760209060ff7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f03300541690519015158152f35b828434610bbf57807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610bbf575073ffffffffffffffffffffffffffffffffffffffff60209254169051908152f35b9050346103aa57827ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa5761122e611c14565b7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f033009081549060ff8216156112ae57507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00169055513381527f5db9ee0a495bf2e6ff9c91a7834c1ba4fdd244a5e8aa4e537bd38aeae4b073aa90602090a180f35b83517f8dfc202b000000000000000000000000000000000000000000000000000000008152fd5b8383346101c057807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101c05761130d611ab0565b903373ffffffffffffffffffffffffffffffffffffffff8316036113375750610427919235612148565b8390517f6697b232000000000000000000000000000000000000000000000000000000008152fd5b9050826103e07ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc360112610bbf578135906101e0807fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdc3601126101c0577ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffdfc360112610bbf576113ec611b81565b818152600560205260ff848220541660058110156117af576001036117875773ffffffffffffffffffffffffffffffffffffffff918260025416918551927fe8e076770000000000000000000000000000000000000000000000000000000084526024358581168091036103aa57868501526044358581168091036103aa5760248501526064358581168091036103aa576044850152608435606485015260a435608485015260c43560a485015260e4359063ffffffff918281168091036117835760c486015261010491823581811680910361177b5760e48701526101249283359082821680920361177f578701526101449283359082821680920361177f578701526101649283359082821680920361177f578701526101849283359082821680920361177f578701526101a49283359082821680920361177f578701526101c4928335908701526101e4928335908701526102049283359088821680920361177f578701526102249283359088821680920361177f578701526102449283359088821680920361177f5787015261026492833590870152610284928335908701526102a4928335908701526102c49283359082821680920361177f578701526102e49283359082821680920361177f578701526103049283359082821680920361177f578701526103249283359082821680920361177f578701526103449283359082821680920361177f578701526103649283359082821680920361177f5787015261038492833591821680920361177b5786928a949284928301526103a4928335908301526103c49283359083015234905af192831561176f57908691819682956116c4575b505082815260056020522060027fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f7911d3e33ea22efc46a7d349370a83ab304c214048076037a23443e95da88ee16020865160028152a281845193168352166020820152f35b9096509093503d8711611767575b7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0601f83011686019086821067ffffffffffffffff83111761173b5750869186918352810103126101c05784611733602061172c87611b60565b9601611b60565b928780611657565b8460416024927f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b3d91506116d2565b508551903d90823e3d90fd5b8480fd5b8580fd5b8380fd5b8284517f91d33ce6000000000000000000000000000000000000000000000000000000008152fd5b6024826021867f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b919050346103aa57807ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57610427913561181e60016103f1611ab0565b612083565b9050346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57816020936001923581527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680085522001549051908152f35b9050346103aa57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa5780359160243591600583101561177b576118d3611b81565b838552600560205260ff828620541660058110156119c85780156119a057818114908115611995575b5061196e57507f7911d3e33ea22efc46a7d349370a83ab304c214048076037a23443e95da88ee1916119689184865260056020528086207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0081541660ff84161790555191829182611b1e565b0390a280f35b90517f91d33ce6000000000000000000000000000000000000000000000000000000008152fd5b6003915014386118fc565b5090517f91d33ce6000000000000000000000000000000000000000000000000000000008152fd5b6024866021847f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b8491346103aa5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103aa57357fffffffff0000000000000000000000000000000000000000000000000000000081168091036103aa57602092507f7965db0b000000000000000000000000000000000000000000000000000000008114908115611a86575b5015158152f35b7f01ffc9a70000000000000000000000000000000000000000000000000000000091501483611a7f565b6024359073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b600080fd5b6004359073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b6044359073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b919060208301926005821015611b315752565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052602160045260246000fd5b519073ffffffffffffffffffffffffffffffffffffffff82168203611ad357565b3360009081527f756534422b3cb82a54d88d2dca71cfb1a3297222856e6ddc952d9ca5a7fc4b8860205260409020547f92a19c77d2ea87c7f81d50c74403cb2f401780f3ad919571121efe2bdb427eb19060ff1615611bdd5750565b604490604051907fe2517d3f0000000000000000000000000000000000000000000000000000000082523360048301526024820152fd5b3360009081527f448256db8f8fb95ee3eaaf89c1051414494e85cebb6057fcf996cc3d0ccfb45660205260409020547f97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b9299060ff1615611bdd5750565b806000527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b62680060205260406000203360005260205260ff6040600020541615611bdd5750565b73ffffffffffffffffffffffffffffffffffffffff1660008181527fb7db2dd08fcb62d0c9e08c51941cae53c267786a0b75803fb7960902fc8ef97d60205260408120549091907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611d8d57828052602052604082208183526020526040822060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905533917f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d8180a4600190565b505090565b73ffffffffffffffffffffffffffffffffffffffff1660008181527f448256db8f8fb95ee3eaaf89c1051414494e85cebb6057fcf996cc3d0ccfb45660205260408120549091907f97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b50505090565b73ffffffffffffffffffffffffffffffffffffffff1660008181527f756534422b3cb82a54d88d2dca71cfb1a3297222856e6ddc952d9ca5a7fc4b8860205260408120549091907f92a19c77d2ea87c7f81d50c74403cb2f401780f3ad919571121efe2bdb427eb1907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b73ffffffffffffffffffffffffffffffffffffffff1660008181527fab71e3f32666744d246edff3f96e4bdafee2e9867098cdd118a979a7464786a860205260408120549091907f189ab7a9244df0848122154315af71fe140f3db0fe014031783b0946b8c9d2e3907f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268009060ff16611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b906000918083527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268008060205273ffffffffffffffffffffffffffffffffffffffff6040852093169283855260205260ff60408520541615600014611e8b57818452602052604083208284526020526040832060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff008254161790557f2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d339380a4600190565b906000918083527f02dd7bc7dec4dceedda775e58dd541e08a116c6c53815c0bd028192f7b6268008060205273ffffffffffffffffffffffffffffffffffffffff6040852093169283855260205260ff604085205416600014611e8b5781845260205260408320828452602052604083207fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0081541690557ff6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b339380a4600190565b60ff7fcd5ed15c6e187e77e9aee88184c21f4f2182ab5827cb3b7e07fbedcd63f03300541661223457565b60046040517fd93c0665000000000000000000000000000000000000000000000000000000008152fd5b60ff7ff0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a005460401c161561228d57565b60046040517fd7e6bcf8000000000000000000000000000000000000000000000000000000008152fdfea264697066735822122075fea297741df4ffc259d9aa8068f2e8f161e12fdc41ceb2b11f025f6a16fe4d64736f6c63430008170033",
+  "devdoc": {
+    "author": "1Balancer Team",
+    "details": "Integrates with 1inch foundation contracts and manages cross-chain coordination",
+    "errors": {
+      "AccessControlBadConfirmation()": [
+        {
+          "details": "The caller of a function is not the expected one. NOTE: Don't confuse with {AccessControlUnauthorizedAccount}."
+        }
+      ],
+      "AccessControlUnauthorizedAccount(address,bytes32)": [
+        {
+          "details": "The `account` is missing a role."
+        }
+      ],
+      "EnforcedPause()": [
+        {
+          "details": "The operation failed because the contract is paused."
+        }
+      ],
+      "ExpectedPause()": [
+        {
+          "details": "The operation failed because the contract is not paused."
+        }
+      ],
+      "InvalidInitialization()": [
+        {
+          "details": "The contract is already initialized."
+        }
+      ],
+      "NotInitializing()": [
+        {
+          "details": "The contract is not initializing."
+        }
+      ],
+      "ReentrancyGuardReentrantCall()": [
+        {
+          "details": "Unauthorized reentrant call."
+        }
+      ]
+    },
+    "events": {
+      "Initialized(uint64)": {
+        "details": "Triggered when the contract has been initialized or reinitialized."
+      },
+      "Paused(address)": {
+        "details": "Emitted when the pause is triggered by `account`."
+      },
+      "RoleAdminChanged(bytes32,bytes32,bytes32)": {
+        "details": "Emitted when `newAdminRole` is set as ``role``'s admin role, replacing `previousAdminRole` `DEFAULT_ADMIN_ROLE` is the starting admin for all roles, despite {RoleAdminChanged} not being emitted to signal this."
+      },
+      "RoleGranted(bytes32,address,address)": {
+        "details": "Emitted when `account` is granted `role`. `sender` is the account that originated the contract call. This account bears the admin role (for the granted role). Expected in cases where the role was granted using the internal {AccessControl-_grantRole}."
+      },
+      "RoleRevoked(bytes32,address,address)": {
+        "details": "Emitted when `account` is revoked `role`. `sender` is the account that originated the contract call:   - if using `revokeRole`, it is the admin role bearer   - if using `renounceRole`, it is the role bearer (i.e. `account`)"
+      },
+      "Unpaused(address)": {
+        "details": "Emitted when the pause is lifted by `account`."
+      }
+    },
+    "kind": "dev",
+    "methods": {
+      "calculateFee(uint256)": {
+        "params": {
+          "amount": "The amount to calculate fee for"
+        },
+        "returns": {
+          "_0": "The fee amount"
+        }
+      },
+      "createEscrowsForOrder(bytes32,(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256),(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256))": {
+        "details": "Called by resolver after order validation"
+      },
+      "createFusionPlusOrder(bytes32,address,address,uint256,uint256,bytes)": {
+        "details": "Validates amounts and creates order hash for tracking",
+        "params": {
+          "destinationChain": "The destination chain identifier",
+          "dstAmount": "Expected amount on destination chain",
+          "dstToken": "Destination chain token address",
+          "orderData": "Additional order parameters",
+          "srcAmount": "Amount on source chain",
+          "srcToken": "Source chain token address"
+        }
+      },
+      "getContractAddresses()": {
+        "returns": {
+          "_aggregationRouter": "The aggregation router address",
+          "_escrowFactory": "The escrow factory address",
+          "_limitOrderProtocol": "The limit order protocol address"
+        }
+      },
+      "getOrderStatus(bytes32)": {
+        "params": {
+          "orderHash": "The order hash to check"
+        },
+        "returns": {
+          "_0": "The order status"
+        }
+      },
+      "getRoleAdmin(bytes32)": {
+        "details": "Returns the admin role that controls `role`. See {grantRole} and {revokeRole}. To change a role's admin, use {_setRoleAdmin}."
+      },
+      "grantRole(bytes32,address)": {
+        "details": "Grants `role` to `account`. If `account` had not been already granted `role`, emits a {RoleGranted} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleGranted} event."
+      },
+      "hasRole(bytes32,address)": {
+        "details": "Returns `true` if `account` has been granted `role`."
+      },
+      "paused()": {
+        "details": "Returns true if the contract is paused, and false otherwise."
+      },
+      "renounceRole(bytes32,address)": {
+        "details": "Revokes `role` from the calling account. Roles are often managed via {grantRole} and {revokeRole}: this function's purpose is to provide a mechanism for accounts to lose their privileges if they are compromised (such as when a trusted device is misplaced). If the calling account had been revoked `role`, emits a {RoleRevoked} event. Requirements: - the caller must be `callerConfirmation`. May emit a {RoleRevoked} event."
+      },
+      "revokeRole(bytes32,address)": {
+        "details": "Revokes `role` from `account`. If `account` had been granted `role`, emits a {RoleRevoked} event. Requirements: - the caller must have ``role``'s admin role. May emit a {RoleRevoked} event."
+      },
+      "setFeeRecipient(address)": {
+        "params": {
+          "_recipient": "New fee recipient address"
+        }
+      },
+      "setProtocolFee(uint256)": {
+        "params": {
+          "_fee": "New fee in basis points"
+        }
+      },
+      "supportsInterface(bytes4)": {
+        "details": "Returns true if this contract implements the interface defined by `interfaceId`. See the corresponding https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[ERC section] to learn more about how these ids are created. This function call must use less than 30 000 gas."
+      },
+      "updateContracts(address,address,address)": {
+        "params": {
+          "_aggregationRouter": "New aggregation router address",
+          "_escrowFactory": "New escrow factory address",
+          "_limitOrderProtocol": "New limit order protocol address"
+        }
+      },
+      "updateOrderStatus(bytes32,uint8)": {
+        "params": {
+          "newStatus": "The new status",
+          "orderHash": "The order hash to update"
+        }
+      }
+    },
+    "title": "FusionPlusHub V2",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {
+      "calculateFee(uint256)": {
+        "notice": "Calculates fee for an amount"
+      },
+      "createEscrowsForOrder(bytes32,(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256),(address,address,address,uint256,uint256,bytes32,(uint32,uint32,uint32,uint32,uint32,uint32,uint32),bytes32,uint256))": {
+        "notice": "Creates escrow pair for cross-chain atomic swap"
+      },
+      "createFusionPlusOrder(bytes32,address,address,uint256,uint256,bytes)": {
+        "notice": "Creates a cross-chain Fusion+ order with proper validation"
+      },
+      "getContractAddresses()": {
+        "notice": "Gets all contract addresses"
+      },
+      "getOrderStatus(bytes32)": {
+        "notice": "Gets order status"
+      },
+      "pause()": {
+        "notice": "Pauses the contract"
+      },
+      "setFeeRecipient(address)": {
+        "notice": "Updates fee recipient"
+      },
+      "setProtocolFee(uint256)": {
+        "notice": "Updates protocol fee"
+      },
+      "unpause()": {
+        "notice": "Unpauses the contract"
+      },
+      "updateContracts(address,address,address)": {
+        "notice": "Updates contract addresses"
+      },
+      "updateOrderStatus(bytes32,uint8)": {
+        "notice": "Updates order status (called by resolver/orchestrator)"
+      }
+    },
+    "notice": "Enhanced hub contract for Fusion+ cross-chain swaps on BASE with better 1inch integration",
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 3355,
+        "contract": "contracts/ethereum-hub/FusionPlusHub_V2.sol:FusionPlusHub_V2",
+        "label": "limitOrderProtocol",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_address"
+      },
+      {
+        "astId": 3357,
+        "contract": "contracts/ethereum-hub/FusionPlusHub_V2.sol:FusionPlusHub_V2",
+        "label": "aggregationRouter",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_address"
+      },
+      {
+        "astId": 3360,
+        "contract": "contracts/ethereum-hub/FusionPlusHub_V2.sol:FusionPlusHub_V2",
+        "label": "escrowFactory",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_contract(IEscrowFactory)5804"
+      },
+      {
+        "astId": 3362,
+        "contract": "contracts/ethereum-hub/FusionPlusHub_V2.sol:FusionPlusHub_V2",
+        "label": "protocolFee",
+        "offset": 0,
+        "slot": "3",
+        "type": "t_uint256"
+      },
+      {
+        "astId": 3367,
+        "contract": "contracts/ethereum-hub/FusionPlusHub_V2.sol:FusionPlusHub_V2",
+        "label": "feeRecipient",
+        "offset": 0,
+        "slot": "4",
+        "type": "t_address"
+      },
+      {
+        "astId": 3372,
+        "contract": "contracts/ethereum-hub/FusionPlusHub_V2.sol:FusionPlusHub_V2",
+        "label": "orderStatuses",
+        "offset": 0,
+        "slot": "5",
+        "type": "t_mapping(t_bytes32,t_enum(OrderStatus)3378)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_contract(IEscrowFactory)5804": {
+        "encoding": "inplace",
+        "label": "contract IEscrowFactory",
+        "numberOfBytes": "20"
+      },
+      "t_enum(OrderStatus)3378": {
+        "encoding": "inplace",
+        "label": "enum FusionPlusHub_V2.OrderStatus",
+        "numberOfBytes": "1"
+      },
+      "t_mapping(t_bytes32,t_enum(OrderStatus)3378)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => enum FusionPlusHub_V2.OrderStatus)",
+        "numberOfBytes": "32",
+        "value": "t_enum(OrderStatus)3378"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

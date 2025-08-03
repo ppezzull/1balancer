@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { default: chalk } = require('chalk');
+const chalk = require('chalk').default || require('chalk');
 
 /**
  * Generates a complete Vercel proxy project for 1inch API

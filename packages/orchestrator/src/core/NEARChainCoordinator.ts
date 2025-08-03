@@ -1,5 +1,6 @@
 import { connect, KeyPair, Account, providers, keyStores } from 'near-api-js';
-const { UnencryptedFileSystemKeyStore, InMemoryKeyStore } = keyStores;
+const { InMemoryKeyStore, UnencryptedFileSystemKeyStore } = keyStores;
+import os from 'os';
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 import { SessionManager, SwapSession } from './SessionManager';
@@ -51,7 +52,7 @@ export class NEARChainCoordinator {
     private sessionManager: SessionManager,
     _secretManager: SecretManager
   ) {
-    // Initialize NEAR config
+    // Initialize NEAR config - prefer environment variables over config
     this.nearConfig = {
       networkId: config.chains.near?.networkId || 'testnet',
       nodeUrl: config.chains.near?.rpcUrl || 'https://rpc.testnet.near.org',
@@ -61,9 +62,17 @@ export class NEARChainCoordinator {
       explorerUrl: `https://explorer.${config.chains.near?.networkId || 'testnet'}.near.org`,
       htlcContract: config.chains.near?.contracts?.htlc || 'fusion-htlc.testnet',
       solverRegistry: config.chains.near?.contracts?.solverRegistry || 'solver-registry.testnet',
-      masterAccount: process.env.NEAR_MASTER_ACCOUNT,
-      privateKey: process.env.NEAR_PRIVATE_KEY,
+      masterAccount: process.env.NEAR_MASTER_ACCOUNT || config.chains.near?.accountId,
+      privateKey: process.env.NEAR_PRIVATE_KEY || config.chains.near?.privateKey,
     };
+    
+    // Log environment variables for debugging
+    logger.info('NEAR config initialized', {
+      hasAccount: !!this.nearConfig.masterAccount,
+      hasPrivateKey: !!this.nearConfig.privateKey,
+      accountId: this.nearConfig.masterAccount,
+      networkId: this.nearConfig.networkId,
+    });
 
     this.htlcContract = this.nearConfig.htlcContract;
 
@@ -71,7 +80,10 @@ export class NEARChainCoordinator {
     this.initializeProvider();
     
     // Initialize NEAR connection
-    this.initializeNear();
+    this.initializeNear().catch(error => {
+      logger.error('Failed to initialize NEAR coordinator', { error });
+      logger.warn('Continuing without NEAR functionality');
+    });
   }
 
   private initializeProvider(): void {
@@ -81,123 +93,433 @@ export class NEARChainCoordinator {
 
   private async initializeNear(): Promise<void> {
     try {
-      // Setup key store
+      logger.info('[NEAR] Starting initialization process', {
+        timestamp: new Date().toISOString(),
+        config: {
+          networkId: this.nearConfig.networkId,
+          nodeUrl: this.nearConfig.nodeUrl,
+          htlcContract: this.htlcContract,
+          hasAccount: !!this.nearConfig.masterAccount,
+          hasPrivateKey: !!this.nearConfig.privateKey,
+          accountId: this.nearConfig.masterAccount,
+          keyLength: this.nearConfig.privateKey?.length
+        }
+      });
+
+      // Try to use FileSystemKeyStore first (reads from ~/.near-credentials)
       let keyStore: keyStores.KeyStore;
+      let hasValidCredentials = false;
       
-      if (this.nearConfig.privateKey && this.nearConfig.masterAccount) {
-        // Use in-memory key store for server environment
+      try {
+        // Use FileSystemKeyStore to read from ~/.near-credentials
+        const credentialsPath = os.homedir() + '/.near-credentials';
+        keyStore = new UnencryptedFileSystemKeyStore(credentialsPath);
+        
+        logger.info('[NEAR] Using FileSystemKeyStore for credentials', {
+          credentialsPath,
+          networkId: this.nearConfig.networkId,
+          accountId: this.nearConfig.masterAccount
+        });
+        
+        // Test if key exists in filesystem
+        const storedKey = await keyStore.getKey(this.nearConfig.networkId, this.nearConfig.masterAccount!);
+        if (storedKey) {
+          logger.info('[NEAR] Successfully loaded credentials from filesystem', {
+            accountId: this.nearConfig.masterAccount,
+            networkId: this.nearConfig.networkId,
+            hasPublicKey: typeof storedKey.getPublicKey === 'function'
+          });
+          hasValidCredentials = true;
+        } else {
+          throw new Error('No credentials found in filesystem');
+        }
+        
+      } catch (fsError) {
+        logger.warn('[NEAR] FileSystemKeyStore failed, falling back to InMemoryKeyStore', {
+          error: (fsError as Error).message,
+          hasEnvKey: !!this.nearConfig.privateKey,
+          hasEnvAccount: !!this.nearConfig.masterAccount
+        });
+        
+        // Fallback to InMemoryKeyStore with environment variables
         keyStore = new InMemoryKeyStore();
-        const keyPair = KeyPair.fromString(this.nearConfig.privateKey as any);
-        await keyStore.setKey(this.nearConfig.networkId, this.nearConfig.masterAccount, keyPair);
-      } else {
-        // Use unencrypted file system key store (for development)
-        const keyPath = process.env.NEAR_KEY_PATH || `${process.env.HOME}/.near-credentials`;
-        keyStore = new UnencryptedFileSystemKeyStore(keyPath);
+        
+        if (this.nearConfig.privateKey && this.nearConfig.masterAccount) {
+          try {
+            logger.info('[NEAR] Loading credentials from environment variables', {
+              accountId: this.nearConfig.masterAccount,
+              keyLength: this.nearConfig.privateKey?.length
+            });
+            
+            const keyPair = KeyPair.fromString(this.nearConfig.privateKey as any);
+            await keyStore.setKey(this.nearConfig.networkId, this.nearConfig.masterAccount!, keyPair);
+            
+            // Verify the key was stored
+            const storedKey = await keyStore.getKey(this.nearConfig.networkId, this.nearConfig.masterAccount!);
+            if (storedKey) {
+              logger.info('[NEAR] Successfully loaded credentials from environment', {
+                accountId: this.nearConfig.masterAccount
+              });
+              hasValidCredentials = true;
+            }
+          } catch (envError) {
+            logger.error('[NEAR] Failed to load credentials from environment', {
+              error: (envError as Error).message
+            });
+          }
+        }
       }
 
-      // Initialize NEAR connection using modern API
+      // Initialize NEAR connection with detailed logging
+      logger.info('[NEAR] Establishing connection to NEAR network', {
+        networkId: this.nearConfig.networkId,
+        nodeUrl: this.nearConfig.nodeUrl,
+        hasValidCredentials
+      });
+      
       this.nearConnection = await connect({
         networkId: this.nearConfig.networkId,
         nodeUrl: this.nearConfig.nodeUrl,
         keyStore,
       });
+      
+      logger.info('[NEAR] NEAR connection established', {
+        connectionType: typeof this.nearConnection,
+        connectionMethods: Object.getOwnPropertyNames(this.nearConnection),
+        hasAccount: typeof this.nearConnection.account === 'function'
+      });
 
-      // Initialize master account if credentials provided
-      if (this.nearConfig.masterAccount) {
-        this.masterAccount = new Account(
-          this.nearConnection,
-          this.nearConfig.masterAccount
-        );
-        
-        logger.info('NEAR connection initialized', {
-          networkId: this.nearConfig.networkId,
-          htlcContract: this.htlcContract,
-          masterAccount: this.nearConfig.masterAccount,
-          contractSource: this.htlcContract.includes('fusion-htlc.testnet') ? 'default' : 'configured',
+      // Initialize master account only if we have valid credentials
+      if (hasValidCredentials) {
+        logger.info('[NEAR] Creating master account for write operations', {
+          accountId: this.nearConfig.masterAccount
         });
+        
+        // Use the connection's account method which properly binds the keystore
+        this.masterAccount = await this.nearConnection.account(this.nearConfig.masterAccount!);
+        
+        logger.info('[NEAR] Master account created successfully', {
+          accountId: this.masterAccount?.accountId,
+          hasConnection: !!this.masterAccount?.connection
+        });
+        
+        logger.info('[NEAR] Master account initialized for write operations');
       } else {
-        logger.warn('NEAR initialized without master account - limited functionality');
+        logger.warn('[NEAR] Running in read-only mode - write operations will fail');
       }
+      
+      logger.info('[NEAR] Initialization completed successfully', {
+        networkId: this.nearConfig.networkId,
+        htlcContract: this.htlcContract,
+        masterAccount: this.nearConfig.masterAccount,
+        contractSource: this.htlcContract.includes('fusion-htlc.testnet') ? 'default' : 'configured',
+        readOnlyMode: !hasValidCredentials,
+        canPerformWrites: hasValidCredentials && !!this.masterAccount
+      });
+      
     } catch (error) {
-      logger.error('Failed to initialize NEAR connection', { error });
+      const err = error as Error;
+      logger.error('[NEAR] Initialization failed with error', { 
+        error: err.message,
+        stack: err.stack,
+        errorType: err.constructor.name,
+        config: {
+          networkId: this.nearConfig.networkId,
+          nodeUrl: this.nearConfig.nodeUrl,
+          hasAccount: !!this.nearConfig.masterAccount,
+          hasPrivateKey: !!this.nearConfig.privateKey
+        }
+      });
       throw error;
     }
   }
 
-  async createHTLC(params: HTLCParams): Promise<string> {
+  async createHTLC(params: HTLCParams): Promise<{htlcId: string, txHash: string, explorer: string}> {
+    const timestamp = new Date().toISOString();
+    
     try {
-      logger.info('Creating NEAR HTLC', { params });
+      logger.info(`[${timestamp}][NEAR] Starting HTLC creation`, {
+        contractId: this.htlcContract,
+        params: {
+          receiver: params.receiver,
+          token: params.token,
+          amount: params.amount,
+          hashlock: params.hashlock ? `${params.hashlock.substring(0, 10)}...` : 'undefined',
+          timelock: params.timelock,
+          orderHash: params.orderHash ? `${params.orderHash.substring(0, 10)}...` : 'undefined'
+        }
+      });
 
+      // Validate master account availability
       if (!this.masterAccount) {
-        throw new Error('NEAR master account not configured');
+        logger.error(`[${timestamp}][NEAR] Write operations unavailable - no master account`, {
+          hasNearConnection: !!this.nearConnection,
+          networkId: this.nearConfig.networkId,
+          masterAccountId: this.nearConfig.masterAccount,
+          hasPrivateKey: !!this.nearConfig.privateKey,
+          error: 'Master account not initialized'
+        });
+        throw new Error('NEAR write operations unavailable - invalid private key format. Expected: ed25519:base58_key (87+ chars)');
       }
 
-      // Convert amount to yoctoNEAR if native NEAR
-      const amount = params.token === 'near' 
-        ? this.parseNearAmount(params.amount)
-        : params.amount;
+      logger.info(`[${timestamp}][NEAR] Master account ready for function call`, {
+        accountId: this.masterAccount?.accountId,
+        networkId: this.nearConfig.networkId
+      });
 
-      // Call create_htlc on NEAR contract
-      const result = await this.masterAccount.functionCall({
+      // Validate and parse amount
+      logger.info(`[${timestamp}][NEAR] Processing amount conversion`, {
+        originalAmount: params.amount,
+        token: params.token,
+        isNativeNear: params.token === 'near'
+      });
+
+      // Check if amount is already in yoctoNEAR format (very large number) or NEAR format (smaller number)
+      const isAlreadyYoctoNear = params.amount.length > 20; // yoctoNEAR amounts are typically 24+ digits
+      
+      const amount = params.token === 'near' && !isAlreadyYoctoNear
+        ? this.parseNearAmount(params.amount)
+        : params.amount; // Already in correct format
+
+      logger.info(`[${timestamp}][NEAR] Amount processed`, {
+        originalAmount: params.amount,
+        processedAmount: amount,
+        isAlreadyYoctoNear,
+        conversionApplied: params.token === 'near' && !isAlreadyYoctoNear
+      });
+
+      // Convert hex strings to base64 for NEAR contract
+      const hashlockBase64 = this.hexToBase64(params.hashlock);
+      const orderHashBase64 = this.hexToBase64(params.orderHash);
+
+      // Convert timelock from seconds to nanoseconds (NEAR uses nanoseconds since epoch)
+      const timelockNanoseconds = (params.timelock * 1_000_000_000).toString();
+
+      // Prepare function call arguments with validation
+      // Contract expects parameters wrapped in an 'args' field
+      const functionCallArgs = {
+        args: {
+          receiver: params.receiver,
+          token: params.token === 'near' ? null : params.token, // NEAR contract expects null for native token
+          amount: amount,
+          hashlock: hashlockBase64, // Convert hex to base64
+          timelock: timelockNanoseconds, // Convert seconds to nanoseconds for NEAR
+          order_hash: orderHashBase64, // Convert hex to base64
+        }
+      };
+
+      logger.info(`[${timestamp}][NEAR] Prepared function call arguments`, {
+        args: {
+          receiver: functionCallArgs.args.receiver,
+          token: functionCallArgs.args.token,
+          amount: functionCallArgs.args.amount,
+          hashlock: functionCallArgs.args.hashlock ? `${functionCallArgs.args.hashlock.substring(0, 10)}...` : 'undefined',
+          timelock: functionCallArgs.args.timelock,
+          order_hash: functionCallArgs.args.order_hash ? `${functionCallArgs.args.order_hash.substring(0, 10)}...` : 'undefined'
+        },
+        conversion: {
+          originalHashlock: params.hashlock.substring(0, 10) + '...',
+          convertedHashlock: hashlockBase64.substring(0, 10) + '...',
+          originalOrderHash: params.orderHash.substring(0, 10) + '...',
+          convertedOrderHash: orderHashBase64.substring(0, 10) + '...',
+          originalTimelock: params.timelock + ' seconds',
+          convertedTimelock: timelockNanoseconds.substring(0, 13) + '... nanoseconds'
+        },
+        validation: {
+          receiverNotEmpty: !!functionCallArgs.args.receiver,
+          amountPositive: BigInt(functionCallArgs.args.amount) > 0n,
+          hashlockLength: functionCallArgs.args.hashlock?.length || 0,
+          timelockInFuture: BigInt(functionCallArgs.args.timelock) > BigInt(Date.now() * 1_000_000),
+          orderHashLength: functionCallArgs.args.order_hash?.length || 0
+        }
+      });
+
+      // Calculate gas and deposit
+      const gasAmount = BigInt('30000000000000'); // 30 TGas
+      const attachedDeposit = params.token === 'near' ? BigInt(amount) : BigInt('10000000000000000000000'); // 0.01 NEAR min storage
+
+      logger.info(`[${timestamp}][NEAR] Function call configuration`, {
         contractId: this.htlcContract,
         methodName: 'create_htlc',
-        args: {
-          args: {
-            receiver: params.receiver,
-            token: params.token,
-            amount: amount,
-            hashlock: params.hashlock,
-            timelock: params.timelock,
-            order_hash: params.orderHash,
-          }
-        },
-        gas: BigInt('300000000000000'), // 300 TGas
-        attachedDeposit: params.token === 'near' ? BigInt(amount) : BigInt(1), // Attach amount if NEAR, else storage deposit
+        gas: gasAmount.toString(),
+        attachedDeposit: attachedDeposit.toString(),
+        depositInNear: (Number(attachedDeposit) / 1e24).toFixed(6) + ' NEAR'
       });
 
-      // Extract HTLC ID from result
+      // Execute function call with comprehensive error handling
+      logger.info(`[${timestamp}][NEAR] Executing contract function call`, {
+        contractId: this.htlcContract,
+        methodName: 'create_htlc',
+        callerAccount: this.masterAccount.accountId
+      });
+
+      // Account is properly initialized with keystore access
+
+      let result;
+      try {
+        result = await this.masterAccount.functionCall({
+          contractId: this.htlcContract,
+          methodName: 'create_htlc',
+          args: functionCallArgs,
+          gas: gasAmount,
+          attachedDeposit: attachedDeposit,
+        });
+        
+        logger.info(`[${timestamp}][NEAR] Function call completed successfully`, {
+          hasResult: !!result,
+          resultType: typeof result,
+          hasTransaction: !!result?.transaction,
+          transactionHash: result?.transaction?.hash,
+          hasStatus: !!result?.status,
+          statusType: typeof result?.status
+        });
+        
+      } catch (functionCallError) {
+        const error = functionCallError as Error;
+        logger.error(`[${timestamp}][NEAR] Function call failed`, {
+          error: error.message,
+          stack: error.stack,
+          errorType: error.constructor.name,
+          contractId: this.htlcContract,
+          methodName: 'create_htlc',
+          args: functionCallArgs,
+          gas: gasAmount.toString(),
+          deposit: attachedDeposit.toString()
+        });
+        throw functionCallError;
+      }
+
+      // Extract and validate HTLC ID from result
+      logger.info(`[${timestamp}][NEAR] Extracting HTLC ID from result`, {
+        result: {
+          hasTransaction: !!result.transaction,
+          transactionHash: result.transaction?.hash,
+          hasStatus: !!result.status,
+          statusType: typeof result.status,
+          hasSuccessValue: !!(result.status as any)?.SuccessValue
+        }
+      });
+
       const htlcId = this.extractHTLCId(result);
       
-      logger.info('NEAR HTLC created', { 
+      if (!htlcId) {
+        logger.error(`[${timestamp}][NEAR] Failed to extract HTLC ID from result`, {
+          result: JSON.stringify(result, null, 2)
+        });
+        throw new Error('Failed to extract HTLC ID from transaction result');
+      }
+      
+      logger.info(`[${timestamp}][NEAR] HTLC creation completed successfully`, { 
         htlcId,
         txHash: result.transaction.hash,
-        params 
+        blockHash: (result as any).transaction_outcome?.block_hash,
+        gasUsed: (result as any).transaction_outcome?.outcome?.gas_burnt,
+        explorer: `https://testnet.nearblocks.io/txns/${result.transaction.hash}`,
+        contractExplorer: `https://testnet.nearblocks.io/address/${this.htlcContract}`,
+        params: {
+          receiver: params.receiver,
+          token: params.token,
+          amount: params.amount
+        }
       });
 
-      return htlcId;
+      return {
+        htlcId,
+        txHash: result.transaction.hash,
+        explorer: `https://testnet.nearblocks.io/txns/${result.transaction.hash}`
+      };
+      
     } catch (error) {
-      logger.error('Failed to create NEAR HTLC', { error, params });
+      const err = error as Error;
+      logger.error(`[${timestamp}][NEAR] HTLC creation failed with error`, { 
+        error: err.message,
+        stack: err.stack,
+        errorType: err.constructor.name,
+        params,
+        contractId: this.htlcContract,
+        masterAccountId: this.masterAccount?.accountId,
+        hasConnection: !!this.nearConnection
+      });
       throw this.handleNearError(error);
     }
   }
 
-  async withdrawHTLC(htlcId: string, secret: string, receiver: string): Promise<void> {
+  async withdrawHTLC(htlcId: string, secret: string, receiver: string): Promise<string> {
+    const timestamp = new Date().toISOString();
+    
     try {
-      logger.info('Withdrawing NEAR HTLC', { htlcId, receiver });
+      logger.info(`[${timestamp}][NEAR] Withdrawing HTLC with secret revelation`, {
+        htlcId,
+        receiver,
+        contractId: this.htlcContract,
+        action: 'withdraw_with_secret_revelation'
+      });
 
-      // Get receiver account
-      const receiverAccount = new Account(
-        this.nearConnection,
-        receiver
-      );
+      // Validate master account availability
+      if (!this.masterAccount) {
+        logger.error(`[${timestamp}][NEAR] Cannot withdraw HTLC - no master account`, {
+          htlcId,
+          receiver,
+          error: 'Master account not initialized'
+        });
+        throw new Error('NEAR master account not available for withdrawal operations');
+      }
 
-      // Call withdraw on NEAR contract
-      const result = await receiverAccount.functionCall({
+      // Use the account that has credentials (master account) to withdraw
+      // The HTLC contract should allow the master account to withdraw on behalf of receiver
+      logger.info(`[${timestamp}][NEAR] Using master account to withdraw HTLC on behalf of receiver`, {
+        htlcId,
+        receiver,
+        withdrawer: this.masterAccount.accountId,
+        note: 'Master account has credentials and withdraws to reveal secret publicly'
+      });
+
+      // Convert hex secret to base64 for NEAR contract (NEAR expects base64-encoded binary data)
+      const secretBase64 = this.hexToBase64(secret);
+
+      logger.info(`[${timestamp}][NEAR] Converting secret format for NEAR contract`, {
+        originalSecretFormat: 'hex',
+        secretLength: secret.length,
+        convertedFormat: 'base64',
+        convertedLength: secretBase64.length,
+        note: 'NEAR contracts expect base64-encoded binary data, not hex strings'
+      });
+
+      // Use master account to call withdraw (this reveals the secret and completes the HTLC)
+      const result = await this.masterAccount.functionCall({
         contractId: this.htlcContract,
         methodName: 'withdraw',
         args: {
           htlc_id: htlcId,
-          secret: secret,
+          secret: secretBase64,
+          // Some HTLC contracts require specifying the receiver
+          receiver: receiver
         },
-        gas: BigInt('300000000000000'), // 300 TGas
+        gas: BigInt('30000000000000'), // 30 TGas
       });
 
-      logger.info('NEAR HTLC withdrawn', {
+      logger.info(`[${timestamp}][NEAR] HTLC withdrawal completed successfully`, {
         htlcId,
         txHash: result.transaction.hash,
+        receiver,
+        masterAccount: this.masterAccount.accountId,
+        explorer: `https://testnet.nearblocks.io/txns/${result.transaction.hash}`,
+        secretRevealed: true,
+        note: 'Secret is now publicly visible on NEAR blockchain'
       });
+      
+      return result.transaction.hash;
+      
     } catch (error) {
-      logger.error('Failed to withdraw NEAR HTLC', { error, htlcId });
+      const err = error as Error;
+      logger.error(`[${timestamp}][NEAR] Failed to withdraw HTLC`, {
+        error: err.message,
+        stack: err.stack,
+        htlcId,
+        receiver,
+        masterAccount: this.masterAccount?.accountId,
+        contractId: this.htlcContract
+      });
       throw this.handleNearError(error);
     }
   }
@@ -219,7 +541,7 @@ export class NEARChainCoordinator {
         args: {
           htlc_id: htlcId,
         },
-        gas: BigInt('300000000000000'), // 300 TGas
+        gas: BigInt('30000000000000'), // 30 TGas - reduced for cost optimization
       });
 
       logger.info('NEAR HTLC refunded', {
@@ -311,9 +633,19 @@ export class NEARChainCoordinator {
           await this.handleNearEvent(event);
         }
       }
-    } catch (error) {
-      // Contract might not have get_recent_events method, use alternative approach
-      logger.debug('Using alternative event monitoring approach');
+    } catch (error: any) {
+      // Handle specific NEAR errors gracefully
+      if (error.type === 'AccountDoesNotExist') {
+        logger.debug('NEAR contract not deployed yet - expected in development', {
+          contract: this.htlcContract,
+          hint: 'Deploy NEAR contracts or use existing testnet contracts'
+        });
+      } else if (error.message?.includes('FunctionCallError')) {
+        // Contract might not have get_recent_events method
+        logger.debug('Contract does not support get_recent_events - using alternative monitoring');
+      } else {
+        logger.debug('Error polling NEAR events', { error });
+      }
     }
   }
 
@@ -362,6 +694,17 @@ export class NEARChainCoordinator {
     return yoctoNear.replace(/^0+/, '') || '0';
   }
 
+  private hexToBase64(hexString: string): string {
+    // Remove 0x prefix if present
+    const hex = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
+    
+    // Convert hex to bytes
+    const bytes = Buffer.from(hex, 'hex');
+    
+    // Convert to base64
+    return bytes.toString('base64');
+  }
+
   private handleNearError(error: any): Error {
     if (error.type === 'AccountDoesNotExist') {
       return ApiErrorFactory.notFound('NEAR account does not exist');
@@ -400,7 +743,7 @@ export class NEARChainCoordinator {
       logger.info('Locking assets on NEAR', { sessionId: session.id });
       
       // Create HTLC on NEAR
-      const htlcId = await this.createHTLC({
+      const nearResult = await this.createHTLC({
         receiver: session.destinationAddress || session.taker,
         token: session.destinationAsset || session.destinationToken,
         amount: session.destinationAmount,
@@ -410,6 +753,7 @@ export class NEARChainCoordinator {
       });
       
       // Update session with NEAR HTLC ID
+      const htlcId = nearResult.htlcId;
       session.nearHTLCId = htlcId;
       session.status = 'htlc_created_near';
       await this.sessionManager.updateSession(session.id, session);
@@ -458,7 +802,7 @@ export class NEARChainCoordinator {
           account_id: this.htlcContract,
           method_name: 'get_recent_events',
           args_base64: Buffer.from(JSON.stringify({
-            from_timestamp: Date.now() - 60000 // Last minute
+            _from_timestamp: String(Date.now() - 60000) // Last minute - must be string
           })).toString('base64'),
         });
 
@@ -478,8 +822,20 @@ export class NEARChainCoordinator {
             callback(event);
           }
         }
-      } catch (error) {
-        logger.error('Error monitoring NEAR events', { error });
+      } catch (error: any) {
+        // Handle specific NEAR errors gracefully
+        if (error.type === 'AccountDoesNotExist') {
+          logger.debug('NEAR contract account does not exist yet - this is expected in development', { 
+            contract: this.htlcContract 
+          });
+        } else {
+          logger.error('Error monitoring NEAR events', { 
+            error,
+            errorType: error.type,
+            errorMessage: error.message || error.toString(),
+            contract: this.htlcContract
+          });
+        }
       }
     }, 5000);
   }
@@ -519,6 +875,119 @@ export class NEARChainCoordinator {
         secret,
       });
     }
+  }
+
+  /**
+   * Get revealed secret from a completed HTLC withdrawal
+   * This method queries the NEAR contract to check if the secret has been revealed
+   */
+  async getRevealedSecret(htlcId: string): Promise<string | null> {
+    const timestamp = new Date().toISOString();
+    
+    try {
+      logger.info(`[${timestamp}][NEAR] Checking for revealed secret`, {
+        htlcId,
+        contract: this.htlcContract,
+        action: 'query_revealed_secret'
+      });
+
+      // Query the contract to get HTLC details including revealed secret
+      const result = await this.provider.query({
+        request_type: 'call_function',
+        finality: 'final',
+        account_id: this.htlcContract,
+        method_name: 'get_htlc',
+        args_base64: Buffer.from(JSON.stringify({ htlc_id: htlcId })).toString('base64'),
+      });
+
+      if ((result as any).result) {
+        const htlcData = JSON.parse(Buffer.from((result as any).result).toString());
+        
+        logger.info(`[${timestamp}][NEAR] HTLC query result`, {
+          htlcId,
+          hasData: !!htlcData,
+          status: htlcData?.status,
+          hasSecret: !!htlcData?.revealed_secret,
+          isWithdrawn: htlcData?.is_withdrawn,
+          secretLength: htlcData?.revealed_secret?.length || 0
+        });
+
+        // Check if secret has been revealed (HTLC is withdrawn)
+        if (htlcData?.revealed_secret) {
+          const revealedSecret = htlcData.revealed_secret;
+          
+          logger.info(`[${timestamp}][NEAR] Secret found in HTLC`, {
+            htlcId,
+            secretLength: revealedSecret.length,
+            secretPrefix: revealedSecret.substring(0, 10) + '...',
+            htlcStatus: htlcData.status,
+            withdrawalComplete: htlcData.is_withdrawn
+          });
+          
+          return revealedSecret;
+        } else {
+          logger.debug(`[${timestamp}][NEAR] Secret not yet revealed`, {
+            htlcId,
+            htlcStatus: htlcData?.status || 'unknown',
+            isWithdrawn: htlcData?.is_withdrawn || false,
+            timeRemaining: htlcData?.timelock ? Math.max(0, htlcData.timelock - Date.now()) : 'unknown'
+          });
+          
+          return null;
+        }
+      } else {
+        logger.warn(`[${timestamp}][NEAR] No result from HTLC query`, {
+          htlcId,
+          resultType: typeof result,
+          hasResult: !!(result as any).result
+        });
+        
+        return null;
+      }
+    } catch (error) {
+      const err = error as Error;
+      
+      // Handle specific error types gracefully
+      if (err.message?.includes('HTLC not found') || err.message?.includes('wasm execution failed')) {
+        logger.debug(`[${timestamp}][NEAR] HTLC not found or not yet withdrawn`, {
+          htlcId,
+          error: err.message,
+          hint: 'This is expected if secret not yet revealed'
+        });
+        return null;
+      } else {
+        logger.error(`[${timestamp}][NEAR] Error querying revealed secret`, {
+          htlcId,
+          error: err.message,
+          stack: err.stack,
+          errorType: err.constructor.name,
+          contract: this.htlcContract
+        });
+        
+        // Don't throw error, return null to allow retry
+        return null;
+      }
+    }
+  }
+
+  /**
+   * Get the master account ID dynamically from the initialized account
+   * This allows the code to work with any NEAR account configured in environment variables
+   */
+  async getMasterAccountId(): Promise<string> {
+    if (!this.masterAccount) {
+      throw new Error('Master account not initialized - cannot get account ID');
+    }
+    
+    // Get account ID dynamically from the Account object
+    const accountId = this.masterAccount.accountId;
+    
+    logger.debug('Retrieved master account ID dynamically', {
+      accountId,
+      source: 'masterAccount.accountId'
+    });
+    
+    return accountId;
   }
 
   shutdown(): void {

@@ -47,8 +47,8 @@ export default deployEthereumHubComplete;
 // This tag allows deploying all Ethereum Hub contracts at once
 deployEthereumHubComplete.tags = ["EthereumHub"];
 
-// Ensure FusionPlusHub deploys
-deployEthereumHubComplete.dependencies = ["FusionPlusHub"];
+// Ensure all contracts deploy in order
+deployEthereumHubComplete.dependencies = ["FusionPlusHub", "EscrowFactory"];
 
 /**
  * DEPLOYMENT INSTRUCTIONS:
