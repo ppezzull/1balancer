@@ -2,29 +2,30 @@
 pragma solidity ^0.8.23;
 
 /*
- * BalancerFactory
+ * OptimizedBalancerFactory
  *
- * A simple factory contract that deploys DriftBalancer or TimeBalancer
- * instances directly. Each user may create multiple balancers depending
- * on their strategy. The factory keeps track of created balancers and
- * emits an event upon deployment. Deployed balancers are owned by the
- * caller and initialized with custom portfolio parameters during creation.
+ * Optimized factory contract that deploys OptimizedDriftBalancer or OptimizedTimeBalancer
+ * instances with reduced contract sizes through library usage.
  */
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../balancers/MinimalDriftBalancer.sol";
-import "../balancers/MinimalTimeBalancer.sol";
+import "../balancers/OptimizedDriftBalancer.sol";
+import "../balancers/OptimizedTimeBalancer.sol";
+import "../interfaces/ILimitOrderProtocol.sol";
 
-contract BalancerFactory is Ownable {
+contract OptimizedBalancerFactory is Ownable {
     address public priceFeed;
     address[] public stablecoins;
+    ILimitOrderProtocol public limitOrderProtocol;
 
-    constructor(address _priceFeed, address[] memory _stablecoins) Ownable(msg.sender) {
+    constructor(address _priceFeed, address[] memory _stablecoins, address _limitOrderProtocol) Ownable(msg.sender) {
         priceFeed = _priceFeed;
         stablecoins = _stablecoins;
+        limitOrderProtocol = ILimitOrderProtocol(_limitOrderProtocol);
     }
+
     /// @dev Lists of deployed drift and time balancers per user
     mapping(address => address[]) public userDriftBalancers;
     mapping(address => address[]) public userTimeBalancers;
@@ -35,11 +36,7 @@ contract BalancerFactory is Ownable {
     error NoStablecoin();
 
     /**
-     * @notice Create a new DriftBalancer
-     * @param _assetAddresses The addresses of the assets in the portfolio
-     * @param _percentages The percentages of the assets in the portfolio
-     * @param _amounts The amounts of the assets to send to the balancer
-     * @param _driftPercentage The percentage of drift allowed
+     * @notice Create a new OptimizedDriftBalancer
      */
     function createDriftBalancer(
         address[] memory _assetAddresses,
@@ -50,7 +47,15 @@ contract BalancerFactory is Ownable {
         _checkUserTokenBalance(_assetAddresses, _amounts);
         _requireAtLeastOneStablecoin(_assetAddresses);
 
-        balancer = address(new MinimalDriftBalancer(msg.sender, address(this), _assetAddresses, _percentages, _driftPercentage, stablecoins));
+        balancer = address(new OptimizedDriftBalancer(
+            msg.sender, 
+            address(this), 
+            _assetAddresses, 
+            _percentages, 
+            _driftPercentage, 
+            stablecoins,
+            address(limitOrderProtocol)
+        ));
 
         _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
         userDriftBalancers[msg.sender].push(balancer);
@@ -58,11 +63,7 @@ contract BalancerFactory is Ownable {
     }
 
     /**
-     * @notice Create a new TimeBalancer
-     * @param _assetAddresses The addresses of the assets in the portfolio
-     * @param _percentages The percentages of the assets in the portfolio
-     * @param _amounts The amounts of the assets to send to the balancer
-     * @param interval Rebalance interval in seconds
+     * @notice Create a new OptimizedTimeBalancer
      */
     function createTimeBalancer(
         address[] memory _assetAddresses,
@@ -73,7 +74,15 @@ contract BalancerFactory is Ownable {
         _checkUserTokenBalance(_assetAddresses, _amounts);
         _requireAtLeastOneStablecoin(_assetAddresses);
 
-        balancer = address(new MinimalTimeBalancer(msg.sender, address(this), _assetAddresses, _percentages, interval, stablecoins));
+        balancer = address(new OptimizedTimeBalancer(
+            msg.sender, 
+            address(this), 
+            _assetAddresses, 
+            _percentages, 
+            interval, 
+            stablecoins,
+            address(limitOrderProtocol)
+        ));
 
         _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
         userTimeBalancers[msg.sender].push(balancer);
@@ -82,9 +91,6 @@ contract BalancerFactory is Ownable {
 
     /**
      * @notice Internal function to send tokens to a newly created balancer
-     * @param balancer The address of the balancer contract
-     * @param tokens The addresses of the tokens to send
-     * @param amounts The amounts of the tokens to send
      */
     function _sendTokensToBalancer(address balancer, address[] memory tokens, uint256[] memory amounts) internal {
         require(tokens.length == amounts.length, "Tokens and amounts length mismatch");
@@ -110,4 +116,4 @@ contract BalancerFactory is Ownable {
             require(IERC20(tokens[i]).balanceOf(msg.sender) >= amounts[i], "Insufficient token balance in factory");
         }
     }
-}
+} 
