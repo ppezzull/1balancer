@@ -9,6 +9,9 @@ import { ApiErrorFactory } from '../api/middleware/errorHandler';
 
 const logger = createLogger('FusionPlusExecutor');
 
+// Standard ETH address for native ETH (EIP-7528)
+const ETH_ADDRESS = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+
 // Contract ABIs
 const ESCROW_FACTORY_ABI = [
   'function createSrcEscrow(tuple(address maker, address taker, address token, uint256 amount, uint256 safetyDeposit, bytes32 hashlockHash, tuple(uint32 srcWithdrawal, uint32 srcPublicWithdrawal, uint32 srcCancellation, uint32 srcDeployedAt, uint32 dstWithdrawal, uint32 dstCancellation, uint32 dstDeployedAt) timelocks, bytes32 orderHash, uint256 chainId) immutables) payable returns (address)',
@@ -195,7 +198,7 @@ export class FusionPlusExecutor {
       }
       
       const sourceTokenAddress = session.sourceToken === ethers.ZeroAddress ? 
-        ethers.ZeroAddress : 
+        ethers.getAddress(ETH_ADDRESS) : 
         ethers.getAddress(session.sourceToken);
       
       logger.info('Formatted addresses', {
@@ -207,9 +210,40 @@ export class FusionPlusExecutor {
       
       // Prepare immutables
       const timelocks = this.calculateTimelocks();
+      
+      logger.info('Calculated timelocks', {
+        currentTime: Math.floor(Date.now() / 1000),
+        timelocks,
+        validation: {
+          srcWithdrawalAfterDeployed: timelocks.srcWithdrawal > timelocks.srcDeployedAt,
+          srcPublicAfterWithdrawal: timelocks.srcPublicWithdrawal > timelocks.srcWithdrawal,
+          srcCancellationAfterPublic: timelocks.srcCancellation > timelocks.srcPublicWithdrawal,
+          dstWithdrawalAfterDeployed: timelocks.dstWithdrawal > timelocks.dstDeployedAt,
+          dstCancellationAfterWithdrawal: timelocks.dstCancellation > timelocks.dstWithdrawal,
+          dstCancellationBeforeSrcWithdrawal: timelocks.dstCancellation < timelocks.srcWithdrawal,
+          currentTimeValid: Math.floor(Date.now() / 1000) >= timelocks.srcDeployedAt
+        }
+      });
+      
+      // For cross-chain swaps with NEAR, we need to use a placeholder address
+      // The actual NEAR account is stored in the session and handled separately
+      let takerAddress: string;
+      if (session.taker.endsWith('.testnet') || session.taker.endsWith('.near')) {
+        // Use a deterministic placeholder address for NEAR accounts
+        // This prevents ENS resolution attempts on non-ENS networks
+        takerAddress = ethers.getAddress('0x' + '00'.repeat(19) + '01'); // 0x0000...0001
+        logger.info('Using placeholder address for NEAR taker', {
+          nearAccount: session.taker,
+          placeholderAddress: takerAddress
+        });
+      } else {
+        // Regular Ethereum address
+        takerAddress = ethers.getAddress(session.taker);
+      }
+      
       const immutables = {
         maker: makerAddress,
-        taker: session.taker,
+        taker: takerAddress,
         token: sourceTokenAddress,
         amount: session.sourceAmount,
         safetyDeposit: ethers.parseEther('0.0001'), // Minimum safety deposit (0.0001 ETH)
@@ -218,6 +252,24 @@ export class FusionPlusExecutor {
         orderHash: ethers.keccak256(ethers.toUtf8Bytes(session.sessionId)),
         chainId: config.chains.base.chainId,
       };
+      
+      // Log validation checks
+      logger.info('Immutables validation checks', {
+        makerNotZero: makerAddress !== ethers.ZeroAddress,
+        takerNotZero: takerAddress !== ethers.ZeroAddress,
+        tokenNotZero: sourceTokenAddress !== ethers.ZeroAddress,
+        amountGreaterThanZero: BigInt(session.sourceAmount) > 0n,
+        hashlockNotZero: session.hashlockHash !== ethers.ZeroHash,
+        chainIdGreaterThanZero: config.chains.base.chainId > 0,
+        values: {
+          maker: makerAddress,
+          taker: takerAddress,
+          token: sourceTokenAddress,
+          amount: session.sourceAmount,
+          hashlockHash: session.hashlockHash,
+          chainId: config.chains.base.chainId
+        }
+      });
       
       step.params = {
         immutables: {
@@ -233,7 +285,9 @@ export class FusionPlusExecutor {
           }), {}),
           orderHash: immutables.orderHash,
           chainId: immutables.chainId
-        }
+        },
+        // Store the actual NEAR account for reference
+        nearTaker: session.taker.endsWith('.testnet') || session.taker.endsWith('.near') ? session.taker : undefined
       };
       
       step.status = 'executing';
@@ -270,9 +324,9 @@ export class FusionPlusExecutor {
       const escrowFactoryWithSigner = this.escrowFactory.connect(wallet);
       
       // Check token approval if not native ETH
-      if (session.sourceToken !== ethers.ZeroAddress) {
+      if (sourceTokenAddress !== ETH_ADDRESS) {
         await this.ensureTokenApproval(
-          session.sourceToken,
+          sourceTokenAddress,
           wallet,
           this.escrowFactory.target as string,
           session.sourceAmount
@@ -731,8 +785,8 @@ export class FusionPlusExecutor {
       srcPublicWithdrawal: now + 600, // 10 minutes
       srcCancellation: now + 900,     // 15 minutes
       srcDeployedAt: now,
-      dstWithdrawal: now + 240,      // 4 minutes (before src)
-      dstCancellation: now + 840,     // 14 minutes (before src)
+      dstWithdrawal: now + 180,      // 3 minutes (before src withdrawal)
+      dstCancellation: now + 270,     // 4.5 minutes (MUST be before src withdrawal for cross-chain safety)
       dstDeployedAt: now
     };
   }
