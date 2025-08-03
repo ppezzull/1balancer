@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { HeaderSimplified } from "./components/HeaderSimplified";
 import { HomePage } from "./pages/HomePage";
 import { WalletPage } from "./pages/WalletPage";
@@ -10,16 +11,26 @@ import { toast } from "sonner";
 import { initializeDefaultPortfolios } from "../utils/constants";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'about' | 'rebalance' | 'top-performers'>('home');
-  const [activeWalletTab, setActiveWalletTab] = useState<'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio'>('home');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isWalletConnected, setIsWalletConnected] = useState(false);
-  const [showWalletSection, setShowWalletSection] = useState(false);
   const [modalOrderSubmitted, setModalOrderSubmitted] = useState(false);
   const [defaultPortfoliosInitialized, setDefaultPortfoliosInitialized] = useState(false);
   
   const isMobile = useIsMobile();
   const { theme } = useTheme();
+
+  // Derive state from URL
+  const activeTab = pathname === '/about' ? 'about' 
+    : pathname === '/rebalance' ? 'rebalance'
+    : pathname === '/top-performers' ? 'top-performers'
+    : 'home';
+  
+  const activeWalletTab = searchParams.get('tab') as 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio' || 'home';
+  const showWalletSection = searchParams.get('wallet') === 'true';
 
   // Control body overflow based on active tab
   useEffect(() => {
@@ -119,10 +130,7 @@ export default function App() {
   // Handle Get Started button click
   const handleGetStarted = () => {
     if (isWalletConnected) {
-      // First ensure we're on the home tab to allow wallet section to show
-      setActiveTab('home');
-      setShowWalletSection(true);
-      setActiveWalletTab('home');
+      router.push('/?wallet=true&tab=home');
       
       toast.success("Welcome to 1Balancer Dashboard!", {
         description: "Your personalized investment platform is ready. Explore your portfolios and start trading!",
@@ -149,8 +157,7 @@ export default function App() {
       return;
     }
 
-    setShowWalletSection(true);
-    setActiveWalletTab('home');
+    router.push('/?wallet=true&tab=home');
     
     toast.success("Welcome to Smart Rebalancing!", {
       description: "You can now create and manage your portfolio with automated rebalancing",
@@ -158,13 +165,12 @@ export default function App() {
     });
   };
 
-
-
   // Handle tab changes
   const handleTabChange = (tab: 'home' | 'about' | 'rebalance' | 'top-performers') => {
-    setActiveTab(tab);
-    if (tab !== 'home') {
-      setShowWalletSection(false);
+    if (tab === 'home') {
+      router.push('/');
+    } else {
+      router.push(`/${tab}`);
     }
   };
 
@@ -182,12 +188,13 @@ export default function App() {
         activeTab={activeTab} 
         onTabChange={handleTabChange}
         activeWalletTab={activeWalletTab}
-        onWalletTabChange={(tab: 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio') => setActiveWalletTab(tab)}
+        onWalletTabChange={(tab: 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio') => {
+          router.push(`/?wallet=true&tab=${tab}`);
+        }}
         isWalletConnected={isWalletConnected}
         showWalletNavigation={showWalletSection}
         onLogoClick={() => {
-          setActiveTab('home');
-          setShowWalletSection(false);
+          router.push('/');
         }}
       />
       
