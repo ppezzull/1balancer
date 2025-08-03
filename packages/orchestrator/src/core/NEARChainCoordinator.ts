@@ -444,7 +444,7 @@ export class NEARChainCoordinator {
     }
   }
 
-  async withdrawHTLC(htlcId: string, secret: string, receiver: string): Promise<void> {
+  async withdrawHTLC(htlcId: string, secret: string, receiver: string): Promise<string> {
     const timestamp = new Date().toISOString();
     
     try {
@@ -507,6 +507,8 @@ export class NEARChainCoordinator {
         secretRevealed: true,
         note: 'Secret is now publicly visible on NEAR blockchain'
       });
+      
+      return result.transaction.hash;
       
     } catch (error) {
       const err = error as Error;

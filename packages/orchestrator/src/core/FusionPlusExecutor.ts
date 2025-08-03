@@ -20,14 +20,6 @@ const ESCROW_FACTORY_ABI = [
   'event DstEscrowCreated(address indexed escrow, address indexed maker, address indexed taker, bytes32 hashlockHash)',
 ];
 
-const ESCROW_SRC_ABI = [
-  'function withdraw(bytes32 secret) external',
-  'function cancel() external',
-  'function publicWithdraw(bytes32 secret) external',
-  'event Withdrawn(bytes32 secret)',
-  'event Cancelled()',
-  'function getImmutables() view returns (tuple(address maker, address taker, address token, uint256 amount, uint256 safetyDeposit, bytes32 hashlockHash, tuple(uint32 srcWithdrawal, uint32 srcPublicWithdrawal, uint32 srcCancellation, uint32 srcDeployedAt, uint32 dstWithdrawal, uint32 dstCancellation, uint32 dstDeployedAt) timelocks, bytes32 orderHash, uint256 chainId))',
-];
 
 const ERC20_ABI = [
   'function approve(address spender, uint256 amount) returns (bool)',
@@ -643,6 +635,7 @@ export class FusionPlusExecutor {
         nearResult.explorer;
       
       step.status = 'completed';
+      step.txHash = txHash; // Set txHash directly for display logic
       step.result = {
         htlcId,
         txHash, // Actual NEAR transaction hash
@@ -796,13 +789,26 @@ export class FusionPlusExecutor {
         nearHTLCId: session.nearHTLCId,
         action: 'reveal_secret_near'
       });
-      const revealedSecret = await this.revealSecretOnNear(session);
+      const { secret: revealedSecret, txHash: nearTxHash } = await this.revealSecretOnNear(session);
+      
+      // Update step 3 with the NEAR transaction hash
+      step.status = 'completed';
+      step.txHash = nearTxHash; // Set txHash directly for display logic
+      step.result = { 
+        secretRevealed: true,
+        aliceClaimedTokens: true,
+        nearHTLCId: session.nearHTLCId,
+        txHash: nearTxHash,
+        explorer: `https://testnet.nearblocks.io/txns/${nearTxHash}`
+      };
+      this.updateExecutionStep(session.sessionId, step);
       
       // Step 2: Secret successfully revealed - now we can complete BASE withdrawal
       logger.info(`[${timestamp}][FUSION+] Phase 2: Secret obtained from NEAR withdrawal`, {
         sessionId: session.sessionId,
         nearHTLCId: session.nearHTLCId,
         hasRevealedSecret: !!revealedSecret,
+        txHash: nearTxHash,
         action: 'secret_obtained_from_withdrawal',
         note: 'No polling needed - secret was revealed during HTLC withdrawal'
       });
@@ -884,7 +890,7 @@ export class FusionPlusExecutor {
    * Reveal secret on NEAR to claim destination tokens
    * This is where Alice (maker) claims her NEAR tokens and reveals the secret
    */
-  private async revealSecretOnNear(session: SwapSession): Promise<string> {
+  private async revealSecretOnNear(session: SwapSession): Promise<{ secret: string; txHash: string }> {
     const timestamp = new Date().toISOString();
     
     logger.info(`[${timestamp}][FUSION+] Revealing secret on NEAR to claim tokens`, {
@@ -894,19 +900,6 @@ export class FusionPlusExecutor {
       action: 'reveal_secret_near',
       purpose: 'Alice claims NEAR tokens and reveals secret'
     });
-    
-    const step: ExecutionStep = {
-      function: 'withdraw',
-      contract: session.nearHTLCId || 'NEAR HTLC',
-      params: { 
-        action: 'reveal_secret_and_claim',
-        htlcId: session.nearHTLCId,
-        claimer: session.taker
-      },
-      status: 'executing'
-    };
-    
-    this.addExecutionStep(session.sessionId, step);
     
     try {
       // Get the secret from session manager
@@ -942,35 +935,25 @@ export class FusionPlusExecutor {
       const nearReceiver = session.taker.endsWith('.testnet') || session.taker.endsWith('.near') ? 
         nearMasterAccountId : session.taker;
         
-      await this.nearCoordinator.withdrawHTLC(
+      const nearTxHash = await this.nearCoordinator.withdrawHTLC(
         session.nearHTLCId!,
         secret,
         nearReceiver // Use account with credentials to withdraw
       );
-      
-      step.status = 'completed';
-      step.result = { 
-        secretRevealed: true,
-        aliceClaimedTokens: true,
-        nearHTLCId: session.nearHTLCId
-      };
-      this.updateExecutionStep(session.sessionId, step);
       
       logger.info(`[${timestamp}][FUSION+] Secret successfully revealed on NEAR`, {
         sessionId: session.sessionId,
         nearHTLCId: session.nearHTLCId,
         secretRevealed: true,
         aliceClaimedTokens: true,
+        txHash: nearTxHash,
         nextStep: 'use_revealed_secret_for_base_withdrawal'
       });
 
-      return secret;
+      return { secret, txHash: nearTxHash };
       
     } catch (error) {
       const err = error as Error;
-      step.status = 'failed';
-      step.error = err.message;
-      this.updateExecutionStep(session.sessionId, step);
       
       logger.error(`[${timestamp}][FUSION+] Failed to reveal secret on NEAR`, {
         sessionId: session.sessionId,
@@ -992,91 +975,58 @@ export class FusionPlusExecutor {
   private async completeBaseWithRevealedSecret(session: SwapSession, secret: string): Promise<void> {
     const timestamp = new Date().toISOString();
     
-    logger.info(`[${timestamp}][FUSION+] Completing BASE withdrawal with revealed secret`, {
+    logger.info(`[${timestamp}][FUSION+] Secret revealed - ready for client withdrawal`, {
       sessionId: session.sessionId,
       srcEscrowAddress: session.srcEscrowAddress,
       secretLength: secret.length,
       secretPrefix: secret.substring(0, 10) + '...',
-      action: 'complete_base_withdrawal',
-      purpose: 'Bob claims BASE tokens using revealed secret'
+      action: 'secret_ready_for_client_withdrawal',
+      purpose: 'Taker (client) must withdraw BASE tokens using revealed secret'
     });
     
     const step: ExecutionStep = {
-      function: 'withdraw',
+      function: 'client_withdraw_required',
       contract: session.srcEscrowAddress || 'BASE Escrow',
       params: { 
         secret: secret.substring(0, 10) + '...',
         escrowAddress: session.srcEscrowAddress,
-        action: 'withdraw_with_revealed_secret'
+        taker: session.taker,
+        action: 'client_withdrawal_required'
       },
-      status: 'executing'
+      status: 'completed'
     };
     
     this.addExecutionStep(session.sessionId, step);
     
     try {
-      const privateKey = process.env.ORCHESTRATOR_PRIVATE_KEY;
-      if (!privateKey) {
-        throw new Error('ORCHESTRATOR_PRIVATE_KEY not set');
-      }
-      
-      const wallet = new ethers.Wallet(privateKey, this.baseProvider);
-      const escrow = new ethers.Contract(
-        session.srcEscrowAddress!,
-        ESCROW_SRC_ABI,
-        wallet
-      );
-      
-      logger.info(`[${timestamp}][FUSION+] Prepared BASE escrow withdrawal`, {
-        sessionId: session.sessionId,
-        escrowAddress: session.srcEscrowAddress,
-        walletAddress: wallet.address,
-        contractMethods: escrow.interface.fragments
-          .filter(f => f.type === 'function')
-          .map(f => f.format().split('(')[0]),
-        action: 'prepare_withdrawal'
+      // Store the revealed secret in session for client access
+      await this.sessionManager.updateSession(session.sessionId, {
+        secret: secret,
+        status: 'secret_revealed' as any
       });
       
-      // Call withdraw with the revealed secret
-      logger.info(`[${timestamp}][FUSION+] Executing withdraw transaction on BASE escrow`, {
-        sessionId: session.sessionId,
-        escrowAddress: session.srcEscrowAddress,
-        action: 'execute_withdraw'
-      });
-      
-      const tx = await escrow.withdraw(secret);
-      step.txHash = tx.hash;
-      
-      logger.info(`[${timestamp}][FUSION+] BASE withdrawal transaction sent`, {
-        sessionId: session.sessionId,
-        txHash: tx.hash,
-        explorer: `https://sepolia.basescan.org/tx/${tx.hash}`,
-        escrowAddress: session.srcEscrowAddress,
-        action: 'transaction_sent'
-      });
-      
-      // Wait for confirmation
-      const receipt = await tx.wait();
-      
-      step.status = 'completed';
       step.result = {
-        txHash: tx.hash,
-        gasUsed: receipt.gasUsed.toString(),
-        blockNumber: receipt.blockNumber,
-        bobClaimedTokens: true,
-        tokenExchangeComplete: true
+        secretRevealed: true,
+        escrowAddress: session.srcEscrowAddress,
+        taker: session.taker,
+        clientWithdrawalRequired: true,
+        withdrawalInstructions: {
+          action: 'Call withdraw() function on escrow contract',
+          contract: session.srcEscrowAddress,
+          function: 'withdraw(bytes32 secret)',
+          secret: secret,
+          note: 'Must be called by taker wallet: ' + session.taker
+        }
       };
       this.updateExecutionStep(session.sessionId, step);
       
-      logger.info(`[${timestamp}][FUSION+] BASE withdrawal completed - Bob received tokens`, {
+      logger.info(`[${timestamp}][FUSION+] Atomic swap phase completed - secret revealed for client withdrawal`, {
         sessionId: session.sessionId,
-        txHash: tx.hash,
-        gasUsed: receipt.gasUsed.toString(),
-        blockNumber: receipt.blockNumber,
-        explorer: `https://sepolia.basescan.org/tx/${tx.hash}`,
-        bobClaimedTokens: true,
-        tokenExchangeComplete: true,
-        finalResult: 'ATOMIC_SWAP_SUCCESS'
+        escrowAddress: session.srcEscrowAddress,
+        taker: session.taker,
+        secretRevealed: true,
+        nextAction: 'CLIENT_WITHDRAWAL_REQUIRED',
+        note: 'Taker must call withdraw() on BASE escrow contract with revealed secret'
       });
       
     } catch (error) {
@@ -1085,14 +1035,12 @@ export class FusionPlusExecutor {
       step.error = err.message;
       this.updateExecutionStep(session.sessionId, step);
       
-      logger.error(`[${timestamp}][FUSION+] BASE withdrawal failed`, {
+      logger.error(`[${timestamp}][FUSION+] Failed to prepare client withdrawal instructions`, {
         sessionId: session.sessionId,
         srcEscrowAddress: session.srcEscrowAddress,
         error: err.message,
         stack: err.stack,
-        errorCode: (err as any).code,
-        errorReason: (err as any).reason,
-        action: 'base_withdrawal_failed'
+        action: 'client_withdrawal_preparation_failed'
       });
       
       throw error;
