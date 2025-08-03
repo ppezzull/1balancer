@@ -4,140 +4,272 @@ This directory contains the 1Balancer core business logic for portfolio manageme
 
 ---
 
-## New Architecture with Chainlink Price Feeds
+## 🚀 Optimized Architecture with 1inch Limit Order Integration
 
-The system has been upgraded to integrate Chainlink price feeds for more accurate and reliable price data. This enables better decision-making for stablecoin rebalancing and portfolio management.
+The system has been fully optimized and upgraded to integrate with the 1inch Limit Order Protocol for automated portfolio rebalancing. This enables:
 
-### Key Changes:
+- **EIP-1271 Smart Contract Signatures**: Balancers can sign limit orders directly
+- **Automated Order Creation**: Portfolio drift triggers automatic limit order generation
+- **Stablecoin Grid Trading**: Dedicated stablecoin rebalancing with Chainlink Automation
+- **Event-Driven Architecture**: Real-time event emission for order tracking
 
-1. **ChainlinkPriceFeed Contract**: A new contract that implements the IPriceFeed interface to fetch prices from Chainlink aggregators.
-2. **Stablecoin Separation**: Stablecoins are now managed separately from other assets, with dedicated logic in the StableLimit module.
-3. **Price Feed Integration**: All balancer contracts now receive price feed addresses through the factory, ensuring consistent price data access.
-4. **Enhanced Automation**: The StableLimit module now uses Chainlink Automation for more efficient and reliable upkeep checks.
+### Key Components:
 
----
-
-## Contracts Description
-
-### BalancerFactory
-
-The `BalancerFactory` contract is responsible for creating user-owned balancer instances. Each instance represents a distinct portfolio management strategy, either time-based or drift-based.
-
-#### Functions:
-
-- `createBalancer(...)` → Deploys and initializes a new TimeBalancer or DriftBalancer instance.
-- `getBalancer(address)` → Returns a specific balancer instance.
-- `getBalancers()` → Returns all deployed balancer instances.
-- `getBalancerCount()` → Returns the total number of balancers created.
-- `getBalancersByOwner(address)` → Returns all balancers owned by a specific user.
-- `getBalancersByOwnerAndName(address, string)` → Returns all balancers for an owner with the specified name.
+1. **OptimizedBalancerFactory**: Deploys optimized balancer instances with limit order protocol integration
+2. **OptimizedStableLimit**: EIP-1271 compatible stablecoin grid trading module
+3. **OptimizedBaseBalancer**: Core portfolio management with rebalancing logic
+4. **LimitOrderLib**: 1inch limit order utilities and order creation
+5. **Mock Contracts**: Testing infrastructure for price feeds and limit order protocol
 
 ---
 
-### ChainlinkPriceFeed
+## 📁 Contract Structure
 
-A contract that implements the IPriceFeed interface to fetch prices from Chainlink aggregators. It supports multiple token pairs and provides a unified interface for price data access.
+### Libraries (`libraries/`)
+- **LimitOrderLib.sol**: 1inch limit order utilities, order creation, and signature handling
+- **StablecoinGridLib.sol**: Stablecoin grid trading algorithms
+- **PortfolioCoreLib.sol**: Core portfolio management functions
+- **PortfolioAnalysisLib.sol**: Portfolio analysis and drift detection
 
-#### Functions:
+### Balancers (`balancers/`)
+- **OptimizedDriftBalancer.sol**: Value-based rebalancing with drift detection
+- **OptimizedTimeBalancer.sol**: Time-based rebalancing with configurable intervals
 
-- `getLatestPrice()` → Returns the latest ETH/USD price
-- `getPrice(address token)` → Returns the price of a specific token in USD
-- `getPrice(address base, address quote)` → Returns the price of a token pair
-- `setPriceFeed(address token, address aggregator)` → Sets the Chainlink aggregator for a token
-- `setPriceFeed(address base, address quote, address aggregator)` → Sets the Chainlink aggregator for a token pair
+### Modules (`modules/`)
+- **OptimizedBaseBalancer.sol**: Abstract base contract with shared portfolio logic
+- **OptimizedStableLimit.sol**: EIP-1271 compatible stablecoin management
 
----
+### Factory (`factory/`)
+- **OptimizedBalancerFactory.sol**: Factory for deploying optimized balancer instances
 
-### StableLimit (inherits: `IERC1271`, `AutomationCompatibleInterface`)
+### Interfaces (`interfaces/`)
+- **ILimitOrderProtocol.sol**: 1inch Limit Order Protocol interface
+- **IERC1271.sol**: EIP-1271 signature validation interface
+- **ISpotPriceAggregator.sol**: Price feed interface
+- **IBalancerFactory.sol**: Factory interface
 
-A self-contained limit order engine that operates as a "micro-balancer" for stablecoins. This module is embedded in every balancer instance to manage stablecoin sub-allocations (e.g., USDC/USDT/DAI within a 30% stablecoin slice).
-
-It automatically detects deviations in peg values using Chainlink Price Feeds and places signed limit orders (via EIP-1271) accordingly. It is periodically triggered by Chainlink Automation to minimize gas usage and operator overhead.
-
-#### Stored Data:
-
-- `stablecoins` → Array of stablecoin addresses
-- `isStablecoin` → Mapping to check if an address is a stablecoin
-- `priceFeed` → ChainlinkPriceFeed contract address
-- `validOrders` → Map of signed order hashes to active status
-- `expiration` → Order hash expiry timestamps
-- `lastCheck`, `interval` → Chainlink Automation scheduling
-
-#### Functions:
-
-- `checkUpkeep()` → Chainlink Automation: determine if rebalancing is due
-- `performUpkeep()` → Called periodically to check price drift and place limit orders
-- `isValidSignature(bytes32 hash, bytes)` → Implements EIP-1271 for 1inch Limit Order Protocol validation
-- `_placeLimitOrder(...)` → Internal helper to compute, hash, and store signed limit orders
-- `checkAssetBalance(...)` → New function to check if an asset's balance is within acceptable percentage range based on price
+### Mocks (`mocks/`)
+- **MockSpotPriceAggregator.sol**: Mock price feed for testing
+- **MockLimitOrderProtocol.sol**: Mock 1inch limit order protocol
+- **MockERC20.sol**: Mock ERC20 token for testing
 
 ---
 
-### BaseBalancer (inherits: `StableLimit`)
+## 🧪 Testing Event Emissions
 
-This abstract base contract defines shared portfolio logic for percentage-based allocations. It delegates stablecoin rebalancing to `StableLimit` and focuses on overall portfolio-wide token value tracking.
+### Quick Start for Event Testing
 
-#### Stored Data:
-
-- `name`, `description` → Metadata
-- `owner` → Creator/owner of this balancer
-
----
-
-### BaseBalancer (inherits: `StableLimit`)
-
-This abstract base contract defines shared portfolio logic for percentage-based allocations. It delegates stablecoin rebalancing to `StableLimit` and focuses on overall portfolio-wide token value tracking.
-
-#### Stored Data:
-
-- `name`, `description` → Metadata
-- `owner` → Creator/owner of this balancer
-- `tokens[]` → List of all assets in the portfolio
-- `percentages[]` → Target allocation per token
-- `wallet` → Token-holding address (usually the contract itself)
-- `priceFeed` → 1inch Price Aggregator
-- `totalValue` → Total portfolio valuation in a common unit
-
-#### Functions:
-
-- `setPercentages(address[] tokens, uint256[] percentages)` → Configure target distribution
-- `fundWallet()` → Add funds in correct proportions
-- `withdrawFunds()` → Extract assets proportionally
-- `comparePercentages()` → Check current balance vs. target and return imbalance report
-
----
-
-### DriftBalancer (inherits: `BaseBalancer`)
-
-Implements value-based rebalancing. When token allocations drift beyond a set threshold, it generates limit orders via the embedded `StableLimit` module.
-
-#### Characteristics:
-
-- Passive, price-sensitive strategy
-- Suitable for volatile markets with auto-correction needs
-- Relies on 1inch for trade execution and on-chain oracles for drift detection
-
----
-
-### TimeBalancer (inherits: `BaseBalancer`)
-
-Implements time-based rebalancing logic using Chainlink Automation. Rebalancing occurs at regular intervals, regardless of market movement.
-
-#### Characteristics:
-
-- Predictable and consistent schedule
-- Less sensitive to volatility, more user-configurable
-- Optionally uses 1inch Fusion or Limit Orders for rebalancing
-
----
-
-## System Inheritance Overview
-
-```mermaid
-graph TD
-    BalancerFactory --> DriftBalancer
-    BalancerFactory --> TimeBalancer
-    DriftBalancer --> BaseBalancer
-    TimeBalancer --> BaseBalancer
-    BaseBalancer --> StableLimit
+1. **Deploy Contracts**:
+```bash
+cd packages/hardhat
+npx hardhat deploy --tags OptimizedContracts --network baseFork
 ```
+
+2. **Run Event Emission Test**:
+```bash
+npx hardhat test test/balancer/EventEmissionTest.ts
+```
+
+3. **Run Demonstration Script**:
+```bash
+npx hardhat run scripts/demonstrateEventEmissions.ts --network baseFork
+```
+
+### Event Types Tested
+
+#### Balancer Creation Events
+- `BalancerCreated`: Emitted when new balancer instances are created
+- Parameters: `balancerAddress`, `owner`, `balancerType`
+
+#### Rebalancing Events
+- `PortfolioRebalanceTriggered`: Emitted when portfolio rebalancing is triggered
+- Parameters: `timestamp`, `totalValue`, `driftPercentage`
+
+#### Order Creation Events
+- `RebalanceOrderCreated`: Emitted when rebalancing orders are created
+- Parameters: `orderHash`, `sellToken`, `buyToken`, `sellAmount`, `buyAmount`
+- `LimitOrderCreated`: Emitted when limit orders are created
+- Parameters: `orderHash`, `maker`, `sellToken`, `buyToken`
+
+#### Stablecoin Grid Events
+- `LimitOrderCreated`: Emitted for stablecoin grid trading orders
+- Parameters: `orderHash`, `maker`, `sellToken`, `buyToken`
+
+---
+
+## 🔧 Price Manipulation Testing
+
+The system includes comprehensive price manipulation testing to verify event emissions:
+
+### Token Addresses (Base Mainnet)
+```solidity
+const USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const USDT = "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2";
+const DAI = "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb";
+const WETH = "0x4200000000000000000000000000000000000006";
+const INCH = "0xc5fecC3a29Fb57B5024eEc8a2239d4621e111CBE";
+```
+
+### Price Manipulation Scenarios
+1. **WETH Price Increase**: $3000 → $5000 to trigger portfolio drift
+2. **USDT Stablecoin Drift**: $1.00 → $1.02 to trigger stablecoin rebalancing
+3. **INCH Price Drop**: $0.50 → $0.30 to test downside protection
+
+---
+
+## 📊 Event Emission Verification
+
+### Test Coverage
+- ✅ **Balancer Creation**: Verify `BalancerCreated` events
+- ✅ **Price Manipulation**: Test drift detection and event emission
+- ✅ **Rebalancing Triggers**: Verify `PortfolioRebalanceTriggered` events
+- ✅ **Order Creation**: Test `RebalanceOrderCreated` and `LimitOrderCreated` events
+- ✅ **Stablecoin Grid**: Verify stablecoin grid order events
+- ✅ **Time-Based Rebalancing**: Test time-triggered rebalancing events
+- ✅ **Event Data Verification**: Validate event parameters and data integrity
+- ✅ **Error Handling**: Test graceful handling of invalid scenarios
+
+### Event Data Structure
+```typescript
+// BalancerCreated Event
+{
+  balancerAddress: string,
+  owner: string,
+  balancerType: string
+}
+
+// PortfolioRebalanceTriggered Event
+{
+  timestamp: number,
+  totalValue: BigNumber,
+  driftPercentage: number
+}
+
+// RebalanceOrderCreated Event
+{
+  orderHash: string,
+  sellToken: string,
+  buyToken: string,
+  sellAmount: BigNumber,
+  buyAmount: BigNumber
+}
+
+// LimitOrderCreated Event
+{
+  orderHash: string,
+  maker: string,
+  sellToken: string,
+  buyToken: string
+}
+```
+
+---
+
+## 🚀 Deployment Scripts
+
+### Essential Deployment Files
+- **`deploy/balancer/03_deploy_optimized_contracts.ts`**: Main deployment script for optimized contracts
+- **`test/balancer/EventEmissionTest.ts`**: Comprehensive event emission testing
+- **`scripts/demonstrateEventEmissions.ts`**: Demonstration script for event testing
+
+### Deployment Process
+1. Deploy mock contracts (price aggregator, limit order protocol)
+2. Deploy optimized balancer factory
+3. Configure initial prices for Base mainnet tokens
+4. Verify price configuration
+5. Test balancer creation and event emissions
+
+---
+
+## 🔗 Integration with 1inch Protocol
+
+### EIP-1271 Implementation
+The `OptimizedStableLimit` contract implements EIP-1271 to enable smart contract signature validation:
+
+```solidity
+function isValidSignature(bytes32 _hash, bytes memory _signature) 
+    external view override returns (bytes4 magicValue)
+```
+
+### Limit Order Creation
+The system creates 1inch-compatible limit orders with:
+- **Maker Traits**: Order parameters and flags
+- **Taker Traits**: Filling parameters and interactions
+- **Order Hash**: EIP-712 compliant order hashing
+- **Signature**: EIP-1271 smart contract signatures
+
+---
+
+## 📈 Performance Optimizations
+
+### Contract Size Reduction
+- **Library Extraction**: Common logic moved to dedicated libraries
+- **Modular Design**: Separation of concerns across specialized contracts
+- **Gas Optimization**: High optimization settings (100,000 runs)
+- **IR-Based Compilation**: Via IR for complex contract structures
+
+### Event Efficiency
+- **Targeted Events**: Only essential data emitted
+- **Gas-Efficient Logging**: Optimized event parameter selection
+- **Batch Processing**: Multiple events in single transactions
+
+---
+
+## 🛠️ Development Commands
+
+### Compilation
+```bash
+npx hardhat compile
+```
+
+### Testing
+```bash
+# Run all tests
+npx hardhat test
+
+# Run specific event emission test
+npx hardhat test test/balancer/EventEmissionTest.ts
+
+# Run with gas reporting
+REPORT_GAS=true npx hardhat test
+```
+
+### Deployment
+```bash
+# Deploy to local fork
+npx hardhat deploy --tags OptimizedContracts --network baseFork
+
+# Deploy to Base mainnet
+npx hardhat deploy --tags OptimizedContracts --network base
+```
+
+### Demonstration
+```bash
+# Run event emission demonstration
+npx hardhat run scripts/demonstrateEventEmissions.ts --network baseFork
+```
+
+---
+
+## 📋 System Requirements
+
+- **Hardhat**: Development and testing framework
+- **Ethers.js**: Ethereum interaction library
+- **Chai**: Testing framework
+- **Base Network**: Target deployment network
+- **1inch Protocol**: Limit order integration
+- **Chainlink Automation**: Automated rebalancing triggers
+
+---
+
+## 🎯 Next Steps
+
+1. **Event Monitoring**: Set up event listeners for production monitoring
+2. **Order Execution**: Integrate with 1inch API for order fulfillment
+3. **Gas Optimization**: Further optimize contract gas usage
+4. **Security Audits**: Comprehensive security review
+5. **Production Deployment**: Mainnet deployment with real tokens
+
+---
+
+*This system provides a complete automated portfolio management solution with real-time event emission for monitoring and order tracking.*

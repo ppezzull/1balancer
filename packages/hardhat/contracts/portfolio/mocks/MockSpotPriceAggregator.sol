@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../portfolio/interfaces/ISpotPriceAggregator.sol";
+import "../interfaces/ISpotPriceAggregator.sol";
 
 contract MockSpotPriceAggregator is Ownable {
     // Mapping from token pair to mock price (token1 => token2 => price)

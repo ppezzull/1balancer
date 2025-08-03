@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.23;
 
-import "../portfolio/interfaces/ILimitOrderProtocol.sol";
+import "../interfaces/ILimitOrderProtocol.sol";
 
 /**
  * @title MockLimitOrderProtocol
@@ -22,11 +23,11 @@ contract MockLimitOrderProtocol is ILimitOrderProtocol {
 
     function fillOrderArgs(
         Order calldata order,
-        bytes32 r,
-        bytes32 vs,
-        uint256 amount,
-        TakerTraits calldata takerTraits,
-        bytes calldata args
+        bytes32 /* r */,
+        bytes32 /* vs */,
+        uint256 /* amount */,
+        TakerTraits calldata /* takerTraits */,
+        bytes calldata /* args */
     ) external payable returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash) {
         orderHash = calculateOrderHash(order);
         
@@ -51,10 +52,10 @@ contract MockLimitOrderProtocol is ILimitOrderProtocol {
 
     function fillContractOrderArgs(
         Order calldata order,
-        bytes calldata signature,
-        uint256 amount,
-        TakerTraits calldata takerTraits,
-        bytes calldata args
+        bytes calldata /* signature */,
+        uint256 /* amount */,
+        TakerTraits calldata /* takerTraits */,
+        bytes calldata /* args */
     ) external returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash) {
         orderHash = calculateOrderHash(order);
         
@@ -77,7 +78,7 @@ contract MockLimitOrderProtocol is ILimitOrderProtocol {
         }
     }
 
-    function cancelOrder(bytes32 orderHash, uint256 makerTraits) external {
+    function cancelOrder(bytes32 orderHash, uint256 /* makerTraits */) external {
         // Mock cancellation
         filledOrders[orderHash] = true; // Mark as cancelled
     }
