@@ -583,7 +583,8 @@ run: .yarn-installed
 	@yarn deploy --network localhost > /dev/null 2>&1 || true
 	@echo "🎯 Starting all services..."
 	@yarn dev:all > services.log 2>&1 &
-	@sleep 3
+	@echo "⏳ Waiting for frontend to boot up..."
+	@sleep 15
 	@echo ""
 	@echo "✅ 1BALANCER IS RUNNING!"
 	@echo ""
