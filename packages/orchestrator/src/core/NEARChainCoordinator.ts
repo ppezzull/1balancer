@@ -1,5 +1,6 @@
 import { connect, KeyPair, Account, providers, keyStores } from 'near-api-js';
-const { InMemoryKeyStore } = keyStores;
+const { InMemoryKeyStore, UnencryptedFileSystemKeyStore } = keyStores;
+import os from 'os';
 import { createLogger } from '../utils/logger';
 import { config } from '../config';
 import { SessionManager, SwapSession } from './SessionManager';
@@ -105,132 +106,68 @@ export class NEARChainCoordinator {
         }
       });
 
-      // Check if we have valid credentials
-      if (!this.nearConfig.privateKey || !this.nearConfig.masterAccount || 
-          this.nearConfig.privateKey === '' || this.nearConfig.masterAccount === '') {
-        logger.warn('[NEAR] Credentials not provided - initializing read-only mode', {
-          hasAccount: !!this.nearConfig.masterAccount,
-          hasPrivateKey: !!this.nearConfig.privateKey,
-          accountId: this.nearConfig.masterAccount,
-          keyLength: this.nearConfig.privateKey?.length
-        });
-        
-        // Still create connection for read-only operations
-        const keyStore = new InMemoryKeyStore();
-        logger.info('[NEAR] Creating read-only connection', {
-          networkId: this.nearConfig.networkId,
-          nodeUrl: this.nearConfig.nodeUrl
-        });
-        
-        this.nearConnection = await connect({
-          networkId: this.nearConfig.networkId,
-          nodeUrl: this.nearConfig.nodeUrl,
-          keyStore,
-        });
-        
-        logger.info('[NEAR] Read-only connection established successfully');
-        return;
-      }
-      
-      // Setup key store with comprehensive validation
-      let keyStore: keyStores.KeyStore = new InMemoryKeyStore();
+      // Try to use FileSystemKeyStore first (reads from ~/.near-credentials)
+      let keyStore: keyStores.KeyStore;
       let hasValidCredentials = false;
       
       try {
-        // Extensive logging for private key parsing
-        logger.info('[NEAR] Parsing private key with detailed validation', {
-          keyLength: this.nearConfig.privateKey?.length,
-          keyPrefix: this.nearConfig.privateKey?.substring(0, 10),
-          keyType: this.nearConfig.privateKey?.startsWith('ed25519:') ? 'ed25519' : 'unknown',
-          accountId: this.nearConfig.masterAccount,
-          networkId: this.nearConfig.networkId,
-          expectedFormat: 'ed25519:base58_encoded_key (88+ chars after prefix)'
-        });
+        // Use FileSystemKeyStore to read from ~/.near-credentials
+        const credentialsPath = os.homedir() + '/.near-credentials';
+        keyStore = new UnencryptedFileSystemKeyStore(credentialsPath);
         
-        // Validate key format before parsing
-        if (!this.nearConfig.privateKey.startsWith('ed25519:')) {
-          throw new Error('Private key must start with "ed25519:" prefix');
-        }
-        
-        const base58Part = this.nearConfig.privateKey.substring(8); // Remove 'ed25519:' prefix
-        if (base58Part.length < 88) {
-          throw new Error(`Private key base58 part too short: ${base58Part.length} chars, expected 88+`);
-        }
-        
-        logger.info('[NEAR] Private key format validation passed', {
-          base58Length: base58Part.length,
-          base58Prefix: base58Part.substring(0, 10) + '...'
-        });
-        
-        // Create KeyPair with error handling
-        const keyPair = KeyPair.fromString(this.nearConfig.privateKey);
-        
-        // Validate KeyPair object thoroughly
-        logger.info('[NEAR] KeyPair created - validating object', {
-          hasKeyPair: !!keyPair,
-          keyPairType: typeof keyPair,
-          hasGetPublicKey: typeof keyPair?.getPublicKey === 'function',
-          hasGetSecretKey: typeof keyPair?.getSecretKey === 'function',
-          keyPairConstructor: keyPair?.constructor?.name
-        });
-        
-        if (!keyPair) {
-          throw new Error('KeyPair.fromString returned null/undefined');
-        }
-        
-        if (typeof keyPair.getPublicKey !== 'function') {
-          throw new Error('KeyPair object malformed - missing getPublicKey method');
-        }
-        
-        // Test getPublicKey method
-        let publicKey;
-        try {
-          publicKey = keyPair.getPublicKey();
-          logger.info('[NEAR] Public key extracted successfully', {
-            publicKeyType: typeof publicKey,
-            publicKeyString: publicKey?.toString()?.substring(0, 20) + '...',
-            publicKeyConstructor: publicKey?.constructor?.name
-          });
-        } catch (pkError) {
-          logger.error('[NEAR] Failed to call getPublicKey method', {
-            error: pkError,
-            stack: pkError.stack,
-            keyPairMethods: Object.getOwnPropertyNames(keyPair),
-            keyPairPrototype: Object.getOwnPropertyNames(Object.getPrototypeOf(keyPair))
-          });
-          throw new Error(`getPublicKey failed: ${pkError.message}`);
-        }
-        
-        // Set key in keystore with validation
-        logger.info('[NEAR] Setting key in keystore', {
+        logger.info('[NEAR] Using FileSystemKeyStore for credentials', {
+          credentialsPath,
           networkId: this.nearConfig.networkId,
           accountId: this.nearConfig.masterAccount
         });
         
-        await keyStore.setKey(this.nearConfig.networkId, this.nearConfig.masterAccount, keyPair);
+        // Test if key exists in filesystem
+        const storedKey = await keyStore.getKey(this.nearConfig.networkId, this.nearConfig.masterAccount!);
+        if (storedKey) {
+          logger.info('[NEAR] Successfully loaded credentials from filesystem', {
+            accountId: this.nearConfig.masterAccount,
+            networkId: this.nearConfig.networkId,
+            hasPublicKey: typeof storedKey.getPublicKey === 'function'
+          });
+          hasValidCredentials = true;
+        } else {
+          throw new Error('No credentials found in filesystem');
+        }
         
-        // Verify key was stored correctly
-        const storedKey = await keyStore.getKey(this.nearConfig.networkId, this.nearConfig.masterAccount);
-        logger.info('[NEAR] Key stored and verified in keystore', {
-          keyRetrieved: !!storedKey,
-          storedKeyType: typeof storedKey,
-          canGetPublicKey: typeof storedKey?.getPublicKey === 'function'
+      } catch (fsError) {
+        logger.warn('[NEAR] FileSystemKeyStore failed, falling back to InMemoryKeyStore', {
+          error: (fsError as Error).message,
+          hasEnvKey: !!this.nearConfig.privateKey,
+          hasEnvAccount: !!this.nearConfig.masterAccount
         });
         
-        hasValidCredentials = true;
-        logger.info('[NEAR] Private key validation completed successfully');
+        // Fallback to InMemoryKeyStore with environment variables
+        keyStore = new InMemoryKeyStore();
         
-      } catch (keyError) {
-        logger.error('[NEAR] Private key validation failed', { 
-          error: keyError,
-          stack: keyError.stack,
-          keyFormat: 'Expected format: ed25519:base58_encoded_key (88+ chars after prefix)',
-          providedKeyLength: this.nearConfig.privateKey?.length,
-          providedKeyPrefix: this.nearConfig.privateKey?.substring(0, 15)
-        });
-        
-        // Continue with empty keystore for read-only operations
-        logger.warn('[NEAR] Continuing with read-only access due to key validation failure');
+        if (this.nearConfig.privateKey && this.nearConfig.masterAccount) {
+          try {
+            logger.info('[NEAR] Loading credentials from environment variables', {
+              accountId: this.nearConfig.masterAccount,
+              keyLength: this.nearConfig.privateKey?.length
+            });
+            
+            const keyPair = KeyPair.fromString(this.nearConfig.privateKey as any);
+            await keyStore.setKey(this.nearConfig.networkId, this.nearConfig.masterAccount!, keyPair);
+            
+            // Verify the key was stored
+            const storedKey = await keyStore.getKey(this.nearConfig.networkId, this.nearConfig.masterAccount!);
+            if (storedKey) {
+              logger.info('[NEAR] Successfully loaded credentials from environment', {
+                accountId: this.nearConfig.masterAccount
+              });
+              hasValidCredentials = true;
+            }
+          } catch (envError) {
+            logger.error('[NEAR] Failed to load credentials from environment', {
+              error: (envError as Error).message
+            });
+          }
+        }
       }
 
       // Initialize NEAR connection with detailed logging
@@ -258,19 +195,12 @@ export class NEARChainCoordinator {
           accountId: this.nearConfig.masterAccount
         });
         
-        this.masterAccount = new Account(
-          this.nearConnection,
-          this.nearConfig.masterAccount
-        );
+        // Use the connection's account method which properly binds the keystore
+        this.masterAccount = await this.nearConnection.account(this.nearConfig.masterAccount!);
         
-        // Validate master account object
-        logger.info('[NEAR] Master account created - validating object', {
-          hasAccount: !!this.masterAccount,
+        logger.info('[NEAR] Master account created successfully', {
           accountId: this.masterAccount?.accountId,
-          accountType: typeof this.masterAccount,
-          hasConnection: !!this.masterAccount?.connection,
-          hasFunctionCall: typeof this.masterAccount?.functionCall === 'function',
-          accountMethods: this.masterAccount ? Object.getOwnPropertyNames(Object.getPrototypeOf(this.masterAccount)) : []
+          hasConnection: !!this.masterAccount?.connection
         });
         
         logger.info('[NEAR] Master account initialized for write operations');
@@ -288,10 +218,11 @@ export class NEARChainCoordinator {
       });
       
     } catch (error) {
+      const err = error as Error;
       logger.error('[NEAR] Initialization failed with error', { 
-        error: error.message,
-        stack: error.stack,
-        errorType: error.constructor.name,
+        error: err.message,
+        stack: err.stack,
+        errorType: err.constructor.name,
         config: {
           networkId: this.nearConfig.networkId,
           nodeUrl: this.nearConfig.nodeUrl,
@@ -328,18 +259,12 @@ export class NEARChainCoordinator {
           hasPrivateKey: !!this.nearConfig.privateKey,
           error: 'Master account not initialized'
         });
-        throw new Error('NEAR write operations unavailable - invalid private key format. Expected: ed25519:base58_key (88+ chars)');
+        throw new Error('NEAR write operations unavailable - invalid private key format. Expected: ed25519:base58_key (87+ chars)');
       }
 
-      // Comprehensive master account validation
-      logger.info(`[${timestamp}][NEAR] Validating master account for function call`, {
-        hasMasterAccount: !!this.masterAccount,
+      logger.info(`[${timestamp}][NEAR] Master account ready for function call`, {
         accountId: this.masterAccount?.accountId,
-        accountType: typeof this.masterAccount,
-        hasConnection: !!this.masterAccount?.connection,
-        hasFunctionCall: typeof this.masterAccount?.functionCall === 'function',
-        connectionType: typeof this.masterAccount?.connection,
-        connectionNetworkId: this.masterAccount?.connection?.networkId
+        networkId: this.nearConfig.networkId
       });
 
       // Validate and parse amount
@@ -405,6 +330,8 @@ export class NEARChainCoordinator {
         methodName: 'create_htlc',
         callerAccount: this.masterAccount.accountId
       });
+
+      // Account is properly initialized with keystore access
 
       let result;
       try {

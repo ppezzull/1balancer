@@ -781,13 +781,13 @@ export class FusionPlusExecutor {
     const now = Math.floor(Date.now() / 1000);
     
     return {
-      srcWithdrawal: now + 300,      // 5 minutes
-      srcPublicWithdrawal: now + 600, // 10 minutes
-      srcCancellation: now + 900,     // 15 minutes
-      srcDeployedAt: now,
+      srcWithdrawal: now + 500,      // 8.33 minutes
+      srcPublicWithdrawal: now + 800, // 13.33 minutes
+      srcCancellation: now + 1100,    // 18.33 minutes
+      srcDeployedAt: now - 60,       // 1 minute ago (ensures currentTime >= srcDeployedAt)
       dstWithdrawal: now + 180,      // 3 minutes (before src withdrawal)
-      dstCancellation: now + 270,     // 4.5 minutes (MUST be before src withdrawal for cross-chain safety)
-      dstDeployedAt: now
+      dstCancellation: now + 250,     // 4.17 minutes (MUST be before src withdrawal for cross-chain safety: 250 < 500, buffer of 250 seconds)
+      dstDeployedAt: now - 60        // 1 minute ago (ensures currentTime >= dstDeployedAt)
     };
   }
 
