@@ -1,15 +1,61 @@
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useTheme } from "./ui/use-theme";
 import { motion } from "motion/react";
 import { Zap, Brain, Shield, TrendingUp, BarChart3, Target, ArrowRight, Crown } from "lucide-react";
+import { toast } from "sonner";
 
-interface RebalanceSectionProps {
+interface RebalanceProps {
   onStartRebalancing?: () => void;
+  data?: any;
 }
 
-export function RebalanceSection({ onStartRebalancing }: RebalanceSectionProps) {
+export function Rebalance({ onStartRebalancing, data }: RebalanceProps) {
+  const router = useRouter();
+  const { ready, authenticated, login } = usePrivy();
   const { isDark } = useTheme();
+
+  const isWalletConnected = ready && authenticated;
+
+  // Redirect to wallet after successful authentication
+  useEffect(() => {
+    if (ready && authenticated && onStartRebalancing) {
+      // Small delay to allow authentication to complete
+      const timer = setTimeout(() => {
+        router.push('/wallet');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [ready, authenticated, router, onStartRebalancing]);
+
+  const handleStartRebalancing = async () => {
+    if (!isWalletConnected) {
+      try {
+        await login();
+        toast.success("Wallet connected successfully!", {
+          description: "Redirecting to your dashboard...",
+          duration: 3000,
+        });
+        // Redirect will happen in useEffect above
+      } catch (error) {
+        toast.error("Connection Failed", {
+          description: "Failed to connect wallet. Please try again.",
+          duration: 3000,
+        });
+      }
+      return;
+    }
+
+    // If already connected, trigger the callback which will redirect
+    if (onStartRebalancing) {
+      onStartRebalancing();
+    }
+  };
 
   const features = [
     {
@@ -340,18 +386,21 @@ export function RebalanceSection({ onStartRebalancing }: RebalanceSectionProps) 
           >
             <Button 
               size="lg"
-              onClick={onStartRebalancing}
+              onClick={handleStartRebalancing}
               className="bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-500 hover:from-emerald-500 hover:via-cyan-500 hover:to-indigo-600 text-black px-8 py-4 text-lg font-semibold transition-all duration-300 group shadow-lg hover:shadow-xl"
             >
               <span className="flex items-center gap-2">
-                Start Smart Rebalancing
+                {isWalletConnected ? 'Start Smart Rebalancing' : 'Connect Wallet to Start'}
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
               </span>
             </Button>
           </motion.div>
           
           <p className="text-sm text-muted-foreground mt-4">
-            Connect your wallet to get started with professional portfolio management
+            {isWalletConnected 
+              ? "Your wallet is connected and ready for professional portfolio management"
+              : "Connect your wallet to get started with professional portfolio management"
+            }
           </p>
         </motion.div>
       </div>

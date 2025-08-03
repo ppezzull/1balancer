@@ -1,37 +1,60 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 import { Button } from "./ui/button";
 import { ArrowRight, Zap, Shield, TrendingUp, Wallet, AlertCircle, FileText } from "lucide-react";
 import { useIsMobile } from "./ui/use-mobile";
 import { toast } from "sonner";
 import { WhitepaperModal } from "./modals/WhitepaperModal";
 
-interface HeroSectionProps {
+interface HomeProps {
   onGetStarted?: () => void;
   isWalletConnected?: boolean;
+  data?: any;
 }
 
-export function HeroSection({ onGetStarted, isWalletConnected = false }: HeroSectionProps) {
+export function Home({ onGetStarted, isWalletConnected: propIsWalletConnected, data }: HomeProps) {
+  const router = useRouter();
+  const { ready, authenticated, login } = usePrivy();
   const [showWhitepaper, setShowWhitepaper] = useState(false);
   const isMobile = useIsMobile();
 
-  const handleGetStarted = () => {
+  // Use Privy state as primary source of truth
+  const isWalletConnected = ready && authenticated;
+
+  // Redirect to wallet after successful authentication
+  useEffect(() => {
+    if (ready && authenticated && onGetStarted) {
+      // Small delay to allow authentication to complete
+      const timer = setTimeout(() => {
+        router.push('/wallet');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [ready, authenticated, router, onGetStarted]);
+
+  const handleGetStarted = async () => {
     if (!isWalletConnected) {
-      toast.error("Wallet Connection Required", {
-        description: "Please connect your wallet first to start using 1Balancer",
-        duration: 4000,
-        action: {
-          label: "Connect",
-          onClick: () => {
-            toast.info("Use the 'Connect Wallet' button in the header", {
-              duration: 3000,
-            });
-          },
-        },
-      });
+      try {
+        await login();
+        toast.success("Wallet connected successfully!", {
+          description: "Redirecting to your dashboard...",
+          duration: 3000,
+        });
+        // Redirect will happen in useEffect above
+      } catch (error) {
+        toast.error("Connection Failed", {
+          description: "Failed to connect wallet. Please try again.",
+          duration: 3000,
+        });
+      }
       return;
     }
 
+    // If already connected, trigger the callback which will redirect
     if (onGetStarted) {
       onGetStarted();
     }
@@ -40,7 +63,7 @@ export function HeroSection({ onGetStarted, isWalletConnected = false }: HeroSec
 
   return (
     <>
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-accent/20" />
         
@@ -148,13 +171,13 @@ export function HeroSection({ onGetStarted, isWalletConnected = false }: HeroSec
                 <span className="relative z-10 flex items-center gap-2">
                   {isWalletConnected ? (
                     <>
-                      Start Building
+                      Start Building Portfolio
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   ) : (
                     <>
                       <Wallet className="w-5 h-5" />
-                      Connect Wallet First
+                      Connect Wallet Pro
                     </>
                   )}
                 </span>

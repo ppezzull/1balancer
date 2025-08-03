@@ -1,31 +1,46 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 import { HomePage } from "~~/components/pages/HomePage";
-import { WalletPage } from "~~/components/pages/WalletPage";
+import { getHomeData } from "~~/utils/storage";
 
 export default function Home() {
-  const searchParams = useSearchParams();
-  const showWallet = searchParams.get('wallet') === 'true';
-  const walletTab = searchParams.get('tab') as 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio' || 'home';
+  const router = useRouter();
+  const { ready, authenticated } = usePrivy();
+  const [homeData, setHomeData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Simulate SSR data fetching on client
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getHomeData();
+      setHomeData(data);
+      setLoading(false);
+    };
+    fetchData();
+  }, []);
 
   const handleGetStarted = () => {
-    window.location.href = '/?wallet=true&tab=home';
+    if (ready && authenticated) {
+      router.push('/wallet');
+    } else {
+      // If not authenticated, the HomePage component will handle wallet connection
+      // and then we can redirect after successful connection
+    }
   };
 
   const handleStartRebalancing = () => {
-    window.location.href = '/?wallet=true&tab=home';
+    if (ready && authenticated) {
+      router.push('/wallet');
+    } else {
+      // If not authenticated, the HomePage component will handle wallet connection
+    }
   };
 
-  if (showWallet) {
-    return (
-      <WalletPage 
-        activeWalletTab={walletTab}
-        onWalletTabChange={(tab) => {
-          window.location.href = `/?wallet=true&tab=${tab}`;
-        }}
-      />
-    );
+  if (loading) {
+    return <div className="min-h-screen bg-background animate-pulse" />;
   }
 
   return (
@@ -33,7 +48,7 @@ export default function Home() {
       activeTab="home"
       onGetStarted={handleGetStarted}
       onStartRebalancing={handleStartRebalancing}
-      isWalletConnected={false}
+      data={homeData}
     />
   );
 }

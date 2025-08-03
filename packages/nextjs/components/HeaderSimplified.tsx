@@ -1,33 +1,27 @@
+"use client";
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { usePrivy } from "@privy-io/react-auth";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { Button } from "./ui/button";
 import { SwitchTheme } from "./SwitchTheme";
 import { useIsMobile } from "./ui/use-mobile";
-import { Wallet, Copy, LogOut, Check, Menu, X, Home, PieChart, TrendingUp, Users, User } from "lucide-react";
+import { Wallet, Copy, LogOut, Check, Menu, X, Home, PieChart, TrendingUp, Users, User, Bug, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 
 interface HeaderProps {
-  activeTab: 'home' | 'about' | 'rebalance' | 'top-performers';
-  onTabChange: (tab: 'home' | 'about' | 'rebalance' | 'top-performers') => void;
-  activeWalletTab?: 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio';
-  onWalletTabChange?: (tab: 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio') => void;
-  isWalletConnected?: boolean;
   showWalletNavigation?: boolean;
-  onLogoClick?: () => void;
 }
 
 export function HeaderSimplified({ 
-  activeTab, 
-  onTabChange, 
-  activeWalletTab = 'home', 
-  onWalletTabChange, 
-  isWalletConnected: propIsWalletConnected,
-  showWalletNavigation = false,
-  onLogoClick
+  showWalletNavigation = false
 }: HeaderProps) {
   const { ready, authenticated, login, logout, user } = usePrivy();
+  const router = useRouter();
+  const pathname = usePathname();
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -35,6 +29,27 @@ export function HeaderSimplified({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonWrapperRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+
+  // Determine active tab from pathname
+  const getActiveTab = (): 'home' | 'about' | 'rebalance' | 'top-performers' => {
+    if (pathname.includes('/about')) return 'about';
+    if (pathname.includes('/rebalance')) return 'rebalance';
+    if (pathname.includes('/top-performers')) return 'top-performers';
+    return 'home';
+  };
+
+  // Determine active wallet tab from pathname
+  const getActiveWalletTab = (): 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio' => {
+    if (pathname.includes('/wallet/portfolio')) return 'portfolio';
+    if (pathname.includes('/wallet/trade')) return 'trade';
+    if (pathname.includes('/wallet/social')) return 'social';
+    if (pathname.includes('/wallet/profile')) return 'profile';
+    if (pathname.includes('/wallet/create-portfolio')) return 'create-portfolio';
+    return 'home';
+  };
+
+  const activeTab = getActiveTab();
+  const activeWalletTab = getActiveWalletTab();
 
   const isWalletConnected = ready && authenticated;
   const walletAddress = user?.wallet?.address || "";
@@ -102,19 +117,31 @@ export function HeaderSimplified({
     }
   };
 
-  // Handle navigation clicks
+  // Handle navigation clicks using Next.js router
   const handleNavClick = useCallback((tab: 'home' | 'about' | 'rebalance' | 'top-performers') => {
-    onTabChange(tab);
+    const routes = {
+      'home': '/',
+      'about': '/about',
+      'rebalance': '/rebalance',
+      'top-performers': '/top-performers'
+    };
+    router.push(routes[tab]);
     setShowMobileMenu(false);
-  }, [onTabChange]);
+  }, [router]);
 
-  // Handle wallet navigation clicks
+  // Handle wallet navigation clicks using Next.js router
   const handleWalletNavClick = useCallback((tab: 'home' | 'portfolio' | 'trade' | 'social' | 'profile' | 'create-portfolio') => {
-    if (onWalletTabChange) {
-      onWalletTabChange(tab);
-    }
+    const walletRoutes = {
+      'home': '/wallet',
+      'portfolio': '/wallet/portfolio',
+      'trade': '/wallet/trade',
+      'social': '/wallet/social',
+      'profile': '/wallet/profile',
+      'create-portfolio': '/wallet/create-portfolio'
+    };
+    router.push(walletRoutes[tab]);
     setShowMobileMenu(false);
-  }, [onWalletTabChange]);
+  }, [router]);
 
   // Wallet navigation items with unified styling
   const walletNavItems = [
@@ -185,7 +212,8 @@ export function HeaderSimplified({
     }
   ];
 
-  const shouldShowWalletNavigation = showWalletNavigation && isWalletConnected && activeWalletTab !== 'create-portfolio';
+  // Show wallet navigation when on wallet pages and user is authenticated
+  const shouldShowWalletNavigation = pathname.startsWith('/wallet') && isWalletConnected && activeWalletTab !== 'create-portfolio';
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -212,17 +240,13 @@ export function HeaderSimplified({
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <div className="flex items-center">
-            <button
-              onClick={onLogoClick || (() => handleNavClick('home'))}
-              className="transition-opacity duration-200 hover:opacity-80 cursor-pointer bg-transparent border-none p-0 m-0 flex-shrink-0"
-              type="button"
-            >
+            <Link href="/" className="transition-opacity duration-200 hover:opacity-80 cursor-pointer flex-shrink-0">
               <img 
                 src="/logo.png" 
                 alt="1balancer" 
                 className="h-35 w-auto"
               />
-            </button>
+            </Link>
           </div>
           
           {/* Desktop Navigation */}
@@ -630,6 +654,30 @@ export function HeaderSimplified({
                 )}
                 <span className="flex-1 text-left">{copied ? 'Copied!' : 'Copy Address'}</span>
               </motion.button>
+
+              <Link href="/debug" className="w-full">
+                <motion.div
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Bug className="w-4 h-4" />
+                  <span className="flex-1 text-left">Debug Contracts</span>
+                  <ExternalLink className="w-3 h-3 opacity-50" />
+                </motion.div>
+              </Link>
+
+              <Link href="/blockexplorer" className="w-full">
+                <motion.div
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-accent rounded-lg transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span className="flex-1 text-left">Block Explorer</span>
+                  <ExternalLink className="w-3 h-3 opacity-50" />
+                </motion.div>
+              </Link>
 
               <motion.button
                 onClick={disconnectWallet}

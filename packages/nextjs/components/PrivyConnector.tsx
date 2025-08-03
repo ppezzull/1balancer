@@ -1,6 +1,7 @@
 // components/PrivyConnector.tsx
 import React from "react";
 import { useConnectOrCreateWallet, usePrivy, useWallets } from "@privy-io/react-auth";
+import { useRouter } from 'next/router';
 
 export function HeaderConnectButton() {
   // Privy auth state and actions
@@ -16,6 +17,17 @@ export function HeaderConnectButton() {
       console.error("Wallet connection failed", err);
     },
   });
+
+ const handleLogout = async () => {
+  const router = useRouter();
+  
+  try {
+    await logout();
+    router.push('/'); // Reindirizza alla pagina root
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
 
   // Show loading state while SDK initializes
   if (!ready) {
@@ -37,7 +49,7 @@ export function HeaderConnectButton() {
           {user?.email?.address || user?.phone?.number || "Connected"}
           {isEmbeddedWallet && <span className="ml-1 text-xs text-green-600">(Smart Account)</span>}
         </div>
-        <button onClick={logout} className="btn btn-outline btn-sm">
+        <button onClick={handleLogout} className="btn btn-outline btn-sm">
           Disconnect
         </button>
       </div>

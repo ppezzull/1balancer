@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback } from "react";
 import { motion } from "motion/react";
 import { useInViewAnimation } from "./interactive/useInViewAnimation";

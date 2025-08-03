@@ -1,29 +1,31 @@
+"use client";
+
 import { motion } from "motion/react";
-import { HeroSection } from "./HeroSection";
-import { AboutSection } from "./AboutSection";
-import { RebalanceSection } from "./RebalanceSection"; 
-import { TopPerformersSection } from "./TopPerformersSection";
+import { Home } from "./Home";
+import { About } from "./About";
+import { Rebalance } from "./Rebalance"; 
+import { TopPerformers } from "./TopPerformers";
 
 interface InteractiveMainContentProps {
   activeTab: 'home' | 'about' | 'rebalance' | 'top-performers';
   onGetStarted?: () => void;
   onStartRebalancing?: () => void;
-  isWalletConnected?: boolean;
+  data?: any;
 }
 
-export function InteractiveMainContent({ activeTab, onGetStarted, onStartRebalancing, isWalletConnected }: InteractiveMainContentProps) {
+export function InteractiveMainContent({ activeTab, onGetStarted, onStartRebalancing, data }: InteractiveMainContentProps) {
   const renderContent = () => {
     switch (activeTab) {
       case 'home':
-        return <HeroSection onGetStarted={onGetStarted} isWalletConnected={isWalletConnected} />;
+        return <Home onGetStarted={onGetStarted} data={data} />;
       case 'about':
-        return <AboutSection onGetStarted={onGetStarted} isWalletConnected={isWalletConnected} />;
+        return <About onGetStarted={onGetStarted} data={data} />;
       case 'rebalance':
-        return <RebalanceSection onStartRebalancing={onStartRebalancing} />;
+        return <Rebalance onStartRebalancing={onStartRebalancing} data={data} />;
       case 'top-performers':
-        return <TopPerformersSection />;
+        return <TopPerformers data={data} />;
       default:
-        return <HeroSection onGetStarted={onGetStarted} isWalletConnected={isWalletConnected} />;
+        return <Home onGetStarted={onGetStarted} data={data} />;
     }
   };
 

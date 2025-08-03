@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { useInViewAnimation } from "./interactive/useInViewAnimation";

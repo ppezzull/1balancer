@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useInViewAnimation } from "./interactive/useInViewAnimation";
@@ -384,7 +386,11 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
   );
 }
 
-export function TopPerformersSection() {
+interface TopPerformersProps {
+  data?: any;
+}
+
+export function TopPerformers({ data }: TopPerformersProps) {
   const { ref: heroRef, isInView: heroInView } = useInViewAnimation();
   const { ref: performersRef, isInView: performersInView } = useInViewAnimation();
   const isMobile = useIsMobile();

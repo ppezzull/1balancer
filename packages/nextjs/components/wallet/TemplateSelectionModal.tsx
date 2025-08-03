@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Card, CardContent } from "../ui/card";
@@ -23,6 +24,8 @@ interface TemplateSelectionModalProps {
 }
 
 export function TemplateSelectionModal({ isOpen, onClose, templates, onSelect }: TemplateSelectionModalProps) {
+  const router = useRouter();
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-hidden">
@@ -55,10 +58,8 @@ export function TemplateSelectionModal({ isOpen, onClose, templates, onSelect }:
                     // Store selected template in localStorage for portfolio creator
                     localStorage.setItem('selectedPortfolioTemplate', JSON.stringify(template));
                     
-                    // Dispatch event to navigate to portfolio creator
-                    window.dispatchEvent(new CustomEvent('navigate-to-portfolio-creator', {
-                      detail: { template }
-                    }));
+                    // Navigate to portfolio creator page
+                    router.push('/wallet/create-portfolio');
                     
                     onSelect(template);
                   }}

@@ -1,5 +1,9 @@
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { usePrivy } from "@privy-io/react-auth";
 import { useInViewAnimation } from "./interactive/useInViewAnimation";
 import { useTheme } from "./ui/use-theme";
 import { Button } from "./ui/button";
@@ -24,15 +28,19 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-interface AboutSectionProps {
+interface AboutProps {
   onGetStarted?: () => void;
   isWalletConnected?: boolean;
+  data?: any;
 }
 
-export function AboutSection({
+export function About({
   onGetStarted,
-  isWalletConnected = false,
-}: AboutSectionProps) {
+  isWalletConnected: propIsWalletConnected = false,
+  data
+}: AboutProps) {
+  const router = useRouter();
+  const { ready, authenticated, login } = usePrivy();
   const [showWhitepaper, setShowWhitepaper] = useState(false);
   const { ref: heroRef, isInView: heroInView } =
     useInViewAnimation();
@@ -42,7 +50,45 @@ export function AboutSection({
     useInViewAnimation();
   const { isDark } = useTheme();
 
-  const handleGetStarted = () => {
+  // Use Privy state as primary source of truth
+  const isWalletConnected = ready && authenticated;
+
+  // Redirect to wallet after successful authentication
+  useEffect(() => {
+    if (ready && authenticated && onGetStarted) {
+      // Small delay to allow authentication to complete
+      const timer = setTimeout(() => {
+        router.push('/wallet');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [ready, authenticated, router, onGetStarted]);
+
+  const handleGetStarted = async () => {
+    if (!isWalletConnected) {
+      try {
+        await login();
+        toast.success("Wallet connected successfully!", {
+          description: "Redirecting to your dashboard...",
+          duration: 3000,
+        });
+        // Redirect will happen in useEffect above
+      } catch (error) {
+        toast.error("Connection Failed", {
+          description: "Failed to connect wallet. Please try again.",
+          duration: 3000,
+        });
+      }
+      return;
+    }
+
+    // If already connected, trigger the callback which will redirect
+    if (onGetStarted) {
+      onGetStarted();
+    }
+  };
+
+  const handleOldLogic = () => {
     if (!isWalletConnected) {
       toast.error("Wallet Connection Required", {
         description:
