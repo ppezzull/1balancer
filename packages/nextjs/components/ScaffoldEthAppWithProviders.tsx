@@ -36,11 +36,11 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   const showFooter = !isWalletPage;
 
   return (
-    <div className={`min-h-screen flex flex-col ${isRootPage ? 'h-screen overflow-hidden' : ''}`}>
+    <div className={`min-h-screen flex flex-col ${isRootPage ? 'viewport-fixed' : ''}`}>
       <HeaderSimplified />
       
       {/* Main content with proper spacing for fixed header and footer */}
-      <main className={`flex-1 ${showFooter ? 'pt-16 sm:pt-20 pb-20' : 'pt-16 sm:pt-20'} ${isRootPage ? 'overflow-hidden flex items-center justify-center' : 'overflow-auto'}`}>
+      <main className={`flex-1 ${showFooter ? 'fixed-navbar-offset pb-20' : 'fixed-navbar-offset'} ${isRootPage ? 'perfect-center' : 'overflow-auto'}`}>
         {children}
       </main>
       

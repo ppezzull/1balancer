@@ -63,7 +63,7 @@ export function Home({ onGetStarted, isWalletConnected: propIsWalletConnected, d
 
   return (
     <>
-      <section className="relative w-full overflow-hidden">
+      <section className="relative w-full overflow-hidden home-page-centered">
         {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-accent/20" />
         
@@ -91,7 +91,7 @@ export function Home({ onGetStarted, isWalletConnected: propIsWalletConnected, d
         </div>
 
         {/* Main Content */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
+        <div className="relative z-10 home-content-wrapper viewport-padding">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -113,7 +113,7 @@ export function Home({ onGetStarted, isWalletConnected: propIsWalletConnected, d
 
             {/* Main Title */}
             <div className="space-y-4">
-              <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
+              <h1 className="hero-title">
                 <span className="text-foreground">Rebalance Your</span>
                 <br />
                 <span 
@@ -125,7 +125,7 @@ export function Home({ onGetStarted, isWalletConnected: propIsWalletConnected, d
                 <br />
                 <span className="text-foreground">Automatically</span>
               </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              <p className="hero-subtitle text-muted-foreground max-w-3xl mx-auto">
                 The first non-custodial DeFi protocol for automated portfolio rebalancing. 
                 Set your strategy, maintain control, let smart contracts do the work.
               </p>

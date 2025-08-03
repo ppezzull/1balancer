@@ -191,7 +191,7 @@ export function About({
       {/* Hero Section */}
       <section
         ref={heroRef}
-        className="py-24 px-4 sm:px-6 lg:px-8 relative"
+        className="py-24 px-4 sm:px-6 lg:px-8 relative smooth-scroll-section"
       >
         <div className="max-w-6xl mx-auto text-center">
           <motion.div
@@ -217,7 +217,7 @@ export function About({
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 smooth-scroll-section">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -246,7 +246,7 @@ export function About({
       {/* Features Section */}
       <section
         ref={featuresRef}
-        className="py-16 px-4 sm:px-6 lg:px-8"
+        className="py-16 px-4 sm:px-6 lg:px-8 smooth-scroll-section"
       >
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -309,7 +309,7 @@ export function About({
       {/* How It Works Section */}
       <section
         ref={howItWorksRef}
-        className="py-16 px-4 sm:px-6 lg:px-8"
+        className="py-16 px-4 sm:px-6 lg:px-8 smooth-scroll-section"
       >
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -399,7 +399,7 @@ export function About({
       </section>
 
       {/* Technology Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 smooth-scroll-section">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -462,7 +462,7 @@ export function About({
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-4 sm:px-6 lg:px-8 smooth-scroll-section">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
