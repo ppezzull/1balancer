@@ -28,10 +28,14 @@ function getDirectories(path: string) {
 }
 
 function getContractNames(path: string) {
-  return fs
-    .readdirSync(path, { withFileTypes: true })
-    .filter(dirent => dirent.isFile() && dirent.name.endsWith(".json"))
-    .map(dirent => dirent.name.split(".")[0]);
+  return (
+    fs
+      .readdirSync(path, { withFileTypes: true })
+      .filter(dirent => dirent.isFile() && dirent.name.endsWith(".json"))
+      .map(dirent => dirent.name.split(".")[0])
+      // Filter out empty contract names (e.g., files like ".migrations.json")
+      .filter(name => name.length > 0)
+  );
 }
 
 function getActualSourcesForContract(sources: Record<string, any>, contractName: string) {

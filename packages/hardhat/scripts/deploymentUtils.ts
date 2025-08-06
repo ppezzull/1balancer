@@ -245,7 +245,10 @@ export async function deployOptimizedBalancerFactory(
 /**
  * Test balancer creation and event emission
  */
-export async function testBalancerCreation(optimizedBalancerFactory: BaseContract, user: any): Promise<void> {
+export async function testBalancerCreation(
+  optimizedBalancerFactory: OptimizedBalancerFactory,
+  user: any,
+): Promise<void> {
   console.log("🧪 Testing balancer creation...");
 
   const { USDC, WETH, INCH } = TOKEN_ADDRESSES;

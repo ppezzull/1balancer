@@ -1,9 +1,5 @@
-// Apply Node.js v24 compatibility patch first
-require('./patch-node-v24');
-
-// Load environment variables from root .env using automatic inheritance
-require('./env.config');
-
+import * as dotenv from "dotenv";
+dotenv.config();
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
@@ -13,21 +9,18 @@ import "solidity-coverage";
 import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
-import "@openzeppelin/hardhat-upgrades";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
-
-// If not set, it uses the hardhat account 0 private key.
-// You can generate a random account with `yarn generate` or `yarn account:import` to import your existing PK
-const deployerPrivateKey =
-  process.env.DEPLOYER_PRIVATE_KEY ?? process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-// If not set, it uses our block explorers default API keys.
-const etherscanApiKey = process.env.ETHERSCAN_V2_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 
 // If not set, it uses ours Alchemy's default API key.
 // You can get your own at https://dashboard.alchemyapi.io
 const providerApiKey = process.env.ALCHEMY_API_KEY || "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF";
-
+// If not set, it uses the hardhat account 0 private key.
+// You can generate a random account with `yarn generate` or `yarn account:import` to import your existing PK
+const deployerPrivateKey =
+  process.env.__RUNTIME_DEPLOYER_PRIVATE_KEY ?? "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+// If not set, it uses our block explorers default API keys.
+const etherscanApiKey = process.env.ETHERSCAN_V2_API_KEY || "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -38,7 +31,7 @@ const config: HardhatUserConfig = {
           optimizer: {
             enabled: true,
             // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
-            runs: 100000, // Keep high optimization for modular contracts
+            runs: 10000000,
           },
           viaIR: true,
         },
@@ -56,26 +49,16 @@ const config: HardhatUserConfig = {
     // View the networks that are pre-configured.
     // If the network you are looking for is not here you can add new network settings
     hardhat: {
-      // Hardhat network can be configured to fork any network
-      // Use: npx hardhat node --fork <network-name>
-      // Or: HARDHAT_NETWORK=<network-name> yarn fork
       allowUnlimitedContractSize: true,
       gas: 100000000000, // Set high gas limit for testing
       blockGasLimit: 100000000000,
-    },
-    // BASE mainnet fork for testing
-    baseFork: {
-      url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
-      chainId: 8453,
       forking: {
-        url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
-        blockNumber: 19000000, // Fixed block for consistent testing
-        enabled: true,
+        url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
+        enabled: process.env.MAINNET_FORKING_ENABLED === "true",
       },
-      accounts: [deployerPrivateKey],
     },
     mainnet: {
-      url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
+      url: "https://mainnet.rpc.buidlguidl.com",
       accounts: [deployerPrivateKey],
     },
     sepolia: {
@@ -123,16 +106,12 @@ const config: HardhatUserConfig = {
       accounts: [deployerPrivateKey],
     },
     base: {
-      url: process.env.BASE_MAINNET_RPC_URL || "https://mainnet.base.org",
+      url: "https://mainnet.base.org",
       accounts: [deployerPrivateKey],
-      chainId: 8453,
-      gasPrice: 1000000000, // 1 gwei
     },
     baseSepolia: {
       url: "https://sepolia.base.org",
       accounts: [deployerPrivateKey],
-      chainId: 84532, // BASE testnet chain ID as specified in task
-      gasPrice: 1000000000, // 1 gwei
     },
     scrollSepolia: {
       url: "https://sepolia-rpc.scroll.io",
@@ -153,12 +132,12 @@ const config: HardhatUserConfig = {
   },
   // Configuration for harhdat-verify plugin
   etherscan: {
-    apiKey: `${etherscanApiKey}`,
+    apiKey: etherscanApiKey,
   },
   // Configuration for etherscan-verify from hardhat-deploy plugin
   verify: {
     etherscan: {
-      apiKey: `${etherscanApiKey}`,
+      apiKey: etherscanApiKey,
     },
   },
   sourcify: {
