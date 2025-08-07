@@ -37,9 +37,9 @@ contract OptimizedTimeBalancer is OptimizedBaseBalancer {
     }
 
     function currentAllocations() public view returns (uint256[] memory) {
-        uint256[] memory allocations = new uint256[](assetAddresses.length);
-        for (uint256 i = 0; i < assetAddresses.length; i++) {
-            allocations[i] = assets[assetAddresses[i]].percentage;
+        uint256[] memory allocations = new uint256[](assetGroupsCount);
+        for (uint256 i = 0; i < assetGroupsCount; i++) {
+            allocations[i] = assetGroups[i].percentage;
         }
         return allocations;
     }

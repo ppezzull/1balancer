@@ -34,33 +34,52 @@ contract OptimizedDriftBalancer is OptimizedBaseBalancer {
         uint256 totalValue = getTotalValue();
         if (totalValue == 0) return;
 
-        address[] memory tokens = new address[](assetAddresses.length);
-        uint256[] memory deviations = new uint256[](assetAddresses.length);
+        uint256[] memory groupDeviations = new uint256[](assetGroupsCount);
+        address[][] memory groupTokens = new address[][](assetGroupsCount);
         
         bool rebalanceNeeded = false;
         
-        for (uint256 i = 0; i < assetAddresses.length; i++) {
-            address token = assetAddresses[i];
-            uint256 balance = IERC20(token).balanceOf(address(this));
-            uint256 value = getPrice(token, balance);
-            uint256 currentPercentage = (value * 100) / totalValue;
-            uint256 targetPercentage = assets[token].percentage;
+        for (uint256 groupId = 0; groupId < assetGroupsCount; groupId++) {
+            AssetGroup memory group = assetGroups[groupId];
+            uint256 groupValue = 0;
             
-            tokens[i] = token;
+            // Calculate total value for this group
+            for (uint256 i = 0; i < group.tokens.length; i++) {
+                uint256 balance = IERC20(group.tokens[i]).balanceOf(address(this));
+                groupValue += getPrice(group.tokens[i], balance);
+            }
             
-            (bool withinRange, uint256 deviation) = checkAssetBalance(
-                token, balance, currentPercentage, targetPercentage, value
-            );
+            uint256 currentPercentage = (groupValue * 100) / totalValue;
+            uint256 targetPercentage = group.percentage;
             
-            deviations[i] = deviation;
+            // Calculate deviation
+            uint256 deviation = currentPercentage > targetPercentage 
+                ? currentPercentage - targetPercentage 
+                : targetPercentage - currentPercentage;
             
-            if (!withinRange && deviation > driftPercentage) {
+            groupDeviations[groupId] = deviation;
+            groupTokens[groupId] = group.tokens;
+            
+            if (deviation > driftPercentage) {
                 rebalanceNeeded = true;
             }
         }
         
         if (rebalanceNeeded) {
-            emit RebalanceNeeded(tokens, deviations);
+            // Flatten tokens array for the event
+            address[] memory allTokens = new address[](assetAddresses.length);
+            uint256[] memory allDeviations = new uint256[](assetAddresses.length);
+            
+            uint256 tokenIndex = 0;
+            for (uint256 groupId = 0; groupId < assetGroupsCount; groupId++) {
+                for (uint256 i = 0; i < groupTokens[groupId].length; i++) {
+                    allTokens[tokenIndex] = groupTokens[groupId][i];
+                    allDeviations[tokenIndex] = groupDeviations[groupId];
+                    tokenIndex++;
+                }
+            }
+            
+            emit RebalanceNeeded(allTokens, allDeviations);
         }
     }
 }

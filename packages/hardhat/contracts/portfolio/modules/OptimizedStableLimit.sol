@@ -109,7 +109,7 @@ abstract contract OptimizedStableLimit is Ownable, Pausable, AutomationCompatibl
         return (false, bytes(""));
     }
 
-    function performUpkeep(bytes calldata performData) external override whenNotPaused {
+    function performUpkeep(bytes calldata /*performData*/) external override whenNotPaused {
         // // Decode the performData to get the token pair and price
         // (address token1, address token2, uint256 currentPrice) = abi.decode(performData, (address, address, uint256));
 
@@ -271,7 +271,7 @@ abstract contract OptimizedStableLimit is Ownable, Pausable, AutomationCompatibl
     /**
      * @dev Get order signature for submission to 1inch API
      */
-    function getOrderSignature(bytes32 orderHash) external view onlyOwner returns (bytes memory signature) {
+    function getOrderSignature(bytes32 /*orderHash*/) external view onlyOwner returns (bytes memory signature) {
         // Create a signature that can be validated by EIP-1271
         // This is a simplified implementation - in production you'd want more sophisticated signing
         signature = abi.encodePacked(

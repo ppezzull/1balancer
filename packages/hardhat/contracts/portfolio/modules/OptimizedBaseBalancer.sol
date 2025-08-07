@@ -22,12 +22,15 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
     uint256 public constant MAX_BASIS_POINTS = 100;
 
     // -- State --
-    struct Asset {
+    struct AssetGroup {
         uint256 percentage;
+        address[] tokens; // For stablecoins, this will contain multiple tokens
+        bool isStablecoinGroup;
     }
 
-    mapping(address => Asset) public assets;
-    address[] public assetAddresses;
+    mapping(uint256 => AssetGroup) public assetGroups;
+    uint256 public assetGroupsCount;
+    address[] public assetAddresses; // All tokens (including stablecoins)
     uint256 public lastUpdateTimestamp;
 
     // -- Events --
@@ -38,7 +41,7 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
     // -- Errors --
     error InvalidAssetCount();
     error InvalidPercentagesSum();
-    error AssetNotFound(address asset);
+    error AssetGroupNotFound(uint256 groupId);
     error ZeroAddressNotAllowed();
 
     constructor(
@@ -49,7 +52,7 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
         address[] memory _stablecoins,
         address _limitOrderProtocol
     ) Ownable(initialOwner) OptimizedStableLimit(initialOwner, _factory, _stablecoins, _limitOrderProtocol) {
-        _updateAssetMapping(_assetAddresses, _percentages);
+        _updateAssetGroupMapping(_assetAddresses, _percentages, _stablecoins);
         lastUpdateTimestamp = block.timestamp;
     }
 
@@ -57,7 +60,7 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
      * @notice Fund the contract with a specific ERC20 token
      */
     function fund(address _asset, uint256 _amount) external onlyOwner {
-        if (assets[_asset].percentage == 0) revert AssetNotFound(_asset);
+        require(_isValidAsset(_asset), "Asset not found in any group");
         IERC20(_asset).safeTransferFrom(msg.sender, address(this), _amount);
         emit Funded(_asset, _amount);
     }
@@ -66,7 +69,7 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
      * @notice Withdraw a specific ERC20 token from the contract
      */
     function withdraw(address _asset, uint256 _amount) external onlyOwner nonReentrant {
-        if (assets[_asset].percentage == 0) revert AssetNotFound(_asset);
+        require(_isValidAsset(_asset), "Asset not found in any group");
         IERC20(_asset).safeTransfer(msg.sender, _amount);
         emit Withdrawn(_asset, _amount);
     }
@@ -74,8 +77,12 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
     /**
      * @notice Update the asset mapping
      */
-    function updateAssetMapping(address[] memory _assetAddresses, uint256[] memory _percentages) external onlyOwner {
-        _updateAssetMapping(_assetAddresses, _percentages);
+    function updateAssetMapping(
+        address[] memory _assetAddresses, 
+        uint256[] memory _percentages,
+        address[] memory _stablecoins
+    ) external onlyOwner {
+        _updateAssetGroupMapping(_assetAddresses, _percentages, _stablecoins);
     }
 
     /**
@@ -131,39 +138,124 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
     }
 
     // -- Internal Functions --
-    function _updateAssetMapping(address[] memory _newAssetAddresses, uint256[] memory _newPercentages) internal {
-        if (_newAssetAddresses.length != _newPercentages.length) revert InvalidAssetCount();
-
+    function _updateAssetGroupMapping(
+        address[] memory _assetAddresses, 
+        uint256[] memory _percentages,
+        address[] memory _stablecoins
+    ) internal {
+        require(_percentages.length > 0, "No percentages provided");
+        require(_assetAddresses.length > 0, "No assets provided");
+        
+        // Count non-stablecoin assets
+        uint256 nonStablecoinCount = 0;
+        uint256 stablecoinCount = 0;
+        
+        for (uint256 i = 0; i < _assetAddresses.length; i++) {
+            bool isStablecoin = false;
+            for (uint256 j = 0; j < _stablecoins.length; j++) {
+                if (_assetAddresses[i] == _stablecoins[j]) {
+                    isStablecoin = true;
+                    stablecoinCount++;
+                    break;
+                }
+            }
+            if (!isStablecoin) {
+                nonStablecoinCount++;
+            }
+        }
+        
+        // Calculate expected percentage count: 1 for stablecoins (if any) + 1 for each non-stablecoin
+        uint256 expectedPercentageCount = (stablecoinCount > 0 ? 1 : 0) + nonStablecoinCount;
+        
+        require(_percentages.length == expectedPercentageCount, "Wrong percentage count for asset groups");
+        
         uint256 totalPercentage = 0;
-        for (uint256 i = 0; i < _newPercentages.length; i++) {
-            totalPercentage += _newPercentages[i];
+        for (uint256 i = 0; i < _percentages.length; i++) {
+            totalPercentage += _percentages[i];
         }
         if (totalPercentage != MAX_BASIS_POINTS) revert InvalidPercentagesSum();
 
-        for (uint256 i = 0; i < _newAssetAddresses.length; i++) {
-            if (_newAssetAddresses[i] == address(0)) revert ZeroAddressNotAllowed();
+        // Clear old mappings
+        for (uint256 i = 0; i < assetGroupsCount; i++) {
+            delete assetGroups[i];
+        }
+        
+        assetAddresses = _assetAddresses;
+        assetGroupsCount = 0;
+
+        // Create stablecoin group if we have stablecoins in the asset list
+        if (stablecoinCount > 0) {
+            address[] memory stablecoinAssets = new address[](stablecoinCount);
+            uint256 stablecoinIndex = 0;
+            
+            for (uint256 i = 0; i < _assetAddresses.length; i++) {
+                for (uint256 j = 0; j < _stablecoins.length; j++) {
+                    if (_assetAddresses[i] == _stablecoins[j]) {
+                        stablecoinAssets[stablecoinIndex] = _assetAddresses[i];
+                        stablecoinIndex++;
+                        break;
+                    }
+                }
+            }
+            
+            assetGroups[assetGroupsCount] = AssetGroup({
+                percentage: _percentages[0], // First percentage is for stablecoins
+                tokens: stablecoinAssets,
+                isStablecoinGroup: true
+            });
+            assetGroupsCount++;
+        }
+        
+        // Create groups for non-stablecoin assets
+        uint256 percentageIndex = stablecoinCount > 0 ? 1 : 0;
+        for (uint256 i = 0; i < _assetAddresses.length; i++) {
+            bool isStablecoin = false;
+            for (uint256 j = 0; j < _stablecoins.length; j++) {
+                if (_assetAddresses[i] == _stablecoins[j]) {
+                    isStablecoin = true;
+                    break;
+                }
+            }
+            
+            if (!isStablecoin) {
+                address[] memory singleAsset = new address[](1);
+                singleAsset[0] = _assetAddresses[i];
+                
+                assetGroups[assetGroupsCount] = AssetGroup({
+                    percentage: _percentages[percentageIndex],
+                    tokens: singleAsset,
+                    isStablecoinGroup: false
+                });
+                assetGroupsCount++;
+                percentageIndex++;
+            }
         }
 
-        // Clear old mapping
+        emit AssetMappingUpdated(_assetAddresses, _percentages);
+    }
+    
+    function _isValidAsset(address _asset) internal view returns (bool) {
         for (uint256 i = 0; i < assetAddresses.length; i++) {
-            delete assets[assetAddresses[i]];
+            if (assetAddresses[i] == _asset) {
+                return true;
+            }
         }
-
-        assetAddresses = _newAssetAddresses;
-        for (uint256 i = 0; i < assetAddresses.length; i++) {
-            assets[assetAddresses[i]] = Asset({ percentage: _newPercentages[i] });
-        }
-
-        emit AssetMappingUpdated(_newAssetAddresses, _newPercentages);
+        return false;
     }
 
     function _checkIfBalanced(uint256 portfolioValue) internal view returns (bool) {
-        for (uint256 i = 0; i < assetAddresses.length; i++) {
-            address token = assetAddresses[i];
-            uint256 balance = IERC20(token).balanceOf(address(this));
-            uint256 currentValue = getPrice(token, balance);
-            uint256 currentPercentage = (currentValue * 100) / portfolioValue;
-            uint256 targetPercentage = assets[token].percentage;
+        for (uint256 groupId = 0; groupId < assetGroupsCount; groupId++) {
+            AssetGroup memory group = assetGroups[groupId];
+            uint256 groupValue = 0;
+            
+            // Calculate total value for this group
+            for (uint256 i = 0; i < group.tokens.length; i++) {
+                uint256 balance = IERC20(group.tokens[i]).balanceOf(address(this));
+                groupValue += getPrice(group.tokens[i], balance);
+            }
+            
+            uint256 currentPercentage = (groupValue * 100) / portfolioValue;
+            uint256 targetPercentage = group.percentage;
             
             (bool withinRange, ) = PortfolioAnalysisLib.checkAssetBalance(currentPercentage, targetPercentage);
             if (!withinRange) return false;
@@ -176,12 +268,26 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
         return assetAddresses;
     }
 
-    function getAsset(address _asset) external view returns (Asset memory) {
-        return assets[_asset];
+    function getAssetGroup(uint256 groupId) external view returns (AssetGroup memory) {
+        return assetGroups[groupId];
     }
 
     function getAssetBalance(address _asset) external view returns (uint256) {
         return IERC20(_asset).balanceOf(address(this));
+    }
+    
+    function getStablecoinGroupValue() external view returns (uint256) {
+        for (uint256 groupId = 0; groupId < assetGroupsCount; groupId++) {
+            if (assetGroups[groupId].isStablecoinGroup) {
+                uint256 groupValue = 0;
+                for (uint256 i = 0; i < assetGroups[groupId].tokens.length; i++) {
+                    uint256 balance = IERC20(assetGroups[groupId].tokens[i]).balanceOf(address(this));
+                    groupValue += getPrice(assetGroups[groupId].tokens[i], balance);
+                }
+                return groupValue;
+            }
+        }
+        return 0;
     }
 
     receive() external payable {}
