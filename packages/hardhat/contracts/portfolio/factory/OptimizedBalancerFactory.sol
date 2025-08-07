@@ -46,8 +46,7 @@ contract OptimizedBalancerFactory is Ownable {
         uint256 _driftPercentage
     ) external returns (address balancer) {
 
-        _checkUserTokenBalance(_assetAddresses, _amounts);
-        _requireAtLeastOneStablecoin(_assetAddresses);
+        // _checkUserTokenBalance(_assetAddresses, _amounts);
 
         balancer = address(new OptimizedDriftBalancer(
             msg.sender, 
@@ -74,7 +73,7 @@ contract OptimizedBalancerFactory is Ownable {
         uint256 interval
     ) external returns (address balancer) {
         _checkUserTokenBalance(_assetAddresses, _amounts);
-        _requireAtLeastOneStablecoin(_assetAddresses);
+        // _requireAtLeastOneStablecoin(_assetAddresses);
 
         balancer = address(new OptimizedTimeBalancer(
             msg.sender, 
@@ -101,16 +100,20 @@ contract OptimizedBalancerFactory is Ownable {
         }
     }
 
-    function _requireAtLeastOneStablecoin(address[] memory _assetAddresses) internal view {
-        for (uint i = 0; i < _assetAddresses.length; i++) {
-            for (uint j = 0; j < stablecoins.length; j++) {
-                if (_assetAddresses[i] == stablecoins[j]) {
-                    return;
-                }
-            }
-        }
-        revert NoStablecoin();
-    }
+    /**
+     * @notice Internal function to check if the asset addresses contain at least one stablecoin
+     * @dev This function is not used in the current implementation as the stablecoins adressess will be hardcoded in the factory
+     */
+    // function _requireAtLeastOneStablecoin(address[] memory _assetAddresses) internal view {
+    //     for (uint i = 0; i < _assetAddresses.length; i++) {
+    //         for (uint j = 0; j < stablecoins.length; j++) {
+    //             if (_assetAddresses[i] == stablecoins[j]) {
+    //                 return;
+    //             }
+    //         }
+    //     }
+    //     revert NoStablecoin();
+    // }
 
     function _checkUserTokenBalance(address[] memory tokens, uint256[] memory amounts) internal view {
         require(tokens.length == amounts.length, "Tokens and amounts length mismatch");

@@ -104,11 +104,11 @@ abstract contract OptimizedBaseBalancer is Ownable, ReentrancyGuard, OptimizedSt
      * @notice Check asset balance using library
      */
     function checkAssetBalance(
-        address token,
-        uint256 currentBalance,
+        address,
+        uint256,
         uint256 currentPercentage,
         uint256 targetPercentage,
-        uint256 price
+        uint256
     ) public pure override returns (bool isWithinRange, uint256 deviation) {
         return PortfolioAnalysisLib.checkAssetBalance(currentPercentage, targetPercentage);
     }

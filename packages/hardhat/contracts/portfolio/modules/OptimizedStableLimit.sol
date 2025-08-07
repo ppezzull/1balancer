@@ -110,8 +110,8 @@ abstract contract OptimizedStableLimit is Ownable, Pausable, AutomationCompatibl
     }
 
     function performUpkeep(bytes calldata performData) external override whenNotPaused {
-        // Decode the performData to get the token pair and price
-        (address token1, address token2, uint256 currentPrice) = abi.decode(performData, (address, address, uint256));
+        // // Decode the performData to get the token pair and price
+        // (address token1, address token2, uint256 currentPrice) = abi.decode(performData, (address, address, uint256));
 
         // Get the total value of stablecoins in the contract
         uint256 stablecoinValue = _getTotalStablecoinValue();
