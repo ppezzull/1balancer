@@ -3,7 +3,6 @@ import {
   OptimizedBalancerFactory,
   LimitOrderLib,
   StablecoinGridLib,
-  PortfolioCoreLib,
   MockSpotPriceAggregator,
   MockLimitOrderProtocol,
 } from "../../typechain-types";
@@ -13,7 +12,6 @@ export async function deployOptimizedBalancerFactory(
   libraries: {
     limitOrderLib: LimitOrderLib;
     stablecoinGridLib: StablecoinGridLib;
-    portfolioAnalysisLib: PortfolioCoreLib;
   },
   mocks: {
     mockPriceAggregator: MockSpotPriceAggregator;
@@ -38,7 +36,6 @@ export async function deployOptimizedBalancerFactory(
     libraries: {
       LimitOrderLib: await libraries.limitOrderLib.getAddress(),
       StablecoinGridLib: await libraries.stablecoinGridLib.getAddress(),
-      PortfolioAnalysisLib: await libraries.portfolioAnalysisLib.getAddress(),
     },
     log: true,
     skipIfAlreadyDeployed: true,

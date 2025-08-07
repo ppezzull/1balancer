@@ -21,7 +21,7 @@ describe("OptimizedBalancerFactory", function () {
     mockLimitOrderProtocol = await MockLimitOrderProtocolFactory.deploy();
     await mockLimitOrderProtocol.waitForDeployment();
 
-    // Deploy libraries
+    // Deploy libraries (only the ones actually used by OptimizedBalancerFactory)
     const LimitOrderLibFactory = await ethers.getContractFactory("LimitOrderLib");
     const limitOrderLib = await LimitOrderLibFactory.deploy();
     await limitOrderLib.waitForDeployment();
@@ -30,16 +30,11 @@ describe("OptimizedBalancerFactory", function () {
     const stablecoinGridLib = await StablecoinGridLibFactory.deploy();
     await stablecoinGridLib.waitForDeployment();
 
-    const PortfolioAnalysisLibFactory = await ethers.getContractFactory("PortfolioAnalysisLib");
-    const portfolioAnalysisLib = await PortfolioAnalysisLibFactory.deploy();
-    await portfolioAnalysisLib.waitForDeployment();
-
-    // Deploy OptimizedBalancerFactory
+    // Deploy OptimizedBalancerFactory with only the required libraries
     const OptimizedBalancerFactoryFactory = await ethers.getContractFactory("OptimizedBalancerFactory", {
       libraries: {
         LimitOrderLib: await limitOrderLib.getAddress(),
         StablecoinGridLib: await stablecoinGridLib.getAddress(),
-        PortfolioAnalysisLib: await portfolioAnalysisLib.getAddress(),
       },
     });
 
@@ -59,8 +54,8 @@ describe("OptimizedBalancerFactory", function () {
     });
 
     it("Should have empty stablecoins array initially", async function () {
-      const stablecoins = await optimizedBalancerFactory.stablecoins();
-      expect(stablecoins.length).to.equal(0);
+      // For an empty array, accessing index 0 should revert
+      await expect(optimizedBalancerFactory.stablecoins(0)).to.be.reverted;
     });
   });
 

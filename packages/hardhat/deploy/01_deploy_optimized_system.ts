@@ -47,7 +47,10 @@ const deployOptimizedSystem: DeployFunction = async function (hre: HardhatRuntim
 
     const factory = await deployOptimizedBalancerFactory(
       hre,
-      libraries,
+      {
+        limitOrderLib: libraries.limitOrderLib,
+        stablecoinGridLib: libraries.stablecoinGridLib,
+      },
       { mockPriceAggregator, mockLimitOrderProtocol },
       stablecoinAddresses,
     );

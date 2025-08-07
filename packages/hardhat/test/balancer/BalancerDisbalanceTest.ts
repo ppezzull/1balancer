@@ -41,7 +41,10 @@
 
 //   const optimizedBalancerFactory = await deployOptimizedBalancerFactory(
 //     hre,
-//     libraries,
+//     {
+//       limitOrderLib: libraries.limitOrderLib,
+//       stablecoinGridLib: libraries.stablecoinGridLib,
+//     },
 //     { mockPriceAggregator, mockLimitOrderProtocol },
 //     stablecoinAddresses
 //   );
@@ -166,6 +169,82 @@
 //     });
 //   });
 
+//   describe("Global Rebalancing Logic", function () {
+//     it("Should trigger rebalancing when adding tokens causes global imbalance", async function () {
+//       // Add significant amount of WETH to cause imbalance
+//       const additionalWETH = ethers.parseEther("10"); // Large amount to cause imbalance
+//       await mockWETH.connect(deployer).approve(await driftBalancer.getAddress(), additionalWETH);
+//       await driftBalancer.connect(deployer).fund(await mockWETH.getAddress(), additionalWETH);
+
+//       // Trigger rebalancing
+//       const tx = await driftBalancer.connect(deployer).triggerRebalance();
+//       const receipt = await tx.wait();
+
+//       // Check for RebalanceNeeded event
+//       const rebalanceEvent = receipt?.logs.find(
+//         (log): log is EventLog => (log as EventLog).eventName === "RebalanceNeeded"
+//       );
+
+//       expect(rebalanceEvent).to.not.be.undefined;
+//       console.log("✅ Global rebalancing triggered after adding WETH");
+
+//       // Verify the event contains the expected data
+//       if (rebalanceEvent) {
+//         const parsedEvent = driftBalancer.interface.parseLog(rebalanceEvent);
+//         const tokens = parsedEvent!.args[0] as string[];
+//         const deviations = parsedEvent!.args[1] as bigint[];
+
+//         expect(tokens.length).to.be.greaterThan(0);
+//         expect(deviations.length).to.be.greaterThan(0);
+//         console.log("✅ Rebalance event contains tokens and deviations");
+//       }
+//     });
+
+//     it("Should create limit orders for rebalancing", async function () {
+//       // Add tokens to cause imbalance
+//       const additionalUSDC = ethers.parseUnits("2000", 6);
+//       await mockUSDC.connect(deployer).approve(await driftBalancer.getAddress(), additionalUSDC);
+//       await driftBalancer.connect(deployer).fund(await mockUSDC.getAddress(), additionalUSDC);
+
+//       // Create a rebalance order
+//       const sellToken = await mockUSDC.getAddress();
+//       const buyToken = await mockWETH.getAddress();
+//       const sellAmount = ethers.parseUnits("1000", 6);
+//       const buyAmount = ethers.parseEther("0.5");
+//       const slippageTolerance = 100; // 1%
+
+//       const tx = await driftBalancer.connect(deployer).createRebalanceOrder(
+//         sellToken,
+//         buyToken,
+//         sellAmount,
+//         buyAmount,
+//         slippageTolerance
+//       );
+
+//       const receipt = await tx.wait();
+//       const orderEvent = receipt?.logs.find(
+//         (log): log is EventLog => (log as EventLog).eventName === "RebalanceOrderCreated"
+//       );
+
+//       expect(orderEvent).to.not.be.undefined;
+//       console.log("✅ Rebalance limit order created successfully");
+
+//       if (orderEvent) {
+//         const parsedEvent = driftBalancer.interface.parseLog(orderEvent);
+//         const orderHash = parsedEvent!.args[0] as string;
+//         const maker = parsedEvent!.args[1] as string;
+//         const sellTokenEvent = parsedEvent!.args[2] as string;
+//         const buyTokenEvent = parsedEvent!.args[3] as string;
+
+//         expect(orderHash).to.not.equal(ethers.ZeroHash);
+//         expect(maker).to.equal(await driftBalancer.getAddress());
+//         expect(sellTokenEvent).to.equal(sellToken);
+//         expect(buyTokenEvent).to.equal(buyToken);
+//         console.log("✅ Order event contains correct parameters");
+//       }
+//     });
+//   });
+
 //   describe("Token Disbalance by Adding Additional Tokens", function () {
 //     it("Should cause disbalance by adding WETH to time balancer", async function () {
 //       const additionalWETH = ethers.parseEther("1");
@@ -216,6 +295,44 @@
 //       expect(inchSignature).to.not.equal("0x");
 
 //       console.log("✅ Order signatures successfully generated for all tokens");
+//     });
+//   });
+
+//   describe("Stablecoin Grid Trading", function () {
+//     it("Should create stablecoin grid orders", async function () {
+//       const fromToken = await mockUSDC.getAddress();
+//       const toToken = await mockUSDT.getAddress();
+//       const amount = ethers.parseUnits("1000", 6);
+//       const limitPrice = ethers.parseUnits("1", 18); // 1:1 peg
+
+//       const tx = await driftBalancer.connect(deployer).createStablecoinGridOrder(
+//         fromToken,
+//         toToken,
+//         amount,
+//         limitPrice
+//       );
+
+//       const receipt = await tx.wait();
+//       const orderEvent = receipt?.logs.find(
+//         (log): log is EventLog => (log as EventLog).eventName === "LimitOrderCreated"
+//       );
+
+//       expect(orderEvent).to.not.be.undefined;
+//       console.log("✅ Stablecoin grid order created successfully");
+
+//       if (orderEvent) {
+//         const parsedEvent = driftBalancer.interface.parseLog(orderEvent);
+//         const orderHash = parsedEvent!.args[0] as string;
+//         const maker = parsedEvent!.args[1] as string;
+//         const fromTokenEvent = parsedEvent!.args[2] as string;
+//         const toTokenEvent = parsedEvent!.args[3] as string;
+
+//         expect(orderHash).to.not.equal(ethers.ZeroHash);
+//         expect(maker).to.equal(await driftBalancer.getAddress());
+//         expect(fromTokenEvent).to.equal(fromToken);
+//         expect(toTokenEvent).to.equal(toToken);
+//         console.log("✅ Grid order event contains correct parameters");
+//       }
 //     });
 //   });
 // });
