@@ -10,8 +10,12 @@
 // } from "../../../typechain-types";
 // import { deployLibraries } from "../../../utils/deploy/libs";
 // import { deployOptimizedBalancerFactory } from "../../../utils/deploy/factory";
-// import { deployDriftBalancer } from "../../../utils/deploy/balancers";
-// import { getOrDeployMockTokens, MockTokens } from "../../../utils/deploy/mocks/tokens";
+// import {
+//   getOrDeployMockTokens,
+//   MockTokens,
+//   mintTestTokens,
+//   approveFactoryTokens,
+// } from "../../../utils/deploy/mocks/tokens";
 // import { getOrDeploySpotPriceAggregator, configureSpotPrices } from "../../../utils/deploy/mocks/spotPrice";
 // import { getOrDeployLimitOrderProtocol } from "../../../utils/deploy/mocks/limitOrder";
 
@@ -70,29 +74,60 @@
 //         stablecoinGridLib: libraries.stablecoinGridLib,
 //       },
 //       { mockPriceAggregator, mockLimitOrderProtocol },
-//       stablecoinAddresses
+//       stablecoinAddresses,
 //     );
 
-//     // Mint tokens to user
+//     // Mint tokens to user using utility function
 //     const userAddress = await user.getAddress();
-//     await mockUSDC.mint(userAddress, stablecoinAmounts[0]);
-//     await mockUSDT.mint(userAddress, stablecoinAmounts[1]);
-//     await mockDAI.mint(userAddress, stablecoinAmounts[2]);
+//     await mintTestTokens(tokens, userAddress, {
+//       USDC: stablecoinAmounts[0],
+//       USDT: stablecoinAmounts[1],
+//       DAI: stablecoinAmounts[2],
+//     });
 
-//     // Approve factory to spend tokens
-//     await mockUSDC.connect(user).approve(await optimizedBalancerFactory.getAddress(), stablecoinAmounts[0]);
-//     await mockUSDT.connect(user).approve(await optimizedBalancerFactory.getAddress(), stablecoinAmounts[1]);
-//     await mockDAI.connect(user).approve(await optimizedBalancerFactory.getAddress(), stablecoinAmounts[2]);
+//     // Approve factory to spend tokens using utility function
+//     await approveFactoryTokens(tokens, user, await optimizedBalancerFactory.getAddress(), {
+//       USDC: stablecoinAmounts[0],
+//       USDT: stablecoinAmounts[1],
+//       DAI: stablecoinAmounts[2],
+//     });
 
-//     // Deploy drift balancer through factory
+//     // Deploy drift balancer through factory (using user signer)
 //     const assetAddresses = [await mockUSDC.getAddress(), await mockUSDT.getAddress(), await mockDAI.getAddress()];
 
-//     driftBalancer = await deployDriftBalancer(hre, optimizedBalancerFactory, {
-//       assetAddresses,
-//       percentages: stablecoinPercentages,
-//       amounts: stablecoinAmounts,
-//       driftPercentage,
-//     });
+//     // Call factory from user to create balancer
+//     const tx = await optimizedBalancerFactory
+//       .connect(user)
+//       .createDriftBalancer(assetAddresses, stablecoinPercentages, stablecoinAmounts, driftPercentage);
+
+//     const receipt = await tx.wait();
+//     if (!receipt) {
+//       throw new Error("Transaction receipt is null");
+//     }
+
+//     console.log(
+//       "Transaction successful! Available events:",
+//       receipt.logs.map(log => {
+//         try {
+//           return (log as EventLog).eventName || "Unknown";
+//         } catch {
+//           return "Raw log";
+//         }
+//       }),
+//     );
+
+//     // Get balancer address from events
+//     const balancerCreatedEvent = receipt.logs.find(
+//       (log): log is EventLog => (log as EventLog).eventName === "BalancerCreated",
+//     ) as EventLog;
+
+//     if (!balancerCreatedEvent) {
+//       throw new Error("BalancerCreated event not found");
+//     }
+
+//     const balancerAddress = balancerCreatedEvent.args[1];
+//     console.log("Balancer address from event:", balancerAddress);
+//     driftBalancer = await ethers.getContractAt("OptimizedDriftBalancer", balancerAddress);
 
 //     console.log("✅ Test environment setup complete");
 //   });

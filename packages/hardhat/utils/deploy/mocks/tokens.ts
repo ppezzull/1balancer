@@ -100,3 +100,105 @@ export async function getOrDeployMockTokens(hre: HardhatRuntimeEnvironment): Pro
     return await deployMockTokens(hre);
   }
 }
+
+/**
+ * @notice Mint tokens for testing purposes
+ * @param tokens The token contracts to mint from
+ * @param recipient The address to mint tokens to
+ * @param amounts Array of amounts to mint [USDC, USDT, DAI, WETH, INCH]
+ */
+export async function mintTestTokens(
+  tokens: MockTokens,
+  recipient: string,
+  amounts: {
+    USDC?: bigint;
+    USDT?: bigint;
+    DAI?: bigint;
+    WETH?: bigint;
+    INCH?: bigint;
+  },
+): Promise<void> {
+  console.log("🪙 Minting test tokens to:", recipient);
+
+  const mintPromises: Promise<any>[] = [];
+
+  if (amounts.USDC && amounts.USDC > 0n) {
+    console.log(`  💰 Minting ${amounts.USDC} USDC`);
+    mintPromises.push(tokens.mockUSDC.mint(recipient, amounts.USDC));
+  }
+
+  if (amounts.USDT && amounts.USDT > 0n) {
+    console.log(`  💰 Minting ${amounts.USDT} USDT`);
+    mintPromises.push(tokens.mockUSDT.mint(recipient, amounts.USDT));
+  }
+
+  if (amounts.DAI && amounts.DAI > 0n) {
+    console.log(`  💰 Minting ${amounts.DAI} DAI`);
+    mintPromises.push(tokens.mockDAI.mint(recipient, amounts.DAI));
+  }
+
+  if (amounts.WETH && amounts.WETH > 0n) {
+    console.log(`  💰 Minting ${amounts.WETH} WETH`);
+    mintPromises.push(tokens.mockWETH.mint(recipient, amounts.WETH));
+  }
+
+  if (amounts.INCH && amounts.INCH > 0n) {
+    console.log(`  💰 Minting ${amounts.INCH} INCH`);
+    mintPromises.push(tokens.mockINCH.mint(recipient, amounts.INCH));
+  }
+
+  await Promise.all(mintPromises);
+  console.log("✅ Test tokens minted successfully");
+}
+
+/**
+ * @notice Approve factory to spend tokens for testing purposes
+ * @param tokens The token contracts to approve
+ * @param signer The signer to approve from
+ * @param factoryAddress The factory address to approve
+ * @param amounts Array of amounts to approve [USDC, USDT, DAI, WETH, INCH]
+ */
+export async function approveFactoryTokens(
+  tokens: MockTokens,
+  signer: any,
+  factoryAddress: string,
+  amounts: {
+    USDC?: bigint;
+    USDT?: bigint;
+    DAI?: bigint;
+    WETH?: bigint;
+    INCH?: bigint;
+  },
+): Promise<void> {
+  console.log("🔑 Approving factory to spend tokens:", factoryAddress);
+
+  const approvePromises: Promise<any>[] = [];
+
+  if (amounts.USDC && amounts.USDC > 0n) {
+    console.log(`  ✅ Approving ${amounts.USDC} USDC`);
+    approvePromises.push(tokens.mockUSDC.connect(signer).approve(factoryAddress, amounts.USDC));
+  }
+
+  if (amounts.USDT && amounts.USDT > 0n) {
+    console.log(`  ✅ Approving ${amounts.USDT} USDT`);
+    approvePromises.push(tokens.mockUSDT.connect(signer).approve(factoryAddress, amounts.USDT));
+  }
+
+  if (amounts.DAI && amounts.DAI > 0n) {
+    console.log(`  ✅ Approving ${amounts.DAI} DAI`);
+    approvePromises.push(tokens.mockDAI.connect(signer).approve(factoryAddress, amounts.DAI));
+  }
+
+  if (amounts.WETH && amounts.WETH > 0n) {
+    console.log(`  ✅ Approving ${amounts.WETH} WETH`);
+    approvePromises.push(tokens.mockWETH.connect(signer).approve(factoryAddress, amounts.WETH));
+  }
+
+  if (amounts.INCH && amounts.INCH > 0n) {
+    console.log(`  ✅ Approving ${amounts.INCH} INCH`);
+    approvePromises.push(tokens.mockINCH.connect(signer).approve(factoryAddress, amounts.INCH));
+  }
+
+  await Promise.all(approvePromises);
+  console.log("✅ Factory token approvals completed");
+}
