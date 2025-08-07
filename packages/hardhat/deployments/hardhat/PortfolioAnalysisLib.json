@@ -1,0 +1,40 @@
+{
+  "address": "0x9d4454B023096f34B160D6B654540c56A1F81688",
+  "abi": [],
+  "transactionHash": "0x8047486a007e2f1b05be6937320665187e90fcb71d3c3e98e5e9d07059dd97b2",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0x9d4454B023096f34B160D6B654540c56A1F81688",
+    "transactionIndex": 0,
+    "gasUsed": "66028",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xf1ceacbe3cd8b775762b344cfc9bc4ebb44f7b7a3a74e218c8b6f76833e1133c",
+    "transactionHash": "0x8047486a007e2f1b05be6937320665187e90fcb71d3c3e98e5e9d07059dd97b2",
+    "logs": [],
+    "blockNumber": 52,
+    "cumulativeGasUsed": "66028",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "e736b96b87eaf292c5db7ad7ea0f1279",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/portfolio/libraries/PortfolioAnalysisLib.sol\":\"PortfolioAnalysisLib\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":10000000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"contracts/portfolio/libraries/PortfolioAnalysisLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\nlibrary PortfolioAnalysisLib {\\n    struct PortfolioData {\\n        uint256 portfolioValue;\\n        uint256 stablecoinRatio;\\n        bool isBalanced;\\n        bool rebalanceNeeded;\\n    }\\n\\n    struct AssetAnalysis {\\n        address token;\\n        uint256 balance;\\n        uint256 currentPercentage;\\n        uint256 targetPercentage;\\n        uint256 deviation;\\n        bool withinRange;\\n    }\\n\\n    /**\\n     * @dev Check if an asset's balance is within acceptable percentage range\\n     */\\n    function checkAssetBalance(\\n        uint256 currentPercentage,\\n        uint256 targetPercentage\\n    ) internal pure returns (bool isWithinRange, uint256 deviation) {\\n        if (currentPercentage > targetPercentage) {\\n            deviation = currentPercentage - targetPercentage;\\n        } else {\\n            deviation = targetPercentage - currentPercentage;\\n        }\\n\\n        isWithinRange = deviation <= 5; // 5% tolerance\\n        return (isWithinRange, deviation);\\n    }\\n\\n    /**\\n     * @dev Calculate portfolio metrics\\n     */\\n    function calculatePortfolioMetrics(\\n        uint256 totalValue,\\n        uint256 stablecoinValue\\n    ) internal pure returns (uint256 stablecoinRatio) {\\n        if (totalValue == 0) return 0;\\n        stablecoinRatio = (stablecoinValue * 10000) / totalValue; // Basis points\\n    }\\n}\\n\",\"keccak256\":\"0xd14eba917b95eba4b5427eb977eb5a0aa4b8ce1d217b67a85aa1e9d53933d07f\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220dafc1adc0e3f65d47f527893d99c617e5bb0362548475f5b55aa2a788b6eebbb64736f6c63430008170033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220dafc1adc0e3f65d47f527893d99c617e5bb0362548475f5b55aa2a788b6eebbb64736f6c63430008170033",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}

@@ -15,6 +15,7 @@ import "../balancers/OptimizedDriftBalancer.sol";
 import "../balancers/OptimizedTimeBalancer.sol";
 import "../interfaces/ILimitOrderProtocol.sol";
 
+
 contract OptimizedBalancerFactory is Ownable {
     address public priceFeed;
     address[] public stablecoins;
@@ -44,6 +45,7 @@ contract OptimizedBalancerFactory is Ownable {
         uint256[] memory _amounts,
         uint256 _driftPercentage
     ) external returns (address balancer) {
+
         _checkUserTokenBalance(_assetAddresses, _amounts);
         _requireAtLeastOneStablecoin(_assetAddresses);
 

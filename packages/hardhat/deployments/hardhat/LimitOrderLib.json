@@ -1,0 +1,354 @@
+{
+  "address": "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "maker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sellToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "buyToken",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "sellAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "buyAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "LimitOrderCreated",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "salt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "makerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "takerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "takingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makerTraits",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.Order",
+          "name": "order",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "domainSeparator",
+          "type": "bytes32"
+        }
+      ],
+      "name": "calculateOrderHash",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "baseAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "slippageTolerance",
+          "type": "uint256"
+        }
+      ],
+      "name": "calculateSlippageAmounts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "minAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "sellToken",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "buyToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "sellAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "buyAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "slippageTolerance",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LimitOrderLib.RebalanceOrder",
+          "name": "rebalanceOrder",
+          "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "maker",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "salt",
+          "type": "uint256"
+        }
+      ],
+      "name": "createRebalanceOrder",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "salt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "makerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "takerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "takingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makerTraits",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.Order",
+          "name": "order",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "salt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "makerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "takerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "takingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makerTraits",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.Order",
+          "name": "order",
+          "type": "tuple"
+        }
+      ],
+      "name": "validateOrder",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xf0dda71e6624a96b6e36246a83effc3408fc73339ee5c7f7a29a6c4c497f2247",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0x0E801D84Fa97b50751Dbf25036d067dCf18858bF",
+    "transactionIndex": 0,
+    "gasUsed": "541499",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xec44935ac763ca35789fe158b6e795e2664652c8235c34c552c1b1a114f29fea",
+    "transactionHash": "0xf0dda71e6624a96b6e36246a83effc3408fc73339ee5c7f7a29a6c4c497f2247",
+    "logs": [],
+    "blockNumber": 50,
+    "cumulativeGasUsed": "541499",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "e736b96b87eaf292c5db7ad7ea0f1279",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sellToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"buyToken\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"sellAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"buyAmount\",\"type\":\"uint256\"}],\"name\":\"LimitOrderCreated\",\"type\":\"event\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"makerAsset\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"takerAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"makerTraits\",\"type\":\"uint256\"}],\"internalType\":\"struct ILimitOrderProtocol.Order\",\"name\":\"order\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"domainSeparator\",\"type\":\"bytes32\"}],\"name\":\"calculateOrderHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"baseAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"slippageTolerance\",\"type\":\"uint256\"}],\"name\":\"calculateSlippageAmounts\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"minAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"maxAmount\",\"type\":\"uint256\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sellToken\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"buyToken\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"sellAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"buyAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"slippageTolerance\",\"type\":\"uint256\"}],\"internalType\":\"struct LimitOrderLib.RebalanceOrder\",\"name\":\"rebalanceOrder\",\"type\":\"tuple\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"}],\"name\":\"createRebalanceOrder\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"makerAsset\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"takerAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"makerTraits\",\"type\":\"uint256\"}],\"internalType\":\"struct ILimitOrderProtocol.Order\",\"name\":\"order\",\"type\":\"tuple\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"makerAsset\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"takerAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"makerTraits\",\"type\":\"uint256\"}],\"internalType\":\"struct ILimitOrderProtocol.Order\",\"name\":\"order\",\"type\":\"tuple\"}],\"name\":\"validateOrder\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"@ppezzull\",\"details\":\"Library for creating and managing 1inch limit orders\",\"kind\":\"dev\",\"methods\":{\"calculateOrderHash(ILimitOrderProtocol.Order,bytes32)\":{\"details\":\"Calculate order hash\"},\"calculateSlippageAmounts(uint256,uint256)\":{\"details\":\"Calculate slippage-adjusted amounts\"},\"createRebalanceOrder(LimitOrderLib.RebalanceOrder,address,uint256)\":{\"details\":\"Create a rebalancing limit order\"},\"validateOrder(ILimitOrderProtocol.Order)\":{\"details\":\"Validate order parameters\"}},\"title\":\"LimitOrderLib\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/portfolio/libraries/LimitOrderLib.sol\":\"LimitOrderLib\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":10000000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"contracts/portfolio/interfaces/ILimitOrderProtocol.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\ninterface ILimitOrderProtocol {\\n    struct Order {\\n        uint256 salt;\\n        address maker;\\n        address receiver;\\n        address makerAsset;\\n        address takerAsset;\\n        uint256 makingAmount;\\n        uint256 takingAmount;\\n        uint256 makerTraits;\\n    }\\n\\n    struct TakerTraits {\\n        uint256 traits;\\n        bytes args;\\n    }\\n\\n    event OrderFilled(\\n        bytes32 indexed orderHash,\\n        address indexed maker,\\n        address indexed taker,\\n        uint256 makingAmount,\\n        uint256 takingAmount,\\n        uint256 remainingMakingAmount\\n    );\\n\\n    function fillOrderArgs(\\n        Order calldata order,\\n        bytes32 r,\\n        bytes32 vs,\\n        uint256 amount,\\n        TakerTraits calldata takerTraits,\\n        bytes calldata args\\n    ) external payable returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash);\\n\\n    function fillContractOrderArgs(\\n        Order calldata order,\\n        bytes calldata signature,\\n        uint256 amount,\\n        TakerTraits calldata takerTraits,\\n        bytes calldata args\\n    ) external returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash);\\n\\n    function cancelOrder(bytes32 orderHash, uint256 makerTraits) external;\\n} \",\"keccak256\":\"0xcc296f803611ff5cef2f3e8bf47df596281248e08abf67441abcd8ab83646861\",\"license\":\"MIT\"},\"contracts/portfolio/libraries/LimitOrderLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\nimport \\\"../interfaces/ILimitOrderProtocol.sol\\\";\\n\\n/**\\n * @title LimitOrderLib\\n * @dev Library for creating and managing 1inch limit orders\\n * @author @ppezzull\\n */\\nlibrary LimitOrderLib {\\n    // Maker traits flags\\n    uint256 private constant NO_PARTIAL_FILLS_FLAG = 255;\\n    uint256 private constant ALLOW_MULTIPLE_FILLS_FLAG = 254;\\n    uint256 private constant NEED_PREINTERACTION_FLAG = 252;\\n    uint256 private constant NEED_POSTINTERACTION_FLAG = 251;\\n    uint256 private constant NEED_EPOCH_CHECK_FLAG = 250;\\n    uint256 private constant HAS_EXTENSION_FLAG = 249;\\n    uint256 private constant USE_PERMIT2_FLAG = 248;\\n    uint256 private constant UNWRAP_WETH_FLAG = 247;\\n\\n    // Taker traits flags\\n    uint256 private constant MAKER_AMOUNT_FLAG = 255;\\n    uint256 private constant UNWRAP_WETH_FLAG_TAKER = 254;\\n    uint256 private constant SKIP_ORDER_PERMIT_FLAG = 253;\\n    uint256 private constant USE_PERMIT2_FLAG_TAKER = 252;\\n    uint256 private constant ARGS_HAS_TARGET = 251;\\n\\n    struct LimitOrderData {\\n        ILimitOrderProtocol.Order order;\\n        bytes extension;\\n        bytes signature;\\n        uint256 orderHash;\\n    }\\n\\n    struct RebalanceOrder {\\n        address sellToken;\\n        address buyToken;\\n        uint256 sellAmount;\\n        uint256 buyAmount;\\n        uint256 slippageTolerance; // in basis points (1 = 0.01%)\\n    }\\n\\n    event LimitOrderCreated(\\n        bytes32 indexed orderHash,\\n        address indexed maker,\\n        address sellToken,\\n        address buyToken,\\n        uint256 sellAmount,\\n        uint256 buyAmount\\n    );\\n\\n    /**\\n     * @dev Create a basic limit order\\n     */\\n    function createLimitOrder(\\n        address maker,\\n        address receiver,\\n        address makerAsset,\\n        address takerAsset,\\n        uint256 makingAmount,\\n        uint256 takingAmount,\\n        uint256 salt,\\n        bool allowPartialFills,\\n        bool allowMultipleFills,\\n        uint256 expiration\\n    ) internal pure returns (ILimitOrderProtocol.Order memory order) {\\n        uint256 makerTraits = buildMakerTraits(\\n            address(0), // allowedSender\\n            false, // shouldCheckEpoch\\n            allowPartialFills, // allowPartialFill\\n            allowMultipleFills, // allowMultipleFills\\n            false, // usePermit2\\n            false, // unwrapWeth\\n            expiration, // expiry\\n            0, // nonce\\n            0 // series\\n        );\\n\\n        order = ILimitOrderProtocol.Order({\\n            salt: salt,\\n            maker: maker,\\n            receiver: receiver,\\n            makerAsset: makerAsset,\\n            takerAsset: takerAsset,\\n            makingAmount: makingAmount,\\n            takingAmount: takingAmount,\\n            makerTraits: makerTraits\\n        });\\n    }\\n\\n    /**\\n     * @dev Create a rebalancing limit order\\n     */\\n    function createRebalanceOrder(\\n        RebalanceOrder memory rebalanceOrder,\\n        address maker,\\n        uint256 salt\\n    ) external pure returns (ILimitOrderProtocol.Order memory order) {\\n        order = createLimitOrder(\\n            maker, // maker\\n            maker, // receiver\\n            rebalanceOrder.sellToken, // makerAsset\\n            rebalanceOrder.buyToken, // takerAsset\\n            rebalanceOrder.sellAmount, // makingAmount\\n            rebalanceOrder.buyAmount, // takingAmount\\n            salt, // salt\\n            true, // allowPartialFills\\n            false, // allowMultipleFills\\n            3600 // expiration: 1 hour expiration (will be added to current timestamp)\\n        );\\n    }\\n\\n    /**\\n     * @dev Build maker traits for limit orders\\n     */\\n    function buildMakerTraits(\\n        address allowedSender,\\n        bool shouldCheckEpoch,\\n        bool allowPartialFill,\\n        bool allowMultipleFills,\\n        bool usePermit2,\\n        bool unwrapWeth,\\n        uint256 expiry,\\n        uint256 nonce,\\n        uint256 series\\n    ) internal pure returns (uint256 makerTraits) {\\n        // Validate inputs\\n        require(expiry < (1 << 40), \\\"Expiry too large\\\");\\n        require(nonce < (1 << 40), \\\"Nonce too large\\\");\\n        require(series < (1 << 40), \\\"Series too large\\\");\\n\\n        makerTraits = (series << 160) |\\n                     (nonce << 120) |\\n                     (expiry << 80) |\\n                     (uint256(uint160(allowedSender)) & ((1 << 80) - 1));\\n\\n        // Set flags\\n        if (!allowPartialFill) makerTraits |= (1 << NO_PARTIAL_FILLS_FLAG);\\n        if (allowMultipleFills) makerTraits |= (1 << ALLOW_MULTIPLE_FILLS_FLAG);\\n        if (shouldCheckEpoch) makerTraits |= (1 << NEED_EPOCH_CHECK_FLAG);\\n        if (usePermit2) makerTraits |= (1 << USE_PERMIT2_FLAG);\\n        if (unwrapWeth) makerTraits |= (1 << UNWRAP_WETH_FLAG);\\n    }\\n\\n    /**\\n     * @dev Build taker traits for order filling\\n     */\\n    function buildTakerTraits(\\n        bool makingAmount,\\n        bool unwrapWeth,\\n        bool skipMakerPermit,\\n        bool usePermit2,\\n        address target,\\n        bytes memory extension,\\n        bytes memory interaction,\\n        uint256 threshold\\n    ) internal pure returns (ILimitOrderProtocol.TakerTraits memory takerTraits) {\\n        uint256 traits = threshold;\\n\\n        if (makingAmount) traits |= (1 << MAKER_AMOUNT_FLAG);\\n        if (unwrapWeth) traits |= (1 << UNWRAP_WETH_FLAG_TAKER);\\n        if (skipMakerPermit) traits |= (1 << SKIP_ORDER_PERMIT_FLAG);\\n        if (usePermit2) traits |= (1 << USE_PERMIT2_FLAG_TAKER);\\n        if (target != address(0)) traits |= (1 << ARGS_HAS_TARGET);\\n\\n        // Add extension and interaction lengths\\n        traits |= (uint256(extension.length) << 224);\\n        traits |= (uint256(interaction.length) << 200);\\n\\n        takerTraits.traits = traits;\\n        takerTraits.args = abi.encodePacked(target, extension, interaction);\\n    }\\n\\n    /**\\n     * @dev Calculate order hash\\n     */\\n    function calculateOrderHash(\\n        ILimitOrderProtocol.Order memory order,\\n        bytes32 domainSeparator\\n    ) external pure returns (bytes32 orderHash) {\\n        orderHash = keccak256(abi.encodePacked(\\n            \\\"\\\\x19\\\\x01\\\",\\n            domainSeparator,\\n            keccak256(abi.encode(\\n                order.salt,\\n                order.maker,\\n                order.receiver,\\n                order.makerAsset,\\n                order.takerAsset,\\n                order.makingAmount,\\n                order.takingAmount,\\n                order.makerTraits\\n            ))\\n        ));\\n    }\\n\\n    /**\\n     * @dev Validate order parameters\\n     */\\n    function validateOrder(ILimitOrderProtocol.Order memory order) external pure returns (bool) {\\n        require(order.maker != address(0), \\\"Invalid maker\\\");\\n        require(order.makerAsset != address(0), \\\"Invalid maker asset\\\");\\n        require(order.takerAsset != address(0), \\\"Invalid taker asset\\\");\\n        require(order.makingAmount > 0, \\\"Invalid making amount\\\");\\n        require(order.takingAmount > 0, \\\"Invalid taking amount\\\");\\n        require(order.makerAsset != order.takerAsset, \\\"Same assets\\\");\\n        \\n        return true;\\n    }\\n\\n    /**\\n     * @dev Calculate slippage-adjusted amounts\\n     */\\n    function calculateSlippageAmounts(\\n        uint256 baseAmount,\\n        uint256 slippageTolerance\\n    ) external pure returns (uint256 minAmount, uint256 maxAmount) {\\n        require(slippageTolerance <= 1000, \\\"Slippage too high\\\"); // Max 10%\\n        \\n        uint256 tolerance = (baseAmount * slippageTolerance) / 10000;\\n        minAmount = baseAmount - tolerance;\\n        maxAmount = baseAmount + tolerance;\\n    }\\n} \",\"keccak256\":\"0x85f84bed1160eb6edd2e07bec9c35e53302bf87a270c988e9cdae67303260a2f\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x6080806040523461001a576108ef9081610020823930815050f35b600080fdfe608060408181526004918236101561001657600080fd5b600060e0918135831c90816330c10b20146105f357508063b41d1f251461049f578063fa16ecad146101d65763fcc4c5e51461005157600080fd5b61012092837ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101d257610087366107c5565b9384519473ffffffffffffffffffffffffffffffffffffffff90816020820151169582858301511692806060840151169060808401511660a0840151918360c08601519501519588519a60208c019c8d52898c015260608b015260808a015260a089015260c08801528601526101009081860152845283019167ffffffffffffffff94848410868511176101a6576101a09084845285519020946101408101957f19010000000000000000000000000000000000000000000000000000000000008752610104356101428301526101628201526042855201948386109086111761017a5750602094508390525190208152f35b806041877f4e487b71000000000000000000000000000000000000000000000000000000006024945252fd5b6024826041897f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b5080fd5b5090506101007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261049c575061020e366107c5565b9173ffffffffffffffffffffffffffffffffffffffff9260209380858301511615610440576060820181815116156103e457608083019282845116156103885760a08101511561032c5760c00151156102d057819051169151161461027557505160018152f35b8260649251917f08c379a0000000000000000000000000000000000000000000000000000000008352820152600b60248201527f53616d65206173736574730000000000000000000000000000000000000000006044820152fd5b606484878751917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601560248201527f496e76616c69642074616b696e6720616d6f756e7400000000000000000000006044820152fd5b606485888851917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601560248201527f496e76616c6964206d616b696e6720616d6f756e7400000000000000000000006044820152fd5b606485888851917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601360248201527f496e76616c69642074616b6572206173736574000000000000000000000000006044820152fd5b606484878751917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601360248201527f496e76616c6964206d616b6572206173736574000000000000000000000000006044820152fd5b606483868651917f08c379a0000000000000000000000000000000000000000000000000000000008352820152600d60248201527f496e76616c6964206d616b6572000000000000000000000000000000000000006044820152fd5b80fd5b838583827ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261049c578135906024356103e881116105965780830290838204148315171561056a576127109004928383039383851161053e57830180931161051257505082519182526020820152f35b9060116024927f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b6024836011847f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b6024826011867f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b60648460208751917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601160248201527f536c69707061676520746f6f20686967680000000000000000000000000000006044820152fd5b939490507ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36018381126107495760a0136101d25760a0840184811067ffffffffffffffff82111761074d578552359373ffffffffffffffffffffffffffffffffffffffff948581168103610749578452602435948086168603610749576020850195865281850190604435825260608601916064358352608435608088015260a4359482861680960361049c57508161010098818060c4359a6106b561087b565b50511691511692519451956106c861087b565b50828151986106d68a610779565b8b8a52818b60208c019b838d52858101938452606081019687526080810198895260a081019a8b5260c081019b8c52019a6b0e10000000000000000000008c5284519d8e52511660208d01525116908a015251166060880152511660808601525160a08501525160c08401525190820152f35b8280fd5b6024836041847f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b610100810190811067ffffffffffffffff82111761079657604052565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc61010091011261087657604051906107fd82610779565b60043582528173ffffffffffffffffffffffffffffffffffffffff602435818116810361087657602083015260443581811681036108765760408301526064358181168103610876576060830152608435908116810361087657608082015260a43560a082015260c43560c082015260e060e435910152565b600080fd5b6040519061088882610779565b8160e06000918281528260208201528260408201528260608201528260808201528260a08201528260c0820152015256fea2646970667358221220ebb90f826967881f5728edb3da1dd1559b2c8a0445adb2e326c71de167a1994964736f6c63430008170033",
+  "deployedBytecode": "0x608060408181526004918236101561001657600080fd5b600060e0918135831c90816330c10b20146105f357508063b41d1f251461049f578063fa16ecad146101d65763fcc4c5e51461005157600080fd5b61012092837ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126101d257610087366107c5565b9384519473ffffffffffffffffffffffffffffffffffffffff90816020820151169582858301511692806060840151169060808401511660a0840151918360c08601519501519588519a60208c019c8d52898c015260608b015260808a015260a089015260c08801528601526101009081860152845283019167ffffffffffffffff94848410868511176101a6576101a09084845285519020946101408101957f19010000000000000000000000000000000000000000000000000000000000008752610104356101428301526101628201526042855201948386109086111761017a5750602094508390525190208152f35b806041877f4e487b71000000000000000000000000000000000000000000000000000000006024945252fd5b6024826041897f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b5080fd5b5090506101007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261049c575061020e366107c5565b9173ffffffffffffffffffffffffffffffffffffffff9260209380858301511615610440576060820181815116156103e457608083019282845116156103885760a08101511561032c5760c00151156102d057819051169151161461027557505160018152f35b8260649251917f08c379a0000000000000000000000000000000000000000000000000000000008352820152600b60248201527f53616d65206173736574730000000000000000000000000000000000000000006044820152fd5b606484878751917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601560248201527f496e76616c69642074616b696e6720616d6f756e7400000000000000000000006044820152fd5b606485888851917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601560248201527f496e76616c6964206d616b696e6720616d6f756e7400000000000000000000006044820152fd5b606485888851917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601360248201527f496e76616c69642074616b6572206173736574000000000000000000000000006044820152fd5b606484878751917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601360248201527f496e76616c6964206d616b6572206173736574000000000000000000000000006044820152fd5b606483868651917f08c379a0000000000000000000000000000000000000000000000000000000008352820152600d60248201527f496e76616c6964206d616b6572000000000000000000000000000000000000006044820152fd5b80fd5b838583827ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011261049c578135906024356103e881116105965780830290838204148315171561056a576127109004928383039383851161053e57830180931161051257505082519182526020820152f35b9060116024927f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b6024836011847f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b6024826011867f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b60648460208751917f08c379a0000000000000000000000000000000000000000000000000000000008352820152601160248201527f536c69707061676520746f6f20686967680000000000000000000000000000006044820152fd5b939490507ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36018381126107495760a0136101d25760a0840184811067ffffffffffffffff82111761074d578552359373ffffffffffffffffffffffffffffffffffffffff948581168103610749578452602435948086168603610749576020850195865281850190604435825260608601916064358352608435608088015260a4359482861680960361049c57508161010098818060c4359a6106b561087b565b50511691511692519451956106c861087b565b50828151986106d68a610779565b8b8a52818b60208c019b838d52858101938452606081019687526080810198895260a081019a8b5260c081019b8c52019a6b0e10000000000000000000008c5284519d8e52511660208d01525116908a015251166060880152511660808601525160a08501525160c08401525190820152f35b8280fd5b6024836041847f4e487b7100000000000000000000000000000000000000000000000000000000835252fd5b610100810190811067ffffffffffffffff82111761079657604052565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b7ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc61010091011261087657604051906107fd82610779565b60043582528173ffffffffffffffffffffffffffffffffffffffff602435818116810361087657602083015260443581811681036108765760408301526064358181168103610876576060830152608435908116810361087657608082015260a43560a082015260c43560c082015260e060e435910152565b600080fd5b6040519061088882610779565b8160e06000918281528260208201528260408201528260608201528260808201528260a08201528260c0820152015256fea2646970667358221220ebb90f826967881f5728edb3da1dd1559b2c8a0445adb2e326c71de167a1994964736f6c63430008170033",
+  "devdoc": {
+    "author": "@ppezzull",
+    "details": "Library for creating and managing 1inch limit orders",
+    "kind": "dev",
+    "methods": {
+      "calculateOrderHash(ILimitOrderProtocol.Order,bytes32)": {
+        "details": "Calculate order hash"
+      },
+      "calculateSlippageAmounts(uint256,uint256)": {
+        "details": "Calculate slippage-adjusted amounts"
+      },
+      "createRebalanceOrder(LimitOrderLib.RebalanceOrder,address,uint256)": {
+        "details": "Create a rebalancing limit order"
+      },
+      "validateOrder(ILimitOrderProtocol.Order)": {
+        "details": "Validate order parameters"
+      }
+    },
+    "title": "LimitOrderLib",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
