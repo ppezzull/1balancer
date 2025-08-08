@@ -4,9 +4,9 @@ pragma solidity ^0.8.23;
 import "../interfaces/IBalancerFactory.sol";
 import "../interfaces/ISpotPriceAggregator.sol";
 import "../libraries/StablecoinAnalysisLib.sol";
-import "./OptimizedBaseBalancer.sol";
+import "./BaseBalancer.sol";
 
-contract OptimizedTimeBalancer is OptimizedBaseBalancer {
+contract TimeBalancer is BaseBalancer {
     uint256 public interval;
     uint256 public lastRebalance;
     string public timeName;
@@ -23,7 +23,7 @@ contract OptimizedTimeBalancer is OptimizedBaseBalancer {
         uint256 _interval,
         address[] memory _stablecoins,
         address _limitOrderProtocol
-    ) OptimizedBaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol) {
+    ) BaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol) {
         interval = _interval;
         lastRebalance = block.timestamp;
         timeName = "Optimized Time Balancer";

@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { OptimizedBalancerFactory, MockSpotPriceAggregator, MockLimitOrderProtocol } from "../../typechain-types";
+import type { BalancerFactory, MockSpotPriceAggregator, MockLimitOrderProtocol } from "../../typechain-types";
 
-export async function deployOptimizedBalancerFactory(
+export async function deployBalancerFactory(
   hre: HardhatRuntimeEnvironment,
   _libraries: {
     // kept for backward compat; no linking needed here anymore
@@ -13,14 +13,14 @@ export async function deployOptimizedBalancerFactory(
     mockLimitOrderProtocol: MockLimitOrderProtocol;
   },
   stablecoinAddresses: string[],
-): Promise<OptimizedBalancerFactory> {
+): Promise<BalancerFactory> {
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
   // single-line output per request
 
-  const factoryDeployment = await deploy("OptimizedBalancerFactory", {
+  const factoryDeployment = await deploy("BalancerFactory", {
     from: deployer,
     args: [
       await mocks.mockPriceAggregator.getAddress(),
@@ -32,12 +32,12 @@ export async function deployOptimizedBalancerFactory(
   });
 
   const optimizedBalancerFactory = (await ethers.getContractAt(
-    "OptimizedBalancerFactory",
+    "BalancerFactory",
     factoryDeployment.address,
-  )) as unknown as OptimizedBalancerFactory;
+  )) as unknown as BalancerFactory;
 
   const addr = await optimizedBalancerFactory.getAddress();
-  console.log(`utils/factory: OptimizedBalancerFactory=${addr} Stablecoins=${JSON.stringify(stablecoinAddresses)}`);
+  console.log(`utils/factory: BalancerFactory=${addr} Stablecoins=${JSON.stringify(stablecoinAddresses)}`);
 
   return optimizedBalancerFactory;
 }

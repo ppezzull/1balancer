@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { OptimizedBalancerFactory, OptimizedDriftBalancer } from "../../typechain-types";
+import type { BalancerFactory, DriftBalancer } from "../../typechain-types";
 import { EventLog } from "ethers";
 
 export interface DriftBalancerConfig {
@@ -11,9 +11,9 @@ export interface DriftBalancerConfig {
 
 export async function deployDriftBalancer(
   hre: HardhatRuntimeEnvironment,
-  factory: OptimizedBalancerFactory,
+  factory: BalancerFactory,
   config: DriftBalancerConfig,
-): Promise<OptimizedDriftBalancer> {
+): Promise<DriftBalancer> {
   const { ethers } = hre;
 
   // single-line output per request
@@ -48,10 +48,7 @@ export async function deployDriftBalancer(
 
   // Extract the balancer address from the event
   const balancerAddress = balancerCreatedEvent.args[1]; // owner, balancer, isTimeBased
-  const driftBalancer = (await ethers.getContractAt(
-    "OptimizedDriftBalancer",
-    balancerAddress,
-  )) as unknown as OptimizedDriftBalancer;
+  const driftBalancer = (await ethers.getContractAt("DriftBalancer", balancerAddress)) as unknown as DriftBalancer;
 
   const addr = await driftBalancer.getAddress();
   const owner = await driftBalancer.owner();

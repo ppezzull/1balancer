@@ -7,7 +7,7 @@ import {
   configureSpotPrices,
   getOrDeployLimitOrderProtocol,
 } from "../utils/deploy/mocks/index";
-import { deployOptimizedBalancerFactory } from "../utils/deploy/factory";
+import { deployBalancerFactory } from "../utils/deploy/factory";
 
 const deployOptimizedSystem: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { getNamedAccounts } = hre;
@@ -45,7 +45,7 @@ const deployOptimizedSystem: DeployFunction = async function (hre: HardhatRuntim
       await tokens.mockDAI.getAddress(),
     ];
 
-    const factory = await deployOptimizedBalancerFactory(
+    const factory = await deployBalancerFactory(
       hre,
       {
         limitOrderLib: libraries.limitOrderLib,

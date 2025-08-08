@@ -16,7 +16,7 @@ import "../interfaces/ILimitOrderProtocol.sol";
 import "../libraries/LimitOrderLib.sol";
 import "../libraries/PortfolioAnalysisLib.sol";
 
-abstract contract OptimizedBaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, AutomationCompatibleInterface {
+abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, AutomationCompatibleInterface {
     using ECDSA for bytes32;
     using SafeERC20 for IERC20;
     struct AssetGroup {

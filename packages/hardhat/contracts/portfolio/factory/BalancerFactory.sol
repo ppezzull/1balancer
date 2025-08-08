@@ -11,8 +11,8 @@ pragma solidity ^0.8.23;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../balancers/OptimizedDriftBalancer.sol";
-import "../balancers/OptimizedTimeBalancer.sol";
+import "../balancers/DriftBalancer.sol";
+import "../balancers/TimeBalancer.sol";
 import "../interfaces/ILimitOrderProtocol.sol";
 import "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 
@@ -42,7 +42,7 @@ interface IAutomationRegistryMinimal {
 }
 
 
-contract OptimizedBalancerFactory is Ownable {
+contract BalancerFactory is Ownable {
     address public priceFeed;
     address[] public stablecoins;
     ILimitOrderProtocol public limitOrderProtocol;
@@ -85,7 +85,7 @@ contract OptimizedBalancerFactory is Ownable {
 
         // _checkUserTokenBalance(_assetAddresses, _amounts);
 
-        balancer = address(new OptimizedDriftBalancer(
+         balancer = address(new DriftBalancer(
             msg.sender, 
             address(this), 
             _assetAddresses, 
@@ -112,7 +112,7 @@ contract OptimizedBalancerFactory is Ownable {
         _checkUserTokenBalance(_assetAddresses, _amounts);
         // _requireAtLeastOneStablecoin(_assetAddresses);
 
-        balancer = address(new OptimizedTimeBalancer(
+         balancer = address(new TimeBalancer(
             msg.sender, 
             address(this), 
             _assetAddresses, 
@@ -212,7 +212,7 @@ contract OptimizedBalancerFactory is Ownable {
         if (automationRegistry != address(0)) {
             try IAutomationRegistryMinimal(automationRegistry).getForwarder(upkeepId) returns (address fwd) {
                 forwarder = fwd;
-                try OptimizedDriftBalancer(payable(balancer)).setForwarderAddress(forwarder) {} catch {}
+                try DriftBalancer(payable(balancer)).setForwarderAddress(forwarder) {} catch {}
             } catch {}
         }
 
@@ -224,7 +224,7 @@ contract OptimizedBalancerFactory is Ownable {
         uint256 upkeepId = balancerToUpkeepId[balancer];
         require(upkeepId != 0 && automationRegistry != address(0), "No upkeep or registry");
         address forwarder = IAutomationRegistryMinimal(automationRegistry).getForwarder(upkeepId);
-        OptimizedDriftBalancer(payable(balancer)).setForwarderAddress(forwarder);
+        DriftBalancer(payable(balancer)).setForwarderAddress(forwarder);
         emit UpkeepRegistered(balancer, upkeepId, forwarder);
     }
 

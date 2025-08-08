@@ -2,7 +2,7 @@ export * from "./constants";
 
 // Deploy helpers
 export { deployLibraries } from "./deploy/libs";
-export { deployOptimizedBalancerFactory } from "./deploy/factory";
+export { deployBalancerFactory } from "./deploy/factory";
 export { deployDriftBalancer } from "./deploy/balancers";
 
 // Mock helpers

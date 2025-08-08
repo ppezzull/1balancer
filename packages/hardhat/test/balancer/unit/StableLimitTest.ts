@@ -2,15 +2,15 @@ import { expect } from "chai";
 import hre, { ethers } from "hardhat";
 import { Signer, EventLog } from "ethers";
 import {
-  OptimizedBalancerFactory,
-  OptimizedDriftBalancer,
+  BalancerFactory,
+  DriftBalancer,
   MockERC20,
   MockSpotPriceAggregator,
   MockLimitOrderProtocol,
 } from "../../../typechain-types";
 import {
   deployLibraries,
-  deployOptimizedBalancerFactory,
+  deployBalancerFactory,
   getOrDeployMockTokens,
   mintTestTokens,
   approveFactoryTokens,
@@ -30,8 +30,8 @@ describe("OptimizedStableLimit Module Tests", function () {
   let user: Signer;
 
   // Contracts
-  let optimizedBalancerFactory: OptimizedBalancerFactory;
-  let driftBalancer: OptimizedDriftBalancer;
+  let optimizedBalancerFactory: BalancerFactory;
+  let driftBalancer: DriftBalancer;
   let mockPriceAggregator: MockSpotPriceAggregator;
   let mockLimitOrderProtocol: MockLimitOrderProtocol;
 
@@ -73,7 +73,7 @@ describe("OptimizedStableLimit Module Tests", function () {
     // Deploy factory with stablecoin addresses
     const stablecoinAddresses = [await mockUSDC.getAddress(), await mockUSDT.getAddress(), await mockDAI.getAddress()];
 
-    optimizedBalancerFactory = await deployOptimizedBalancerFactory(
+    optimizedBalancerFactory = await deployBalancerFactory(
       hre,
       {
         limitOrderLib: libraries.limitOrderLib,
@@ -114,7 +114,7 @@ describe("OptimizedStableLimit Module Tests", function () {
     log("tx logs count:", receipt.logs.length);
 
     // Get balancer address from events
-    const balancerCreatedEvent = receipt.logs.find((log): log is EventLog => {
+    const balancerCreatedEvent = receipt.logs.find((log: any): log is EventLog => {
       const ev = log as EventLog;
       return (ev as any).eventName === "BalancerCreated";
     }) as EventLog;
@@ -125,7 +125,7 @@ describe("OptimizedStableLimit Module Tests", function () {
 
     const balancerAddress = balancerCreatedEvent.args[1];
     log("Balancer address from event:", balancerAddress);
-    driftBalancer = await ethers.getContractAt("OptimizedDriftBalancer", balancerAddress);
+    driftBalancer = await ethers.getContractAt("DriftBalancer", balancerAddress);
 
     log("✅ Test environment setup complete");
   });
@@ -200,7 +200,7 @@ describe("OptimizedStableLimit Module Tests", function () {
       );
 
       const receipt = await tx.wait();
-      const orderEvent = receipt?.logs.find((log): log is EventLog => {
+      const orderEvent = receipt?.logs.find((log: any): log is EventLog => {
         const ev = log as EventLog;
         return (ev as any).eventName === "RebalanceOrderCreated";
       });
@@ -222,7 +222,7 @@ describe("OptimizedStableLimit Module Tests", function () {
         .createStablecoinGridOrder(await mockUSDT.getAddress(), await mockUSDC.getAddress(), gridAmount, limitPrice);
 
       const receipt = await tx.wait();
-      const gridOrderEvent = receipt?.logs.find((log): log is EventLog => {
+      const gridOrderEvent = receipt?.logs.find((log: any): log is EventLog => {
         const ev = log as EventLog;
         return (ev as any).eventName === "LimitOrderCreated";
       });
@@ -316,7 +316,7 @@ describe("OptimizedStableLimit Module Tests", function () {
       const receipt = await tx.wait();
 
       // Check for OrdersGenerated event
-      const ordersGeneratedEvent = receipt?.logs.find(log => (log as any).eventName === "OrdersGenerated");
+      const ordersGeneratedEvent = receipt?.logs.find((log: any) => (log as any).eventName === "OrdersGenerated");
 
       expect(ordersGeneratedEvent).to.not.equal(undefined);
       log("✅ Automation performed and grid orders generated");
@@ -337,7 +337,9 @@ describe("OptimizedStableLimit Module Tests", function () {
       );
 
       const receipt = await tx.wait();
-      const orderEvent = receipt?.logs.find(log => (log as any).eventName === "RebalanceOrderCreated") as EventLog;
+      const orderEvent = receipt?.logs.find(
+        (log: any): log is EventLog => (log as any).eventName === "RebalanceOrderCreated",
+      ) as EventLog;
 
       expect(orderEvent).to.not.equal(undefined);
 

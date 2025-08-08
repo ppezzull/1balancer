@@ -1,9 +1,9 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { OptimizedBalancerFactory, MockSpotPriceAggregator, MockLimitOrderProtocol } from "../../../typechain-types";
+import { BalancerFactory, MockSpotPriceAggregator, MockLimitOrderProtocol } from "../../../typechain-types";
 
-describe("OptimizedBalancerFactory", function () {
-  let optimizedBalancerFactory: OptimizedBalancerFactory;
+describe("BalancerFactory", function () {
+  let optimizedBalancerFactory: BalancerFactory;
   let mockPriceAggregator: MockSpotPriceAggregator;
   let mockLimitOrderProtocol: MockLimitOrderProtocol;
   let owner: any;
@@ -22,7 +22,7 @@ describe("OptimizedBalancerFactory", function () {
     await mockLimitOrderProtocol.waitForDeployment();
 
     // Use utils index abstraction for consistency
-    const factoryFactory = await ethers.getContractFactory("OptimizedBalancerFactory");
+    const factoryFactory = await ethers.getContractFactory("BalancerFactory");
     optimizedBalancerFactory = await factoryFactory.deploy(
       await mockPriceAggregator.getAddress(),
       [],

@@ -6,6 +6,507 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
   31337: {
+    BalancerFactory: {
+      address: "0xa7d2350481DCD82769225C74bd8afD5c54912fD4",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_priceFeed",
+              type: "address",
+            },
+            {
+              internalType: "address[]",
+              name: "_stablecoins",
+              type: "address[]",
+            },
+            {
+              internalType: "address",
+              name: "_limitOrderProtocol",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          inputs: [],
+          name: "NoStablecoin",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+          ],
+          name: "OwnableInvalidOwner",
+          type: "error",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "OwnableUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "address",
+              name: "linkToken",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "registrar",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "registry",
+              type: "address",
+            },
+          ],
+          name: "AutomationAddressesSet",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "balancer",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "bool",
+              name: "isTimeBased",
+              type: "bool",
+            },
+          ],
+          name: "BalancerCreated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "previousOwner",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "OwnershipTransferred",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "address",
+              name: "priceFeed",
+              type: "address",
+            },
+          ],
+          name: "PriceFeedUpdated",
+          type: "event",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "balancer",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "upkeepId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "forwarder",
+              type: "address",
+            },
+          ],
+          name: "UpkeepRegistered",
+          type: "event",
+        },
+        {
+          inputs: [],
+          name: "automationRegistrar",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "automationRegistry",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          name: "balancerToUpkeepId",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address[]",
+              name: "_assetAddresses",
+              type: "address[]",
+            },
+            {
+              internalType: "uint256[]",
+              name: "_percentages",
+              type: "uint256[]",
+            },
+            {
+              internalType: "uint256[]",
+              name: "_amounts",
+              type: "uint256[]",
+            },
+            {
+              internalType: "uint256",
+              name: "_driftPercentage",
+              type: "uint256",
+            },
+          ],
+          name: "createDriftBalancer",
+          outputs: [
+            {
+              internalType: "address",
+              name: "balancer",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address[]",
+              name: "_assetAddresses",
+              type: "address[]",
+            },
+            {
+              internalType: "uint256[]",
+              name: "_percentages",
+              type: "uint256[]",
+            },
+            {
+              internalType: "uint256[]",
+              name: "_amounts",
+              type: "uint256[]",
+            },
+            {
+              internalType: "uint256",
+              name: "interval",
+              type: "uint256",
+            },
+          ],
+          name: "createTimeBalancer",
+          outputs: [
+            {
+              internalType: "address",
+              name: "balancer",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "limitOrderProtocol",
+          outputs: [
+            {
+              internalType: "contract ILimitOrderProtocol",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "linkToken",
+          outputs: [
+            {
+              internalType: "contract LinkTokenInterface",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "priceFeed",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "balancer",
+              type: "address",
+            },
+          ],
+          name: "refreshBalancerForwarder",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "balancer",
+              type: "address",
+            },
+            {
+              internalType: "uint32",
+              name: "gasLimit",
+              type: "uint32",
+            },
+            {
+              internalType: "uint96",
+              name: "amountLinkWei",
+              type: "uint96",
+            },
+            {
+              internalType: "bytes",
+              name: "checkData",
+              type: "bytes",
+            },
+          ],
+          name: "registerBalancerUpkeep",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "upkeepId",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "renounceOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_linkToken",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "_registrar",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "_registry",
+              type: "address",
+            },
+          ],
+          name: "setAutomationAddresses",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_priceFeed",
+              type: "address",
+            },
+          ],
+          name: "setPriceFeed",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "stablecoins",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "newOwner",
+              type: "address",
+            },
+          ],
+          name: "transferOwnership",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "userDriftBalancers",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "userTimeBalancers",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {
+        owner: "@openzeppelin/contracts/access/Ownable.sol",
+        renounceOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+        transferOwnership: "@openzeppelin/contracts/access/Ownable.sol",
+      },
+      deployedOnBlock: 12480,
+    },
     LimitOrderLib: {
       address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       abi: [

@@ -10,9 +10,9 @@ import "../interfaces/IBalancerFactory.sol";
 import "../libraries/StablecoinGridLib.sol";
 import "../libraries/PortfolioAnalysisLib.sol";
 import "../libraries/StablecoinAnalysisLib.sol";
-import "./OptimizedBaseBalancer.sol";
+import "./BaseBalancer.sol";
 
-contract OptimizedDriftBalancer is OptimizedBaseBalancer {
+contract DriftBalancer is BaseBalancer {
     using SafeERC20 for IERC20;
 
     // ===== Metadata / Config =====
@@ -33,7 +33,7 @@ contract OptimizedDriftBalancer is OptimizedBaseBalancer {
         uint256 _driftPercentage,
         address[] memory _stablecoins,
         address _limitOrderProtocol
-    ) OptimizedBaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol) {
+    ) BaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol) {
 
         driftPercentage = _driftPercentage;
         name = "Optimized Drift Balancer";
