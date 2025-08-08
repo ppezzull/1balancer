@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/IBalancerFactory.sol";
 import "../interfaces/ISpotPriceAggregator.sol";
 import "../libraries/StablecoinAnalysisLib.sol";
-import "./OptimizedDriftBalancer.sol";
+import "./OptimizedBaseBalancer.sol";
 
-contract OptimizedTimeBalancer is OptimizedDriftBalancer {
+contract OptimizedTimeBalancer is OptimizedBaseBalancer {
     uint256 public interval;
     uint256 public lastRebalance;
     string public timeName;
@@ -24,7 +23,7 @@ contract OptimizedTimeBalancer is OptimizedDriftBalancer {
         uint256 _interval,
         address[] memory _stablecoins,
         address _limitOrderProtocol
-    ) OptimizedDriftBalancer(_owner, _factory, _assetAddresses, _percentages, 0, _stablecoins, _limitOrderProtocol) {
+    ) OptimizedBaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol) {
         interval = _interval;
         lastRebalance = block.timestamp;
         timeName = "Optimized Time Balancer";
@@ -41,6 +40,21 @@ contract OptimizedTimeBalancer is OptimizedDriftBalancer {
             uint256[] memory current = currentAllocations();
             emit RebalanceNeeded(current, block.timestamp);
         }
+    }
+
+    // ===== Automation hooks =====
+    function _checkUpkeep(bytes calldata /*checkData*/) internal view override returns (bool upkeepNeeded, bytes memory performData) {
+        // Time-based: upkeep when interval elapsed
+        bool due = block.timestamp >= lastRebalance + interval;
+        if (!due) return (false, bytes(""));
+        return (true, bytes(""));
+    }
+
+    function _performUpkeep(bytes calldata /*performData*/) internal override {
+        // Simply emit that a rebalance is needed because interval elapsed
+        uint256[] memory current = currentAllocations();
+        emit RebalanceNeeded(current, block.timestamp);
+        lastRebalance = block.timestamp;
     }
 
     function setRebalanceInterval(uint256 _interval) external onlyOwner {

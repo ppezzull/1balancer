@@ -40,13 +40,30 @@ npx hardhat deploy --tags OptimizedContracts --network base
 - Call `OptimizedBalancerFactory.createDriftBalancer(...)` with assets, percentages, amounts, drift.
 - Record the deployed balancer address (the upkeep target).
 
-3) Register a Custom Logic upkeep
+3) Register a Custom Logic upkeep (two options)
 
-- Open the Chainlink Automation app and register:
+- Using the Chainlink Automation app (UI):
   - Upkeep target: the balancer address
   - Gas limit: start with 200,000–350,000; measure and tune
   - Starting LINK balance: per needs (must be ERC-677 LINK on Base)
   - Check data: leave blank (not required)
+
+- Programmatically from the factory:
+  - Set addresses once:
+    ```solidity
+    OptimizedBalancerFactory.setAutomationAddresses(
+      <LINK_ERC677>, <AUTOMATION_REGISTRAR>, <AUTOMATION_REGISTRY>
+    );
+    ```
+  - Register and fund:
+    ```solidity
+    OptimizedBalancerFactory.registerBalancerUpkeep(
+      <balancer>, 300_000, <amountLinkWei>, 0x
+    );
+    ```
+  - The factory approves LINK to the registrar, registers the upkeep, records `upkeepId`,
+    and if a registry is provided, fetches the Forwarder via `getForwarder(upkeepId)`
+    and calls `setForwarderAddress` on the balancer.
 
 4) Set the Forwarder address
 
@@ -89,9 +106,9 @@ npx hardhat deploy --tags OptimizedContracts --network baseSepolia
 
 3) Register upkeep on Base Sepolia
 
-- Open the Automation app, choose Base Sepolia, and register a Custom Logic upkeep targeting your balancer.
-- Gas limit: start with 200,000–350,000.
-- Fund with testnet LINK from the faucet.
+- UI option: Open the Automation app, choose Base Sepolia, and register a Custom Logic upkeep targeting your balancer.
+- Programmatic option (same as mainnet): call `setAutomationAddresses` and `registerBalancerUpkeep` from the factory.
+- Gas limit: start with 200,000–350,000. Fund with testnet LINK from the faucet.
 
 4) Set the Forwarder address
 

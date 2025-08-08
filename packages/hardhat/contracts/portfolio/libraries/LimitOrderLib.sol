@@ -95,7 +95,8 @@ library LimitOrderLib {
     function createRebalanceOrder(
         RebalanceOrder memory rebalanceOrder,
         address maker,
-        uint256 salt
+        uint256 salt,
+        uint256 expiry
     ) internal pure returns (ILimitOrderProtocol.Order memory order) {
         order = createLimitOrder(
             maker, // maker
@@ -107,7 +108,7 @@ library LimitOrderLib {
             salt, // salt
             true, // allowPartialFills
             false, // allowMultipleFills
-            3600 // expiration: 1 hour expiration (will be added to current timestamp)
+            expiry // absolute expiration timestamp (e.g., block.timestamp + seconds)
         );
     }
 

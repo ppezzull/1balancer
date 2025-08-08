@@ -186,7 +186,7 @@ describe("OptimizedStableLimit Module Tests", function () {
   });
 
   describe("Limit Order Creation", function () {
-    it("Should create rebalance limit orders", async function () {
+    it("Should create rebalance limit orders compatible with protocol V4", async function () {
       // Create a rebalance order for USDT to USDC
       const sellAmount = ethers.parseUnits("100", 6); // 100 USDT
       const buyAmount = ethers.parseUnits("98", 6); // 98 USDC (at 0.98 rate)
@@ -206,10 +206,13 @@ describe("OptimizedStableLimit Module Tests", function () {
       });
 
       expect(orderEvent).to.not.equal(undefined);
+      const parsed1 = driftBalancer.interface.parseLog(orderEvent as any);
+      const orderHash1 = (parsed1 as any).args[0];
+      expect(orderHash1).to.match(/^0x[0-9a-fA-F]{64}$/);
       log("✅ Rebalance limit order created successfully");
     });
 
-    it("Should create stablecoin grid orders", async function () {
+    it("Should create stablecoin grid orders compatible with protocol V4", async function () {
       // Create a grid order for USDT to USDC
       const gridAmount = ethers.parseUnits("50", 6);
       const limitPrice = ethers.parseUnits("0.995", 18);
@@ -225,6 +228,9 @@ describe("OptimizedStableLimit Module Tests", function () {
       });
 
       expect(gridOrderEvent).to.not.equal(undefined);
+      const parsed2 = driftBalancer.interface.parseLog(gridOrderEvent as any);
+      const orderHash2 = (parsed2 as any).args[0];
+      expect(orderHash2).to.match(/^0x[0-9a-fA-F]{64}$/);
       log("✅ Stablecoin grid order created successfully");
     });
   });
@@ -304,9 +310,6 @@ describe("OptimizedStableLimit Module Tests", function () {
         ["address", "address", "uint256"],
         [await mockUSDT.getAddress(), await mockUSDC.getAddress(), ethers.parseUnits("0.995", 18)],
       );
-
-      // Set forwarder to the caller (simulating Chainlink forwarder)
-      await driftBalancer.connect(user).setForwarderAddress(await user.getAddress());
 
       // Perform upkeep via authorized forwarder
       const tx = await driftBalancer.connect(user).performUpkeep(performData);

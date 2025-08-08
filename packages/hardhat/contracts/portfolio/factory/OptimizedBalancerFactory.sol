@@ -14,12 +14,46 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../balancers/OptimizedDriftBalancer.sol";
 import "../balancers/OptimizedTimeBalancer.sol";
 import "../interfaces/ILimitOrderProtocol.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+
+// ===== Programmatic Upkeep Registration (file-level types) =====
+// Minimal interfaces based on Chainlink docs
+// https://docs.chain.link/chainlink-automation/guides/register-upkeep-in-contract
+struct RegistrationParams {
+    string name;
+    bytes encryptedEmail;
+    address upkeepContract;
+    uint32 gasLimit;
+    address adminAddress;
+    uint8 triggerType; // 0 = conditional, 1 = log
+    bytes checkData; // forwarded to checkUpkeep
+    bytes triggerConfig; // 0x for conditional
+    bytes offchainConfig; // optional CBOR config
+    uint96 amount; // LINK amount (in wei) to fund at registration
+}
+
+interface IAutomationRegistrar {
+    function registerUpkeep(RegistrationParams calldata requestParams) external returns (uint256);
+}
+
+// Minimal registry interface for reading the Forwarder
+interface IAutomationRegistryMinimal {
+    function getForwarder(uint256 upkeepId) external view returns (address);
+}
 
 
 contract OptimizedBalancerFactory is Ownable {
     address public priceFeed;
     address[] public stablecoins;
     ILimitOrderProtocol public limitOrderProtocol;
+
+    // ===== Chainlink Automation (programmatic registration) =====
+    LinkTokenInterface public linkToken;
+    address public automationRegistrar; // Automation Registrar (v2.1)
+    address public automationRegistry; // Automation Registry (v2.1)
+
+    // balancer => upkeepId (if registered via this factory)
+    mapping(address => uint256) public balancerToUpkeepId;
 
     constructor(address _priceFeed, address[] memory _stablecoins, address _limitOrderProtocol) Ownable(msg.sender) {
         priceFeed = _priceFeed;
@@ -34,6 +68,8 @@ contract OptimizedBalancerFactory is Ownable {
     /// @dev Emitted when a new balancer is created
     event BalancerCreated(address indexed owner, address indexed balancer, bool isTimeBased);
     event PriceFeedUpdated(address priceFeed);
+    event AutomationAddressesSet(address linkToken, address registrar, address registry);
+    event UpkeepRegistered(address indexed balancer, uint256 indexed upkeepId, address forwarder);
 
     error NoStablecoin();
 
@@ -126,5 +162,79 @@ contract OptimizedBalancerFactory is Ownable {
     function setPriceFeed(address _priceFeed) external onlyOwner {
         priceFeed = _priceFeed;
         emit PriceFeedUpdated(_priceFeed);
+    }
+
+    // Note: public dynamic array `stablecoins` already exposes `stablecoins(uint256)` getter
+
+    // ===== Programmatic Upkeep Registration =====
+
+    function setAutomationAddresses(address _linkToken, address _registrar, address _registry) external onlyOwner {
+        linkToken = LinkTokenInterface(_linkToken);
+        automationRegistrar = _registrar;
+        automationRegistry = _registry;
+        emit AutomationAddressesSet(_linkToken, _registrar, _registry);
+    }
+
+    /// @notice Programmatically register a custom-logic upkeep for a deployed balancer
+    /// @dev Approves LINK to registrar and calls registerUpkeep. Optionally sets forwarder if registry is provided.
+    function registerBalancerUpkeep(
+        address balancer,
+        uint32 gasLimit,
+        uint96 amountLinkWei,
+        bytes calldata checkData
+    ) external onlyOwner returns (uint256 upkeepId) {
+        require(balancer != address(0), "balancer=0");
+        require(address(linkToken) != address(0) && automationRegistrar != address(0), "Automation not set");
+
+        // 1) Approve LINK to the registrar
+        linkToken.approve(automationRegistrar, amountLinkWei);
+
+        // 2) Build params and register
+        RegistrationParams memory params = RegistrationParams({
+            name: string(abi.encodePacked("1Balancer-", _shortAddr(balancer))),
+            encryptedEmail: bytes("") /* 0x */, 
+            upkeepContract: balancer,
+            gasLimit: gasLimit,
+            adminAddress: owner(),
+            triggerType: 0, // conditional
+            checkData: checkData,
+            triggerConfig: bytes("") /* 0x */, 
+            offchainConfig: bytes("") /* 0x */, 
+            amount: amountLinkWei
+        });
+
+        upkeepId = IAutomationRegistrar(automationRegistrar).registerUpkeep(params);
+        require(upkeepId != 0, "Registrar returned 0");
+        balancerToUpkeepId[balancer] = upkeepId;
+
+        // 3) If registry is set, fetch forwarder and set it on the balancer
+        address forwarder = address(0);
+        if (automationRegistry != address(0)) {
+            try IAutomationRegistryMinimal(automationRegistry).getForwarder(upkeepId) returns (address fwd) {
+                forwarder = fwd;
+                try OptimizedDriftBalancer(payable(balancer)).setForwarderAddress(forwarder) {} catch {}
+            } catch {}
+        }
+
+        emit UpkeepRegistered(balancer, upkeepId, forwarder);
+    }
+
+    /// @notice Refresh and set the forwarder on a balancer from a known upkeepId
+    function refreshBalancerForwarder(address balancer) external {
+        uint256 upkeepId = balancerToUpkeepId[balancer];
+        require(upkeepId != 0 && automationRegistry != address(0), "No upkeep or registry");
+        address forwarder = IAutomationRegistryMinimal(automationRegistry).getForwarder(upkeepId);
+        OptimizedDriftBalancer(payable(balancer)).setForwarderAddress(forwarder);
+        emit UpkeepRegistered(balancer, upkeepId, forwarder);
+    }
+
+    function _shortAddr(address a) internal pure returns (string memory) {
+        bytes20 b = bytes20(a);
+        bytes memory out = new bytes(4);
+        out[0] = b[18];
+        out[1] = b[19];
+        out[2] = b[0];
+        out[3] = b[1];
+        return string(out);
     }
 } 
