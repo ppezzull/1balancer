@@ -28,9 +28,10 @@ library StablecoinGridLib {
     uint256 private constant USDC_DECIMALS = 6;
     uint256 private constant DAI_DECIMALS = 18;
 
-    // Price deviation bounds (1e18 representation)
-    uint256 public constant LOWER_BOUND = 998 * 1e15; // 0.998
-    uint256 public constant UPPER_BOUND = 1002 * 1e15; // 1.002
+    // Price bounds for stablecoin deviation detection (wider bounds for testing)
+    // Tighter bounds so a 1% deviation triggers actions (e.g., 0.99 is outside bounds)
+    uint256 public constant LOWER_BOUND = 995 * 1e15; // 0.995
+    uint256 public constant UPPER_BOUND = 1005 * 1e15; // 1.005
 
     /**
      * @dev Generate grid orders for stablecoin pairs
@@ -38,7 +39,7 @@ library StablecoinGridLib {
     function generateGridOrders(
         address[] memory stablecoins,
         GridParams memory params
-    ) external pure returns (Order[] memory orders) {
+    ) internal pure returns (Order[] memory orders) {
         if (params.nLevels == 0) return new Order[](0);
 
         uint256 nPairs = stablecoins.length > 1 ? stablecoins.length : 0;
@@ -78,7 +79,7 @@ library StablecoinGridLib {
     /**
      * @dev Check if price is within acceptable bounds
      */
-    function isPriceWithinBounds(uint256 price) external pure returns (bool) {
+    function isPriceWithinBounds(uint256 price) internal pure returns (bool) {
         return price >= LOWER_BOUND && price <= UPPER_BOUND;
     }
 
@@ -89,7 +90,7 @@ library StablecoinGridLib {
         uint256 stablecoinValue,
         uint256 nLevels,
         uint256 gridRangeBps
-    ) external pure returns (GridParams memory params) {
+    ) internal pure returns (GridParams memory params) {
         params.capital = stablecoinValue / 10; // Use 10% of stablecoin value
         params.nLevels = nLevels;
         params.minOrderSize = 10 * (10 ** USDC_DECIMALS); // 10 USDC

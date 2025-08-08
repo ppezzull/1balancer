@@ -13,7 +13,7 @@ export async function deploySpotPriceAggregator(hre: HardhatRuntimeEnvironment):
   const { deploy, get } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  console.log("🔧 Deploying MockSpotPriceAggregator...");
+  // single-line output per request
 
   await deploy("MockSpotPriceAggregator", {
     from: deployer,
@@ -27,7 +27,8 @@ export async function deploySpotPriceAggregator(hre: HardhatRuntimeEnvironment):
     (await get("MockSpotPriceAggregator")).address,
   )) as unknown as MockSpotPriceAggregator;
 
-  console.log("✅ MockSpotPriceAggregator deployed to:", await mockPriceAggregator.getAddress());
+  const addr = await mockPriceAggregator.getAddress();
+  console.log(`utils/spotPrice: MockSpotPriceAggregator=${addr}`);
 
   return mockPriceAggregator;
 }
@@ -36,7 +37,7 @@ export async function configureSpotPrices(
   mockPriceAggregator: MockSpotPriceAggregator,
   tokens: MockTokens,
 ): Promise<void> {
-  console.log("💰 Configuring spot prices...");
+  // single-line output per request
 
   const wethAddress = await tokens.mockWETH.getAddress();
   const usdcAddress = await tokens.mockUSDC.getAddress();
@@ -84,7 +85,7 @@ export async function configureSpotPrices(
   await mockPriceAggregator.setMockEthPrice(daiAddress, ethers.parseEther("0.00033"));
   await mockPriceAggregator.setMockEthPrice(inchAddress, ethers.parseEther("0.000165")); // 0.5/3000
 
-  console.log("✅ Spot prices configured");
+  console.log("utils/spotPrice: configured");
 }
 
 export async function setStablecoinDeviation(
@@ -93,29 +94,29 @@ export async function setStablecoinDeviation(
   stablecoin2: MockERC20,
   deviationBps: number,
 ): Promise<void> {
-  console.log(`🔄 Setting stablecoin deviation: ${deviationBps} bps`);
+  // single-line output per request
 
   const stablecoin1Address = await stablecoin1.getAddress();
   const stablecoin2Address = await stablecoin2.getAddress();
 
   await mockPriceAggregator.setStablecoinDeviation(stablecoin1Address, stablecoin2Address, deviationBps);
 
-  console.log(`✅ Deviation set for ${await stablecoin1.symbol()} -> ${await stablecoin2.symbol()}`);
+  console.log(`utils/spotPrice: deviation=${deviationBps}bps`);
 }
 
 export async function resetStablecoinPrices(mockPriceAggregator: MockSpotPriceAggregator): Promise<void> {
-  console.log("🔄 Resetting stablecoin prices to 1:1");
+  // single-line output per request
 
   await mockPriceAggregator.resetStablecoinPrices();
 
-  console.log("✅ Stablecoin prices reset");
+  console.log("utils/spotPrice: reset");
 }
 
 export async function getOrDeploySpotPriceAggregator(hre: HardhatRuntimeEnvironment): Promise<MockSpotPriceAggregator> {
   const { deployments } = hre;
   const { get } = deployments;
 
-  console.log("🔄 Getting or deploying spot price aggregator...");
+  // single-line output per request
 
   try {
     // Try to get already deployed aggregator
@@ -124,11 +125,11 @@ export async function getOrDeploySpotPriceAggregator(hre: HardhatRuntimeEnvironm
       (await get("MockSpotPriceAggregator")).address,
     )) as unknown as MockSpotPriceAggregator;
 
-    console.log("♻️  Reusing existing MockSpotPriceAggregator");
+    console.log("utils/spotPrice: reuse");
     return mockPriceAggregator;
   } catch {
     // If aggregator doesn't exist, deploy it
-    console.log("🆕 Deploying new MockSpotPriceAggregator");
+    console.log("utils/spotPrice: deploy");
     return await deploySpotPriceAggregator(hre);
   }
 }

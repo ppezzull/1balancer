@@ -1,17 +1,12 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import {
-  OptimizedBalancerFactory,
-  LimitOrderLib,
-  StablecoinGridLib,
-  MockSpotPriceAggregator,
-  MockLimitOrderProtocol,
-} from "../../typechain-types";
+import { OptimizedBalancerFactory, MockSpotPriceAggregator, MockLimitOrderProtocol } from "../../typechain-types";
 
 export async function deployOptimizedBalancerFactory(
   hre: HardhatRuntimeEnvironment,
-  libraries: {
-    limitOrderLib: LimitOrderLib;
-    stablecoinGridLib: StablecoinGridLib;
+  _libraries: {
+    // kept for backward compat; no linking needed here anymore
+    limitOrderLib: any;
+    stablecoinGridLib: any;
   },
   mocks: {
     mockPriceAggregator: MockSpotPriceAggregator;
@@ -23,8 +18,7 @@ export async function deployOptimizedBalancerFactory(
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  console.log("🏭 Deploying OptimizedBalancerFactory...");
-  console.log("Stablecoins:", stablecoinAddresses);
+  // single-line output per request
 
   const factoryDeployment = await deploy("OptimizedBalancerFactory", {
     from: deployer,
@@ -33,10 +27,6 @@ export async function deployOptimizedBalancerFactory(
       stablecoinAddresses,
       await mocks.mockLimitOrderProtocol.getAddress(),
     ],
-    libraries: {
-      LimitOrderLib: await libraries.limitOrderLib.getAddress(),
-      StablecoinGridLib: await libraries.stablecoinGridLib.getAddress(),
-    },
     log: true,
     skipIfAlreadyDeployed: true,
   });
@@ -46,7 +36,8 @@ export async function deployOptimizedBalancerFactory(
     factoryDeployment.address,
   )) as unknown as OptimizedBalancerFactory;
 
-  console.log("✅ OptimizedBalancerFactory deployed to:", await optimizedBalancerFactory.getAddress());
+  const addr = await optimizedBalancerFactory.getAddress();
+  console.log(`utils/factory: OptimizedBalancerFactory=${addr} Stablecoins=${JSON.stringify(stablecoinAddresses)}`);
 
   return optimizedBalancerFactory;
 }

@@ -96,7 +96,7 @@ library LimitOrderLib {
         RebalanceOrder memory rebalanceOrder,
         address maker,
         uint256 salt
-    ) external pure returns (ILimitOrderProtocol.Order memory order) {
+    ) internal pure returns (ILimitOrderProtocol.Order memory order) {
         order = createLimitOrder(
             maker, // maker
             maker, // receiver
@@ -178,7 +178,7 @@ library LimitOrderLib {
     function calculateOrderHash(
         ILimitOrderProtocol.Order memory order,
         bytes32 domainSeparator
-    ) external pure returns (bytes32 orderHash) {
+    ) internal pure returns (bytes32 orderHash) {
         orderHash = keccak256(abi.encodePacked(
             "\x19\x01",
             domainSeparator,
@@ -198,7 +198,7 @@ library LimitOrderLib {
     /**
      * @dev Validate order parameters
      */
-    function validateOrder(ILimitOrderProtocol.Order memory order) external pure returns (bool) {
+    function validateOrder(ILimitOrderProtocol.Order memory order) internal pure returns (bool) {
         require(order.maker != address(0), "Invalid maker");
         require(order.makerAsset != address(0), "Invalid maker asset");
         require(order.takerAsset != address(0), "Invalid taker asset");
@@ -215,7 +215,7 @@ library LimitOrderLib {
     function calculateSlippageAmounts(
         uint256 baseAmount,
         uint256 slippageTolerance
-    ) external pure returns (uint256 minAmount, uint256 maxAmount) {
+    ) internal pure returns (uint256 minAmount, uint256 maxAmount) {
         require(slippageTolerance <= 1000, "Slippage too high"); // Max 10%
         
         uint256 tolerance = (baseAmount * slippageTolerance) / 10000;

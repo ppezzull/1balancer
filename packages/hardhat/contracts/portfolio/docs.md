@@ -45,19 +45,17 @@ The portfolio contracts are designed to create and manage automated asset balanc
 *   `getPrice()`: Returns the price of a specific asset in ETH.
 *   `getPortfolioAnalysis()`: Returns a basic analysis of the portfolio, including its value, stablecoin ratio, and whether it is balanced.
 
-### `OptimizedStableLimit.sol`
+### Chainlink Automation in `OptimizedDriftBalancer.sol`
 
-**Inherits:** `Ownable`, `Pausable`, `AutomationCompatibleInterface`, `IERC1271`
+**Inherits:** `Ownable`, `Pausable`, `ReentrancyGuard`, `IERC1271`, `AutomationCompatibleInterface`
 
-**Purpose:** This contract implements a sophisticated stablecoin grid trading strategy. It integrates with Chainlink Automation to trigger rebalancing when stablecoin prices deviate and uses a limit order protocol to execute trades.
+**Purpose:** Off-chain `checkUpkeep` detects stablecoin deviations using `StablecoinAnalysisLib` and signals work. On-chain `performUpkeep` generates grid orders with minimal computation. A Forwarder address gates `performUpkeep` for security.
 
 **Key Functionality:**
 
-*   `checkUpkeep()`: Implements the Chainlink Automation interface to check if a rebalance is needed.
-*   `performUpkeep()`: Executes the rebalancing logic when triggered by Chainlink Automation.
-*   `createRebalanceOrder()`: Creates a rebalancing limit order.
-*   `createStablecoinGridOrder()`: Creates a stablecoin grid limit order.
-*   `isValidSignature()`: Implements the EIP-1271 interface for signature validation.
+* `checkUpkeep()`: Off-chain deviation detection; returns `performData` placeholder (not needed).
+* `performUpkeep()`: Restricted by `s_forwarderAddress`; builds grid orders and emits events.
+* `setForwarderAddress(address)`: Owner-only setter for the Automation Forwarder.
 
 ### `OptimizedBalancerFactory.sol`
 

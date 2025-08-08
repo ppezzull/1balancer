@@ -16,7 +16,7 @@ export async function deployDriftBalancer(
 ): Promise<OptimizedDriftBalancer> {
   const { ethers } = hre;
 
-  console.log("🏊 Deploying OptimizedDriftBalancer via factory...");
+  // single-line output per request
 
   // Create the drift balancer through the factory
   const tx = await factory.createDriftBalancer(
@@ -28,8 +28,7 @@ export async function deployDriftBalancer(
 
   const receipt = await tx.wait();
 
-  console.log("Transaction successful, checking events...");
-  console.log("All logs:", receipt?.logs);
+  // keep logs minimal
 
   // Find the BalancerCreated event
   const balancerCreatedEvent = receipt?.logs.find(
@@ -54,9 +53,10 @@ export async function deployDriftBalancer(
     balancerAddress,
   )) as unknown as OptimizedDriftBalancer;
 
-  console.log("✅ OptimizedDriftBalancer deployed at:", await driftBalancer.getAddress());
-  console.log("  Owner:", await driftBalancer.owner());
-  console.log("  Drift Percentage:", await driftBalancer.driftPercentage());
+  const addr = await driftBalancer.getAddress();
+  const owner = await driftBalancer.owner();
+  const driftPct = await driftBalancer.driftPercentage();
+  console.log(`utils/balancers: DriftBalancer=${addr} Owner=${owner} DriftPct=${driftPct.toString()}`);
 
   return driftBalancer;
 }

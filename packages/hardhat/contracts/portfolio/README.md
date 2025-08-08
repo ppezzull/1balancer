@@ -16,7 +16,7 @@ The system has been fully optimized and upgraded to integrate with the 1inch Lim
 ### Key Components:
 
 1. **OptimizedBalancerFactory**: Deploys optimized balancer instances with limit order protocol integration
-2. **OptimizedStableLimit**: EIP-1271 compatible stablecoin grid trading module
+2. **OptimizedDriftBalancer**: EIP-1271 compatible, Automation-enabled stablecoin deviation and drift handling
 3. **OptimizedBaseBalancer**: Core portfolio management with rebalancing logic
 4. **LimitOrderLib**: 1inch limit order utilities and order creation
 5. **Mock Contracts**: Testing infrastructure for price feeds and limit order protocol
@@ -35,9 +35,9 @@ The system has been fully optimized and upgraded to integrate with the 1inch Lim
 - **OptimizedDriftBalancer.sol**: Value-based rebalancing with drift detection
 - **OptimizedTimeBalancer.sol**: Time-based rebalancing with configurable intervals
 
-### Modules (`modules/`)
-- **OptimizedBaseBalancer.sol**: Abstract base contract with shared portfolio logic
-- **OptimizedStableLimit.sol**: EIP-1271 compatible stablecoin management
+### Automation
+- `OptimizedDriftBalancer.sol` implements `AutomationCompatibleInterface` with forwarder-gated `performUpkeep`.
+- Use the Chainlink Automation App to register a Custom Logic upkeep and then call `setForwarderAddress` with the upkeep's Forwarder.
 
 ### Factory (`factory/`)
 - **OptimizedBalancerFactory.sol**: Factory for deploying optimized balancer instances

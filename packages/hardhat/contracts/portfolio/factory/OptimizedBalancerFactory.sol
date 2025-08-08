@@ -33,6 +33,7 @@ contract OptimizedBalancerFactory is Ownable {
 
     /// @dev Emitted when a new balancer is created
     event BalancerCreated(address indexed owner, address indexed balancer, bool isTimeBased);
+    event PriceFeedUpdated(address priceFeed);
 
     error NoStablecoin();
 
@@ -120,5 +121,10 @@ contract OptimizedBalancerFactory is Ownable {
         for (uint256 i = 0; i < tokens.length; i++) {
             require(IERC20(tokens[i]).balanceOf(msg.sender) >= amounts[i], "Insufficient token balance in factory");
         }
+    }
+
+    function setPriceFeed(address _priceFeed) external onlyOwner {
+        priceFeed = _priceFeed;
+        emit PriceFeedUpdated(_priceFeed);
     }
 } 

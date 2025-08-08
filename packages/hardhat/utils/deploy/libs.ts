@@ -10,7 +10,7 @@ export async function deployLibraries(hre: HardhatRuntimeEnvironment): Promise<{
   const { deploy, get } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  console.log("📚 Deploying libraries...");
+  // single-line output per request
 
   await deploy("LimitOrderLib", {
     from: deployer,
@@ -45,7 +45,10 @@ export async function deployLibraries(hre: HardhatRuntimeEnvironment): Promise<{
     (await get("PortfolioAnalysisLib")).address,
   )) as unknown as PortfolioCoreLib;
 
-  console.log("✅ Libraries deployed and typed instances created.");
+  const lAddr = await limitOrderLib.getAddress();
+  const sAddr = await stablecoinGridLib.getAddress();
+  const pAddr = await portfolioAnalysisLib.getAddress();
+  console.log(`utils/libs: LimitOrderLib=${lAddr} StablecoinGridLib=${sAddr} PortfolioAnalysisLib=${pAddr}`);
 
   return { limitOrderLib, stablecoinGridLib, portfolioAnalysisLib };
 }

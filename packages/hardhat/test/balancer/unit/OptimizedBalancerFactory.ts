@@ -21,26 +21,11 @@ describe("OptimizedBalancerFactory", function () {
     mockLimitOrderProtocol = await MockLimitOrderProtocolFactory.deploy();
     await mockLimitOrderProtocol.waitForDeployment();
 
-    // Deploy libraries (only the ones actually used by OptimizedBalancerFactory)
-    const LimitOrderLibFactory = await ethers.getContractFactory("LimitOrderLib");
-    const limitOrderLib = await LimitOrderLibFactory.deploy();
-    await limitOrderLib.waitForDeployment();
-
-    const StablecoinGridLibFactory = await ethers.getContractFactory("StablecoinGridLib");
-    const stablecoinGridLib = await StablecoinGridLibFactory.deploy();
-    await stablecoinGridLib.waitForDeployment();
-
-    // Deploy OptimizedBalancerFactory with only the required libraries
-    const OptimizedBalancerFactoryFactory = await ethers.getContractFactory("OptimizedBalancerFactory", {
-      libraries: {
-        LimitOrderLib: await limitOrderLib.getAddress(),
-        StablecoinGridLib: await stablecoinGridLib.getAddress(),
-      },
-    });
-
-    optimizedBalancerFactory = await OptimizedBalancerFactoryFactory.deploy(
+    // Use utils index abstraction for consistency
+    const factoryFactory = await ethers.getContractFactory("OptimizedBalancerFactory");
+    optimizedBalancerFactory = await factoryFactory.deploy(
       await mockPriceAggregator.getAddress(),
-      [], // Empty stablecoins array for testing
+      [],
       await mockLimitOrderProtocol.getAddress(),
     );
     await optimizedBalancerFactory.waitForDeployment();

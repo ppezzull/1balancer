@@ -6,3 +6,6 @@ export const TOKEN_ADDRESSES = {
   WETH: "0x4200000000000000000000000000000000000006",
   INCH: "0xc5fecC3a29Fb57B5024eEc8a2239d4621e111CBE",
 } as const;
+
+// Global test thresholds
+export const DRIFT_THRESHOLD_BPS = 10; // 0.1%
