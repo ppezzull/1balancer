@@ -1,34 +1,19 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
-import { BalancerFactory, MockSpotPriceAggregator, MockLimitOrderProtocol } from "../../../typechain-types";
+import { setupFactoryWithMocks } from "../../../utils/test/setup";
 
 describe("BalancerFactory", function () {
-  let optimizedBalancerFactory: BalancerFactory;
-  let mockPriceAggregator: MockSpotPriceAggregator;
-  let mockLimitOrderProtocol: MockLimitOrderProtocol;
+  let optimizedBalancerFactory: any;
+  let mockPriceAggregator: any;
+  let mockLimitOrderProtocol: any;
   let owner: any;
   // let user: any;
 
   before(async () => {
-    [owner] = await ethers.getSigners();
-
-    // Deploy mock contracts
-    const MockSpotPriceAggregatorFactory = await ethers.getContractFactory("MockSpotPriceAggregator");
-    mockPriceAggregator = await MockSpotPriceAggregatorFactory.deploy(owner.address);
-    await mockPriceAggregator.waitForDeployment();
-
-    const MockLimitOrderProtocolFactory = await ethers.getContractFactory("MockLimitOrderProtocol");
-    mockLimitOrderProtocol = await MockLimitOrderProtocolFactory.deploy();
-    await mockLimitOrderProtocol.waitForDeployment();
-
-    // Use utils index abstraction for consistency
-    const factoryFactory = await ethers.getContractFactory("BalancerFactory");
-    optimizedBalancerFactory = await factoryFactory.deploy(
-      await mockPriceAggregator.getAddress(),
-      [],
-      await mockLimitOrderProtocol.getAddress(),
-    );
-    await optimizedBalancerFactory.waitForDeployment();
+    const ctx = await setupFactoryWithMocks();
+    owner = ctx.owner;
+    optimizedBalancerFactory = ctx.factory;
+    mockPriceAggregator = ctx.priceAggregator;
+    mockLimitOrderProtocol = ctx.limitOrderProtocol;
   });
 
   describe("Deployment", function () {

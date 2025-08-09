@@ -1,47 +1,25 @@
 import { expect } from "chai";
-import hre, { ethers } from "hardhat";
-import { Signer, EventLog } from "ethers";
+import { ethers } from "hardhat";
+import { EventLog } from "ethers";
+import { setupStableLimit, log, encodePerformData, findEvent } from "../../../utils/test/setup";
 import {
-  BalancerFactory,
-  DriftBalancer,
-  MockERC20,
-  MockSpotPriceAggregator,
-  MockLimitOrderProtocol,
-} from "../../../typechain-types";
-import {
-  deployLibraries,
-  deployBalancerFactory,
-  getOrDeployMockTokens,
-  mintTestTokens,
-  approveFactoryTokens,
-  getOrDeploySpotPriceAggregator,
-  configureSpotPrices,
-  getOrDeployLimitOrderProtocol,
-  MockTokens,
-} from "../../../utils";
+  expectValidEip1271Signature,
+  expectInvalidEip1271Signature,
+  expectCreatesEip712Order,
+} from "../../../utils/test/eip1271";
 
-// Minimal logging helper (enable with TEST_LOG=1)
-const shouldLog = process.env.TEST_LOG === "1";
-const log = (...args: any[]) => {
-  if (shouldLog) console.log(...args);
-};
+// logging is provided by @test/utils
 
 describe("OptimizedStableLimit Module Tests", function () {
-  let user: Signer;
-
-  // Contracts
-  let optimizedBalancerFactory: BalancerFactory;
-  let driftBalancer: DriftBalancer;
-  let mockPriceAggregator: MockSpotPriceAggregator;
-  let mockLimitOrderProtocol: MockLimitOrderProtocol;
-
-  // Mock Tokens (Stablecoins only)
-  let mockUSDC: MockERC20;
-  let mockUSDT: MockERC20;
-  let mockDAI: MockERC20;
+  let user: any;
+  let driftBalancer: any;
+  let mockPriceAggregator: any;
+  let mockUSDC: any;
+  let mockUSDT: any;
+  let mockDAI: any;
 
   // Test configuration - New concept: stablecoins are treated as one asset group
-  const stablecoinPercentages = [BigInt(100)]; // 100% stablecoins (as one group)
+  // kept for compatibility in utils
   const stablecoinAmounts = [
     ethers.parseUnits("4000", 6), // 4000 USDC
     ethers.parseUnits("3500", 6), // 3500 USDT
@@ -50,84 +28,16 @@ describe("OptimizedStableLimit Module Tests", function () {
   const driftPercentage = BigInt(200); // 2% drift tolerance
 
   beforeEach(async function () {
-    [, user] = await ethers.getSigners();
-
-    log("🚀 Setting up OptimizedStableLimit test environment...");
-
-    // Deploy libraries
-    const libraries = await deployLibraries(hre);
-
-    // Deploy mock tokens (stablecoins only)
-    const tokens: MockTokens = await getOrDeployMockTokens(hre);
-    mockUSDC = tokens.mockUSDC;
-    mockUSDT = tokens.mockUSDT;
-    mockDAI = tokens.mockDAI;
-
-    // Deploy mock protocols
-    mockPriceAggregator = await getOrDeploySpotPriceAggregator(hre);
-    mockLimitOrderProtocol = await getOrDeployLimitOrderProtocol(hre);
-
-    // Configure spot prices for stablecoins (all should be ~1 USD)
-    await configureSpotPrices(mockPriceAggregator, tokens);
-
-    // Deploy factory with stablecoin addresses
-    const stablecoinAddresses = [await mockUSDC.getAddress(), await mockUSDT.getAddress(), await mockDAI.getAddress()];
-
-    optimizedBalancerFactory = await deployBalancerFactory(
-      hre,
-      {
-        limitOrderLib: libraries.limitOrderLib,
-        stablecoinGridLib: libraries.stablecoinGridLib,
-      },
-      { mockPriceAggregator, mockLimitOrderProtocol },
-      stablecoinAddresses,
-    );
-
-    // Mint tokens to user using utility function
-    const userAddress = await user.getAddress();
-    await mintTestTokens(tokens, userAddress, {
-      USDC: stablecoinAmounts[0],
-      USDT: stablecoinAmounts[1],
-      DAI: stablecoinAmounts[2],
+    const ctx = await setupStableLimit(undefined, {
+      stablecoinAmounts: [stablecoinAmounts[0], stablecoinAmounts[1], stablecoinAmounts[2]] as const,
+      driftPercentage,
     });
-
-    // Approve factory to spend tokens using utility function
-    await approveFactoryTokens(tokens, user, await optimizedBalancerFactory.getAddress(), {
-      USDC: stablecoinAmounts[0],
-      USDT: stablecoinAmounts[1],
-      DAI: stablecoinAmounts[2],
-    });
-
-    // Deploy drift balancer through factory (using user signer)
-    const assetAddresses = [await mockUSDC.getAddress(), await mockUSDT.getAddress(), await mockDAI.getAddress()];
-
-    // Call factory from user to create balancer
-    const tx = await optimizedBalancerFactory
-      .connect(user)
-      .createDriftBalancer(assetAddresses, stablecoinPercentages, stablecoinAmounts, driftPercentage);
-
-    const receipt = await tx.wait();
-    if (!receipt) {
-      throw new Error("Transaction receipt is null");
-    }
-
-    log("tx logs count:", receipt.logs.length);
-
-    // Get balancer address from events
-    const balancerCreatedEvent = receipt.logs.find((log: any): log is EventLog => {
-      const ev = log as EventLog;
-      return (ev as any).eventName === "BalancerCreated";
-    }) as EventLog;
-
-    if (!balancerCreatedEvent) {
-      throw new Error("BalancerCreated event not found");
-    }
-
-    const balancerAddress = balancerCreatedEvent.args[1];
-    log("Balancer address from event:", balancerAddress);
-    driftBalancer = await ethers.getContractAt("DriftBalancer", balancerAddress);
-
-    log("✅ Test environment setup complete");
+    user = ctx.user;
+    driftBalancer = ctx.driftBalancer;
+    mockPriceAggregator = ctx.priceAggregator;
+    mockUSDC = ctx.mockUSDC;
+    mockUSDT = ctx.mockUSDT;
+    mockDAI = ctx.mockDAI;
   });
 
   describe("Stablecoin Portfolio Setup", function () {
@@ -237,40 +147,11 @@ describe("OptimizedStableLimit Module Tests", function () {
 
   describe("EIP-1271 Signature Validation", function () {
     it("Should generate valid EIP-1271 signatures for limit orders", async function () {
-      // Sign with the actual contract owner
-      const ownerAddr = await driftBalancer.owner();
-      const allSigners = await ethers.getSigners();
-      const ownerSigner = allSigners.find(s => s.address.toLowerCase() === ownerAddr.toLowerCase());
-      if (!ownerSigner) throw new Error("Owner signer not found");
-
-      const orderHash = ethers.keccak256(ethers.toUtf8Bytes("TEST_ORDER"));
-      const messageBytes = ethers.getBytes(orderHash);
-      const signed = await ownerSigner.signMessage(messageBytes);
-
-      // Local verification sanity check
-      const recovered = ethers.verifyMessage(messageBytes, signed);
-      log("Recovered signer:", recovered, "Expected owner:", ownerAddr);
-      expect(recovered.toLowerCase()).to.equal(ownerAddr.toLowerCase());
-
-      // Pass the EIP-191 digest as _hash so contract's raw-tryRecover path matches
-      const digest = ethers.keccak256(
-        ethers.solidityPacked(["string", "bytes32"], ["\x19Ethereum Signed Message:\n32", orderHash]),
-      );
-      const isValid = await driftBalancer.isValidSignature(digest as any, signed);
-      expect(isValid).to.equal("0x1626ba7e");
-
-      log("✅ EIP-1271 signature validation working correctly");
+      await expectValidEip1271Signature(driftBalancer);
     });
 
     it("Should reject invalid signatures", async function () {
-      const orderHash = ethers.keccak256(ethers.toUtf8Bytes("TEST_ORDER"));
-      const other = (await ethers.getSigners())[0];
-      const wrongSig = await other.signMessage(ethers.getBytes(orderHash));
-
-      const isValid = await driftBalancer.isValidSignature(orderHash, wrongSig);
-      expect(isValid).to.equal("0xffffffff");
-
-      log("✅ Invalid signatures correctly rejected");
+      await expectInvalidEip1271Signature(driftBalancer);
     });
   });
 
@@ -306,9 +187,10 @@ describe("OptimizedStableLimit Module Tests", function () {
       );
 
       // Encode perform data
-      const performData = ethers.AbiCoder.defaultAbiCoder().encode(
-        ["address", "address", "uint256"],
-        [await mockUSDT.getAddress(), await mockUSDC.getAddress(), ethers.parseUnits("0.995", 18)],
+      const performData = encodePerformData(
+        await mockUSDT.getAddress(),
+        await mockUSDC.getAddress(),
+        ethers.parseUnits("0.995", 18),
       );
 
       // Perform upkeep via authorized forwarder
@@ -316,7 +198,7 @@ describe("OptimizedStableLimit Module Tests", function () {
       const receipt = await tx.wait();
 
       // Check for OrdersGenerated event
-      const ordersGeneratedEvent = receipt?.logs.find((log: any) => (log as any).eventName === "OrdersGenerated");
+      const ordersGeneratedEvent = findEvent(receipt, "OrdersGenerated");
 
       expect(ordersGeneratedEvent).to.not.equal(undefined);
       log("✅ Automation performed and grid orders generated");
@@ -325,31 +207,12 @@ describe("OptimizedStableLimit Module Tests", function () {
 
   describe("Limit Order Protocol Integration", function () {
     it("Should create EIP-712 compliant orders", async function () {
-      const sellAmount = ethers.parseUnits("100", 6);
-      const buyAmount = ethers.parseUnits("100", 6);
-
-      const tx = await driftBalancer.connect(user).createRebalanceOrder(
+      await expectCreatesEip712Order(
+        driftBalancer,
+        user as any,
         await mockUSDC.getAddress(),
         await mockUSDT.getAddress(),
-        sellAmount,
-        buyAmount,
-        50, // 0.5% slippage
       );
-
-      const receipt = await tx.wait();
-      const orderEvent = receipt?.logs.find(
-        (log: any): log is EventLog => (log as any).eventName === "RebalanceOrderCreated",
-      ) as EventLog;
-
-      expect(orderEvent).to.not.equal(undefined);
-
-      // Verify order hash calculation
-      const parsedEvent = driftBalancer.interface.parseLog(orderEvent);
-      const orderHash = (parsedEvent as any).args[0];
-
-      expect(orderHash).to.not.equal(ethers.ZeroHash);
-      expect(orderHash.length).to.equal(66); // 0x + 64 hex chars
-
       log("✅ EIP-712 compliant order created with valid hash");
     });
   });
