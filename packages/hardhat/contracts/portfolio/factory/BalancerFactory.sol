@@ -15,6 +15,7 @@ import "../balancers/DriftBalancer.sol";
 import "../balancers/TimeBalancer.sol";
 import "../interfaces/ILimitOrderProtocol.sol";
 import "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
+import "../automation/DriftBalancerLogger.sol";
 
 // ===== Programmatic Upkeep Registration (file-level types) =====
 // Minimal interfaces based on Chainlink docs
@@ -70,6 +71,7 @@ contract BalancerFactory is Ownable {
     event PriceFeedUpdated(address priceFeed);
     event AutomationAddressesSet(address linkToken, address registrar, address registry);
     event UpkeepRegistered(address indexed balancer, uint256 indexed upkeepId, address forwarder);
+    event DriftLoggerDeployed(address indexed logger, address indexed targetBalancer);
 
     error NoStablecoin();
 
@@ -175,6 +177,59 @@ contract BalancerFactory is Ownable {
         emit AutomationAddressesSet(_linkToken, _registrar, _registry);
     }
 
+    /// @notice Register a log-trigger upkeep for a DriftBalancerLogger (DIA push oracle logs)
+    /// @param balancer The deployed DriftBalancerLogger address
+    /// @param gasLimit max gas for performUpkeep
+    /// @param amountLinkWei initial LINK funding (wei)
+    /// @param emittingContract DIA PushOracleReceiver contract emitting the event
+    /// @param topic0 keccak256(eventSignature). For DIA classic: keccak256("OracleUpdate(string,uint128,uint128)")
+    /// @param filterSelector per Chainlink docs; 0 = no indexed filters
+    /// @param topic1 indexed topic if filtering by key; otherwise 0x
+    /// @param topic2 unused
+    /// @param topic3 unused
+    function registerLogTriggerUpkeep(
+        address balancer,
+        uint32 gasLimit,
+        uint96 amountLinkWei,
+        address emittingContract,
+        bytes32 topic0,
+        uint8 filterSelector,
+        bytes32 topic1,
+        bytes32 topic2,
+        bytes32 topic3
+    ) external onlyOwner returns (uint256 upkeepId) {
+        require(balancer != address(0), "balancer=0");
+        require(address(linkToken) != address(0) && automationRegistrar != address(0), "Automation not set");
+
+        linkToken.approve(automationRegistrar, amountLinkWei);
+
+        bytes memory trigger = abi.encode(emittingContract, filterSelector, topic0, topic1, topic2, topic3);
+        RegistrationParams memory params = RegistrationParams({
+            name: string(abi.encodePacked("1Balancer-Log-", _shortAddr(balancer))),
+            encryptedEmail: bytes(""),
+            upkeepContract: balancer,
+            gasLimit: gasLimit,
+            adminAddress: owner(),
+            triggerType: 1, // log trigger
+            checkData: bytes(""),
+            triggerConfig: trigger,
+            offchainConfig: bytes(""),
+            amount: amountLinkWei
+        });
+
+        upkeepId = IAutomationRegistrar(automationRegistrar).registerUpkeep(params);
+        require(upkeepId != 0, "Registrar returned 0");
+        balancerToUpkeepId[balancer] = upkeepId;
+
+        address forwarder = address(0);
+        if (automationRegistry != address(0)) {
+            try IAutomationRegistryMinimal(automationRegistry).getForwarder(upkeepId) returns (address fwd) {
+                forwarder = fwd;
+            } catch {}
+        }
+        emit UpkeepRegistered(balancer, upkeepId, forwarder);
+    }
+
     /// @notice Programmatically register a custom-logic upkeep for a deployed balancer
     /// @dev Approves LINK to registrar and calls registerUpkeep. Optionally sets forwarder if registry is provided.
     function registerBalancerUpkeep(
@@ -196,7 +251,7 @@ contract BalancerFactory is Ownable {
             upkeepContract: balancer,
             gasLimit: gasLimit,
             adminAddress: owner(),
-            triggerType: 0, // conditional
+            triggerType: 0, // 0=conditional (TimeBalancer). For DriftBalancerLogger use 1 and pass log trigger config.
             checkData: checkData,
             triggerConfig: bytes("") /* 0x */, 
             offchainConfig: bytes("") /* 0x */, 
@@ -226,6 +281,49 @@ contract BalancerFactory is Ownable {
         address forwarder = IAutomationRegistryMinimal(automationRegistry).getForwarder(upkeepId);
         DriftBalancer(payable(balancer)).setForwarderAddress(forwarder);
         emit UpkeepRegistered(balancer, upkeepId, forwarder);
+    }
+
+    // ===== DIA Log-Trigger Drift Logger Deployment =====
+    function createDriftBalancerLogger(
+        address diaPushOracle,
+        address targetBalancer,
+        string[] memory keys,
+        uint256[] memory thresholdsBps
+    ) external onlyOwner returns (address logger) {
+        logger = address(new DriftBalancerLogger(diaPushOracle, targetBalancer, keys, thresholdsBps));
+        emit DriftLoggerDeployed(logger, targetBalancer);
+    }
+
+    function createAndRegisterDriftBalancerLogger(
+        address diaPushOracle,
+        address targetBalancer,
+        string[] memory keys,
+        uint256[] memory thresholdsBps,
+        // registration params
+        uint32 gasLimit,
+        uint96 amountLinkWei,
+        address emittingContract,
+        bytes32 topic0,
+        uint8 filterSelector,
+        bytes32 topic1,
+        bytes32 topic2,
+        bytes32 topic3
+    ) external onlyOwner returns (address logger, uint256 upkeepId) {
+        logger = address(new DriftBalancerLogger(diaPushOracle, targetBalancer, keys, thresholdsBps));
+        emit DriftLoggerDeployed(logger, targetBalancer);
+
+        // Register log trigger upkeep for the newly deployed logger
+        upkeepId = this.registerLogTriggerUpkeep(
+            logger,
+            gasLimit,
+            amountLinkWei,
+            emittingContract,
+            topic0,
+            filterSelector,
+            topic1,
+            topic2,
+            topic3
+        );
     }
 
     function _shortAddr(address a) internal pure returns (string memory) {

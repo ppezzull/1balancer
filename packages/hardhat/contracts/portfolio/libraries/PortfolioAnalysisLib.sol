@@ -43,6 +43,8 @@ library PortfolioAnalysisLib {
         uint256 stablecoinValue
     ) internal pure returns (uint256 stablecoinRatio) {
         if (totalValue == 0) return 0;
-        stablecoinRatio = (stablecoinValue * 10000) / totalValue; // Basis points
+        unchecked {
+            stablecoinRatio = (stablecoinValue * 10000) / totalValue; // Basis points
+        }
     }
 }

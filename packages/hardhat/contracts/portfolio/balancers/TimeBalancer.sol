@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import "../interfaces/IBalancerFactory.sol";
-import "../interfaces/ISpotPriceAggregator.sol";
+import "../interfaces/IOracleAdapter.sol";
 import "../libraries/StablecoinAnalysisLib.sol";
 import "./BaseBalancer.sol";
 

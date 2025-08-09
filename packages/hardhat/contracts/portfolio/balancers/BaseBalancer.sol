@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@chainlink/contracts/src/v0.8/automation/interfaces/AutomationCompatibleInterface.sol";
 
 import "../interfaces/IBalancerFactory.sol";
-import "../interfaces/ISpotPriceAggregator.sol";
+import "../interfaces/IOracleAdapter.sol";
 import "../interfaces/IERC1271.sol";
 import "../interfaces/ILimitOrderProtocol.sol";
 import "../libraries/LimitOrderLib.sol";
@@ -161,7 +161,7 @@ abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, 
 
     function getPrice(address asset, uint256 amount) public view returns (uint256) {
         address priceFeedAddr = factory.priceFeed();
-        uint256 price = ISpotPriceAggregator(priceFeedAddr).getRateToEth(asset, false);
+        uint256 price = IOracleAdapter(priceFeedAddr).getRateToEth(asset, false);
         return (amount * price) / 1e18;
     }
 
@@ -268,7 +268,7 @@ abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, 
             address stablecoin = stablecoins[i];
             uint256 balance = IERC20(stablecoin).balanceOf(address(this));
             if (balance > 0) {
-                uint256 price = ISpotPriceAggregator(factory.priceFeed()).getRateToEth(stablecoin, false);
+                uint256 price = IOracleAdapter(factory.priceFeed()).getRateToEth(stablecoin, false);
                 totalValue += (balance * price) / 1e18;
             }
         }
@@ -293,6 +293,10 @@ abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, 
 
     function getAssetAddresses() external view returns (address[] memory) {
         return assetAddresses;
+    }
+
+    function getStablecoins() external view returns (address[] memory) {
+        return stablecoins;
     }
 
     function getAssetGroup(uint256 groupId) external view returns (AssetGroup memory) {

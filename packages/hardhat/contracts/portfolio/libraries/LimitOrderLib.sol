@@ -166,8 +166,10 @@ library LimitOrderLib {
         if (target != address(0)) traits |= (1 << ARGS_HAS_TARGET);
 
         // Add extension and interaction lengths
-        traits |= (uint256(extension.length) << 224);
-        traits |= (uint256(interaction.length) << 200);
+        unchecked {
+            traits |= (uint256(extension.length) << 224);
+            traits |= (uint256(interaction.length) << 200);
+        }
 
         takerTraits.traits = traits;
         takerTraits.args = abi.encodePacked(target, extension, interaction);

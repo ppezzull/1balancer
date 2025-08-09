@@ -26,12 +26,11 @@ library StablecoinGridLib {
     // Constants
     uint256 private constant PRICE_PRECISION = 1e18;
     uint256 private constant USDC_DECIMALS = 6;
-    uint256 private constant DAI_DECIMALS = 18;
 
     // Price bounds for stablecoin deviation detection (wider bounds for testing)
     // Tighter bounds so a 1% deviation triggers actions (e.g., 0.99 is outside bounds)
-    uint256 public constant LOWER_BOUND = 995 * 1e15; // 0.995
-    uint256 public constant UPPER_BOUND = 1005 * 1e15; // 1.005
+    uint256 internal constant LOWER_BOUND = 995 * 1e15; // 0.995
+    uint256 internal constant UPPER_BOUND = 1005 * 1e15; // 1.005
 
     /**
      * @dev Generate grid orders for stablecoin pairs
@@ -42,34 +41,42 @@ library StablecoinGridLib {
     ) internal pure returns (Order[] memory orders) {
         if (params.nLevels == 0) return new Order[](0);
 
-        uint256 nPairs = stablecoins.length > 1 ? stablecoins.length : 0;
+        uint256 nPairs = stablecoins.length;
         if (nPairs < 2) return new Order[](0);
 
         uint256 nLevelsAdjusted = params.nLevels;
-        uint256 baseOrderAmount = params.capital / (params.nLevels * 2 * (nPairs - 1));
+        uint256 denominator = params.nLevels * 2 * (nPairs - 1);
+        uint256 baseOrderAmount = denominator == 0 ? 0 : params.capital / denominator;
 
         if (baseOrderAmount < params.minOrderSize) {
-            nLevelsAdjusted = params.capital / (params.minOrderSize * 2 * (nPairs - 1));
+            uint256 denomMin = params.minOrderSize * 2 * (nPairs - 1);
+            nLevelsAdjusted = denomMin == 0 ? 0 : params.capital / denomMin;
             if (nLevelsAdjusted == 0) nLevelsAdjusted = 1;
         } else if (baseOrderAmount > params.maxOrderSize) {
-            nLevelsAdjusted = params.capital / (params.maxOrderSize * 2 * (nPairs - 1));
+            uint256 denomMax = params.maxOrderSize * 2 * (nPairs - 1);
+            nLevelsAdjusted = denomMax == 0 ? 0 : params.capital / denomMax;
             uint256 maxLevels = 100;
             if (nLevelsAdjusted > maxLevels) nLevelsAdjusted = maxLevels;
         }
 
         if (nLevelsAdjusted == 0) return new Order[](0);
 
-        uint256 finalOrderAmount = params.capital / (nLevelsAdjusted * 2 * (nPairs - 1));
-        orders = new Order[](nLevelsAdjusted * 2 * (nPairs - 1));
+        uint256 perLevelDenom = nLevelsAdjusted * 2 * (nPairs - 1);
+        uint256 finalOrderAmount = params.capital / perLevelDenom;
+        orders = new Order[](perLevelDenom);
         uint256 idx = 0;
+        uint256 step = (PRICE_PRECISION * params.gridRangeBps) / 10000;
+        uint256 peg = params.pegPrice;
 
-        for (uint256 pair = 0; pair < nPairs - 1; pair++) {
-            address fromToken = stablecoins[pair];
-            address toToken = stablecoins[(pair + 1) % nPairs];
-            for (uint256 i = 0; i < nLevelsAdjusted; i++) {
-                uint256 offset = ((((i + 1) * PRICE_PRECISION) / nLevelsAdjusted) * params.gridRangeBps) / 10000;
-                orders[idx++] = Order(fromToken, toToken, finalOrderAmount, params.pegPrice + offset);
-                orders[idx++] = Order(toToken, fromToken, finalOrderAmount, params.pegPrice - offset);
+        unchecked {
+            for (uint256 pair = 0; pair < nPairs - 1; pair++) {
+                address fromToken = stablecoins[pair];
+                address toToken = stablecoins[pair + 1];
+                for (uint256 i = 0; i < nLevelsAdjusted; i++) {
+                    uint256 offset = ((i + 1) * step) / nLevelsAdjusted;
+                    orders[idx++] = Order(fromToken, toToken, finalOrderAmount, peg + offset);
+                    orders[idx++] = Order(toToken, fromToken, finalOrderAmount, peg - offset);
+                }
             }
         }
 
