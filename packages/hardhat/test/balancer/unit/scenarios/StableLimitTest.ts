@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { EventLog } from "ethers";
-import { setupStableLimit, log, encodePerformData, findEvent } from "../../../utils/test/setup";
+import { setupStableLimit, log, encodePerformData, findEvent } from "../../../../utils/test/setup";
 import {
   expectValidEip1271Signature,
   expectInvalidEip1271Signature,
   expectCreatesEip712Order,
-} from "../../../utils/test/eip1271";
+} from "../../../../utils/test/eip1271";
 
 // logging is provided by @test/utils
 

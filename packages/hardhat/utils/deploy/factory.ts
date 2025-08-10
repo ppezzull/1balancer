@@ -1,5 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { BalancerFactory, MockSpotPriceAggregator, MockLimitOrderProtocol } from "../../typechain-types";
+import type { BalancerFactory, OracleAdapter, MockLimitOrderProtocol } from "../../typechain-types";
 
 export async function deployBalancerFactory(
   hre: HardhatRuntimeEnvironment,
@@ -9,7 +9,7 @@ export async function deployBalancerFactory(
     stablecoinGridLib: any;
   },
   mocks: {
-    mockPriceAggregator: MockSpotPriceAggregator;
+    priceFeedAdapter: OracleAdapter;
     mockLimitOrderProtocol: MockLimitOrderProtocol;
   },
   stablecoinAddresses: string[],
@@ -23,12 +23,12 @@ export async function deployBalancerFactory(
   const factoryDeployment = await deploy("BalancerFactory", {
     from: deployer,
     args: [
-      await mocks.mockPriceAggregator.getAddress(),
+      await mocks.priceFeedAdapter.getAddress(),
       stablecoinAddresses,
       await mocks.mockLimitOrderProtocol.getAddress(),
     ],
     log: true,
-    skipIfAlreadyDeployed: true,
+    skipIfAlreadyDeployed: false,
   });
 
   const optimizedBalancerFactory = (await ethers.getContractAt(

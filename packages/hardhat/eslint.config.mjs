@@ -1,4 +1,3 @@
-
 import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";

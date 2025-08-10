@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { EventLog } from "ethers";
-import { setupDriftBalancerMixed, setupTimeBalancer, findEvent } from "../../../utils/test/setup";
+import { setupDriftBalancerMixed, setupTimeBalancer, findEvent } from "../../../../utils/test/setup";
 
 describe("Balancer Disbalance Tests", function () {
   let deployer: any;

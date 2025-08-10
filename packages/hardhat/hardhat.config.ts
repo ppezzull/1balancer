@@ -10,6 +10,7 @@ import "solidity-coverage";
 import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "hardhat-tracer";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
 

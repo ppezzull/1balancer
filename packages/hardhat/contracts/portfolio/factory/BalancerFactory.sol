@@ -42,7 +42,6 @@ interface IAutomationRegistryMinimal {
     function getForwarder(uint256 upkeepId) external view returns (address);
 }
 
-
 contract BalancerFactory is Ownable {
     address public priceFeed;
     address[] public stablecoins;
@@ -69,6 +68,8 @@ contract BalancerFactory is Ownable {
     /// @dev Emitted when a new balancer is created
     event BalancerCreated(address indexed owner, address indexed balancer, bool isTimeBased);
     event PriceFeedUpdated(address priceFeed);
+    event StablecoinsSet(address[] stablecoins);
+    event LimitOrderProtocolUpdated(address limitOrderProtocol);
     event AutomationAddressesSet(address linkToken, address registrar, address registry);
     event UpkeepRegistered(address indexed balancer, uint256 indexed upkeepId, address forwarder);
     event DriftLoggerDeployed(address indexed logger, address indexed targetBalancer);
@@ -82,10 +83,12 @@ contract BalancerFactory is Ownable {
         address[] memory _assetAddresses,
         uint256[] memory _percentages,
         uint256[] memory _amounts,
-        uint256 _driftPercentage
+        uint256 _driftPercentage,
+        string memory _name,
+        string memory _description
     ) external returns (address balancer) {
-
-        // _checkUserTokenBalance(_assetAddresses, _amounts);
+        _requireAtLeastOneStablecoin(_assetAddresses);
+        _checkUserTokenBalance(_assetAddresses, _amounts);
 
          balancer = address(new DriftBalancer(
             msg.sender, 
@@ -94,7 +97,9 @@ contract BalancerFactory is Ownable {
             _percentages, 
             _driftPercentage, 
             stablecoins,
-            address(limitOrderProtocol)
+            address(limitOrderProtocol),
+            _name,
+            _description
         ));
 
         _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
@@ -109,10 +114,12 @@ contract BalancerFactory is Ownable {
         address[] memory _assetAddresses,
         uint256[] memory _percentages,
         uint256[] memory _amounts,
-        uint256 interval
+        uint256 interval,
+        string memory _name,
+        string memory _description
     ) external returns (address balancer) {
+        _requireAtLeastOneStablecoin(_assetAddresses);
         _checkUserTokenBalance(_assetAddresses, _amounts);
-        // _requireAtLeastOneStablecoin(_assetAddresses);
 
          balancer = address(new TimeBalancer(
             msg.sender, 
@@ -121,7 +128,9 @@ contract BalancerFactory is Ownable {
             _percentages, 
             interval, 
             stablecoins,
-            address(limitOrderProtocol)
+            address(limitOrderProtocol),
+            _name,
+            _description
         ));
 
         _sendTokensToBalancer(balancer, _assetAddresses, _amounts);
@@ -143,16 +152,16 @@ contract BalancerFactory is Ownable {
      * @notice Internal function to check if the asset addresses contain at least one stablecoin
      * @dev This function is not used in the current implementation as the stablecoins adressess will be hardcoded in the factory
      */
-    // function _requireAtLeastOneStablecoin(address[] memory _assetAddresses) internal view {
-    //     for (uint i = 0; i < _assetAddresses.length; i++) {
-    //         for (uint j = 0; j < stablecoins.length; j++) {
-    //             if (_assetAddresses[i] == stablecoins[j]) {
-    //                 return;
-    //             }
-    //         }
-    //     }
-    //     revert NoStablecoin();
-    // }
+    function _requireAtLeastOneStablecoin(address[] memory _assetAddresses) internal view {
+        for (uint i = 0; i < _assetAddresses.length; i++) {
+            for (uint j = 0; j < stablecoins.length; j++) {
+                if (_assetAddresses[i] == stablecoins[j]) {
+                    return;
+                }
+            }
+        }
+        revert NoStablecoin();
+    }
 
     function _checkUserTokenBalance(address[] memory tokens, uint256[] memory amounts) internal view {
         require(tokens.length == amounts.length, "Tokens and amounts length mismatch");
@@ -164,6 +173,16 @@ contract BalancerFactory is Ownable {
     function setPriceFeed(address _priceFeed) external onlyOwner {
         priceFeed = _priceFeed;
         emit PriceFeedUpdated(_priceFeed);
+    }
+
+    function setStablecoins(address[] calldata _stablecoins) external onlyOwner {
+        stablecoins = _stablecoins;
+        emit StablecoinsSet(_stablecoins);
+    }
+
+    function setLimitOrderProtocol(address _limitOrderProtocol) external onlyOwner {
+        limitOrderProtocol = ILimitOrderProtocol(_limitOrderProtocol);
+        emit LimitOrderProtocolUpdated(_limitOrderProtocol);
     }
 
     // Note: public dynamic array `stablecoins` already exposes `stablecoins(uint256)` getter

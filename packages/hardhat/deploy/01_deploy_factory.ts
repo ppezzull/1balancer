@@ -3,13 +3,14 @@ import { DeployFunction } from "hardhat-deploy/types";
 import { deployLibraries } from "../utils/deploy/libs";
 import {
   getOrDeployMockTokens,
-  getOrDeploySpotPriceAggregator,
-  configureSpotPrices,
   getOrDeployLimitOrderProtocol,
+  getOrDeployDiaOracle,
+  configureDiaPrices,
+  wireAdapterKeys,
 } from "../utils/deploy/mocks/index";
 import { deployBalancerFactory } from "../utils/deploy/factory";
 
-const deployOptimizedSystem: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deployBalancerFactoryScript: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { getNamedAccounts } = hre;
   const { deployer } = await getNamedAccounts();
 
@@ -25,17 +26,18 @@ const deployOptimizedSystem: DeployFunction = async function (hre: HardhatRuntim
     console.log("🪙 Step 2: Deploying/getting mock tokens...");
     const tokens = await getOrDeployMockTokens(hre);
 
-    // Step 3: Deploy or get spot price aggregator
-    console.log("🔧 Step 3: Deploying/getting spot price aggregator...");
-    const mockPriceAggregator = await getOrDeploySpotPriceAggregator(hre);
+    // Step 3: Deploy or get DIA oracle + adapter
+    console.log("🔧 Step 3: Deploying/getting DIA oracle + adapter...");
+    const { adapter, dia } = await getOrDeployDiaOracle(hre);
 
     // Step 4: Deploy or get limit order protocol
     console.log("📋 Step 4: Deploying/getting limit order protocol...");
     const mockLimitOrderProtocol = await getOrDeployLimitOrderProtocol(hre);
 
-    // Step 5: Configure spot prices with deployed tokens
-    console.log("💰 Step 5: Configuring spot prices...");
-    await configureSpotPrices(mockPriceAggregator, tokens);
+    // Step 5: Configure DIA mock prices and wire adapter keys
+    console.log("💰 Step 5: Configuring DIA prices + adapter keys...");
+    await configureDiaPrices(dia, tokens);
+    await wireAdapterKeys(adapter, tokens);
 
     // Step 6: Deploy OptimizedBalancerFactory with stablecoin addresses
     console.log("🏭 Step 6: Deploying OptimizedBalancerFactory...");
@@ -51,7 +53,7 @@ const deployOptimizedSystem: DeployFunction = async function (hre: HardhatRuntim
         limitOrderLib: libraries.limitOrderLib,
         stablecoinGridLib: libraries.stablecoinGridLib,
       },
-      { mockPriceAggregator, mockLimitOrderProtocol },
+      { priceFeedAdapter: adapter, mockLimitOrderProtocol },
       stablecoinAddresses,
     );
 
@@ -64,5 +66,5 @@ const deployOptimizedSystem: DeployFunction = async function (hre: HardhatRuntim
   }
 };
 
-export default deployOptimizedSystem;
-deployOptimizedSystem.tags = ["OptimizedBalancerFactory"];
+export default deployBalancerFactoryScript;
+deployBalancerFactoryScript.tags = ["BalancerFactory"];

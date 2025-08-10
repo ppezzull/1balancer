@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { setupDriftBalancerMixed } from "../../../utils/test/setup";
-import { configureSpotPrices } from "../../../utils";
+import { setupDriftBalancerMixed } from "../../../../utils/test/setup";
+import { configureSpotPrices } from "../../../../utils";
 
 describe("Drift Balancer Price Feed Tests", function () {
   let deployer: any;

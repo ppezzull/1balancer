@@ -6,8 +6,9 @@ import type {
   DriftBalancer,
   MockERC20,
   MockLimitOrderProtocol,
-  MockSpotPriceAggregator,
+  OracleAdapter,
   TimeBalancer,
+  DiaPushOracleReceiverMock,
 } from "../../typechain-types";
 
 // Reuse project deploy/mocks utilities
@@ -17,9 +18,10 @@ import {
   getOrDeployMockTokens,
   mintTestTokens,
   approveFactoryTokens,
-  getOrDeploySpotPriceAggregator,
-  configureSpotPrices,
   getOrDeployLimitOrderProtocol,
+  getOrDeployDiaOracle,
+  configureDiaPrices,
+  wireAdapterKeys,
   type MockTokens,
 } from "..";
 
@@ -43,7 +45,7 @@ export interface StableLimitTestContext {
   mockUSDC: MockERC20;
   mockUSDT: MockERC20;
   mockDAI: MockERC20;
-  priceAggregator: MockSpotPriceAggregator;
+  priceAggregator: OracleAdapter;
   limitOrderProtocol: MockLimitOrderProtocol;
 }
 
@@ -60,10 +62,11 @@ export async function setupStableLimit(
 
   const libraries = await deployLibraries(hre);
   const tokens = await getOrDeployMockTokens(hre);
-  const priceAggregator = await getOrDeploySpotPriceAggregator(hre);
+  const { adapter: priceAggregator, dia } = await getOrDeployDiaOracle(hre);
   const limitOrderProtocol = await getOrDeployLimitOrderProtocol(hre);
 
-  await configureSpotPrices(priceAggregator, tokens);
+  await configureDiaPrices(dia, tokens);
+  await wireAdapterKeys(priceAggregator, tokens);
 
   const stablecoinAddresses = [
     await tokens.mockUSDC.getAddress(),
@@ -74,9 +77,13 @@ export async function setupStableLimit(
   const factory = await deployBalancerFactory(
     hre,
     { limitOrderLib: libraries.limitOrderLib, stablecoinGridLib: libraries.stablecoinGridLib },
-    { mockPriceAggregator: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
+    { priceFeedAdapter: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
     stablecoinAddresses,
   );
+
+  // Ensure factory stablecoins are correctly set even if another test mutated them
+  const ownerSigner = await getOwnerSignerOf(factory as any);
+  await (factory as any).connect(ownerSigner).setStablecoins(stablecoinAddresses);
 
   const userAddress = await user.getAddress();
   await mintTestTokens(tokens, userAddress, {
@@ -97,9 +104,16 @@ export async function setupStableLimit(
     await tokens.mockDAI.getAddress(),
   ];
 
-  const tx = await factory
+  const tx = await (factory as any)
     .connect(user)
-    .createDriftBalancer(assetAddresses, stablecoinPercentages, [...stablecoinAmounts], driftPercentage);
+    .createDriftBalancer(
+      assetAddresses,
+      stablecoinPercentages,
+      [...stablecoinAmounts],
+      driftPercentage,
+      "Optimized Drift Balancer",
+      "Automatically rebalances when portfolio drift exceeds tolerance and stablecoin deviations are detected.",
+    );
   const receipt = await tx.wait();
 
   if (!receipt) throw new Error("Transaction receipt is null");
@@ -129,7 +143,7 @@ export async function setupStableLimit(
 export interface FactorySetupContext {
   owner: Signer;
   factory: BalancerFactory;
-  priceAggregator: MockSpotPriceAggregator;
+  priceAggregator: OracleAdapter;
   limitOrderProtocol: MockLimitOrderProtocol;
 }
 
@@ -138,16 +152,37 @@ export async function setupFactoryWithMocks(
   stablecoinAddresses: string[] = [],
 ): Promise<FactorySetupContext> {
   const [owner] = await ethers.getSigners();
-  const priceAggregator = await getOrDeploySpotPriceAggregator(hre);
+  const { adapter: priceAggregator, dia } = await getOrDeployDiaOracle(hre);
   const limitOrderProtocol = await getOrDeployLimitOrderProtocol(hre);
 
   const libraries = await deployLibraries(hre);
+  const tokens = await getOrDeployMockTokens(hre);
+  await configureDiaPrices(dia, tokens);
+  const stables =
+    stablecoinAddresses.length > 0
+      ? stablecoinAddresses
+      : [await tokens.mockUSDC.getAddress(), await tokens.mockUSDT.getAddress(), await tokens.mockDAI.getAddress()];
+
   const factory = await deployBalancerFactory(
     hre,
     { limitOrderLib: libraries.limitOrderLib, stablecoinGridLib: libraries.stablecoinGridLib },
-    { mockPriceAggregator: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
-    stablecoinAddresses,
+    { priceFeedAdapter: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
+    stables,
   );
+
+  // Reset and normalize factory to expected addresses
+  {
+    const ownerSigner = await getOwnerSignerOf(factory as any);
+    await (factory as any).connect(ownerSigner).setPriceFeed(await priceAggregator.getAddress());
+    await (factory as any).connect(ownerSigner).setLimitOrderProtocol(await limitOrderProtocol.getAddress());
+    await (factory as any)
+      .connect(ownerSigner)
+      .setStablecoins([
+        await tokens.mockUSDC.getAddress(),
+        await tokens.mockUSDT.getAddress(),
+        await tokens.mockDAI.getAddress(),
+      ]);
+  }
 
   return { owner, factory, priceAggregator, limitOrderProtocol };
 }
@@ -185,7 +220,8 @@ export interface DriftMixedContext {
   mockDAI: MockERC20;
   mockWETH: MockERC20;
   mockINCH: MockERC20;
-  priceAggregator: MockSpotPriceAggregator;
+  priceAggregator: OracleAdapter;
+  dia: DiaPushOracleReceiverMock;
 }
 
 export async function setupDriftBalancerMixed(
@@ -195,16 +231,29 @@ export async function setupDriftBalancerMixed(
   const [deployer] = await ethers.getSigners();
   const libraries = await deployLibraries(hre);
   const tokens = await getOrDeployMockTokens(hre);
-  const priceAggregator = await getOrDeploySpotPriceAggregator(hre);
+  const { adapter: priceAggregator, dia } = await getOrDeployDiaOracle(hre);
   const limitOrderProtocol = await getOrDeployLimitOrderProtocol(hre);
-  await configureSpotPrices(priceAggregator, tokens);
+  await configureDiaPrices(dia, tokens);
+  await wireAdapterKeys(priceAggregator, tokens);
 
   const factory = await deployBalancerFactory(
     hre,
     { limitOrderLib: libraries.limitOrderLib, stablecoinGridLib: libraries.stablecoinGridLib },
-    { mockPriceAggregator: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
+    { priceFeedAdapter: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
     [await tokens.mockUSDC.getAddress(), await tokens.mockUSDT.getAddress(), await tokens.mockDAI.getAddress()],
   );
+
+  // Reset factory stablecoins to expected tokens for this test
+  {
+    const ownerSigner = await getOwnerSignerOf(factory as any);
+    await (factory as any)
+      .connect(ownerSigner)
+      .setStablecoins([
+        await tokens.mockUSDC.getAddress(),
+        await tokens.mockUSDT.getAddress(),
+        await tokens.mockDAI.getAddress(),
+      ]);
+  }
 
   const percentages = options?.percentages ?? ([40n, 40n, 20n] as const);
   const amounts =
@@ -227,11 +276,22 @@ export async function setupDriftBalancerMixed(
     await tokens.mockINCH.getAddress(),
   ];
 
-  const tx = await factory.createDriftBalancer(
+  // Debug: print assets and factory stablecoins to diagnose NoStablecoin
+  try {
+    const st0 = await factory.stablecoins(0);
+    const st1 = await factory.stablecoins(1);
+    const st2 = await factory.stablecoins(2);
+    console.log("setup/drift: assets=", assetAddresses);
+    console.log("setup/drift: factory.stablecoins=", [st0, st1, st2]);
+  } catch {}
+
+  const tx = await (factory as any).createDriftBalancer(
     assetAddresses,
     [...percentages] as unknown as bigint[],
     [...amounts] as unknown as bigint[],
     driftPercentage,
+    "Optimized Drift Balancer",
+    "Automatically rebalances when portfolio drift exceeds tolerance and stablecoin deviations are detected.",
   );
   const receipt = await tx.wait();
   const created = findEvent(receipt, "BalancerCreated")!;
@@ -250,6 +310,7 @@ export async function setupDriftBalancerMixed(
     mockWETH: tokens.mockWETH,
     mockINCH: tokens.mockINCH,
     priceAggregator,
+    dia,
   };
 }
 
@@ -268,19 +329,21 @@ export async function setupTimeBalancer(
   factory: BalancerFactory;
   timeBalancer: TimeBalancer;
   tokens: MockTokens;
-  priceAggregator: MockSpotPriceAggregator;
+  priceAggregator: OracleAdapter;
+  dia: DiaPushOracleReceiverMock;
 }> {
   const [deployer] = await ethers.getSigners();
   const libraries = await deployLibraries(hre);
   const tokens = await getOrDeployMockTokens(hre);
-  const priceAggregator = await getOrDeploySpotPriceAggregator(hre);
+  const { adapter: priceAggregator, dia } = await getOrDeployDiaOracle(hre);
   const limitOrderProtocol = await getOrDeployLimitOrderProtocol(hre);
-  await configureSpotPrices(priceAggregator, tokens);
+  await configureDiaPrices(dia, tokens);
+  await wireAdapterKeys(priceAggregator, tokens);
 
   const factory = await deployBalancerFactory(
     hre,
     { limitOrderLib: libraries.limitOrderLib, stablecoinGridLib: libraries.stablecoinGridLib },
-    { mockPriceAggregator: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
+    { priceFeedAdapter: priceAggregator, mockLimitOrderProtocol: limitOrderProtocol },
     [await tokens.mockUSDC.getAddress(), await tokens.mockUSDT.getAddress(), await tokens.mockDAI.getAddress()],
   );
 
@@ -308,11 +371,13 @@ export async function setupTimeBalancer(
     await tokens.mockUSDT.getAddress(),
   ];
 
-  const tx = await factory.createTimeBalancer(
+  const tx = await (factory as any).createTimeBalancer(
     assetAddresses,
     [...percentages] as unknown as bigint[],
     [...amounts] as unknown as bigint[],
     intervalSeconds,
+    "Optimized Time Balancer",
+    "Periodically checks and rebalances based on a fixed interval and stablecoin deviations.",
   );
   const receipt = await tx.wait();
   const created = findEvent(receipt, "BalancerCreated")!;
@@ -320,5 +385,5 @@ export async function setupTimeBalancer(
   const timeAddr = parsed.args[1] as string;
   const timeBalancer = await ethers.getContractAt("TimeBalancer", timeAddr);
 
-  return { deployer, factory, timeBalancer, tokens, priceAggregator };
+  return { deployer, factory, timeBalancer, tokens, priceAggregator, dia };
 }

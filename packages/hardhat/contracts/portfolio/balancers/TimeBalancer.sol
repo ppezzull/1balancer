@@ -22,12 +22,14 @@ contract TimeBalancer is BaseBalancer {
         uint256[] memory _percentages,
         uint256 _interval,
         address[] memory _stablecoins,
-        address _limitOrderProtocol
-    ) BaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol) {
+        address _limitOrderProtocol,
+        string memory _name,
+        string memory _description
+    ) BaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol, _name, _description) {
         interval = _interval;
         lastRebalance = block.timestamp;
-        timeName = "Optimized Time Balancer";
-        timeDescription = "Periodically checks and rebalances based on a fixed interval and stablecoin deviations.";
+        timeName = _name;
+        timeDescription = _description;
     }
 
     function triggerTimeRebalance() external {

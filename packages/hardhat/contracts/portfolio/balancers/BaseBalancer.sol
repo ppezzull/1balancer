@@ -49,6 +49,7 @@ abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, 
 
     event StablecoinsUpdated(address[] newStablecoins);
     event ForwarderUpdated(address forwarder);
+    
 
     constructor(
         address _owner,
@@ -56,7 +57,9 @@ abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, 
         address[] memory _assetAddresses,
         uint256[] memory _percentages,
         address[] memory _stablecoins,
-        address _limitOrderProtocol
+        address _limitOrderProtocol,
+        string memory _name,
+        string memory _description
     ) Ownable(_owner) {
         factory = IBalancerFactory(_factory);
 
@@ -71,8 +74,8 @@ abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, 
         authorizedSigner = _owner;
         // Default forwarder to owner to enable local testing and safe manual calls
         s_forwarderAddress = _owner;
-        name = "Optimized Balancer";
-        description = "Shared base for Drift/Time Balancers";
+        name = _name;
+        description = _description;
 
         // Limit order protocol and domain separator
         limitOrderProtocol = ILimitOrderProtocol(_limitOrderProtocol);
@@ -106,6 +109,8 @@ abstract contract BaseBalancer is Ownable, Pausable, ReentrancyGuard, IERC1271, 
     ) external onlyOwner {
         _updateAssetGroupMapping(_assetAddresses, _percentages, _stablecoins);
     }
+
+    
 
     // ===== Authorization controls =====
     function updateAuthorizedSigner(address newSigner) external onlyOwner {

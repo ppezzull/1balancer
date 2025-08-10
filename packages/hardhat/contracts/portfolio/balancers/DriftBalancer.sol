@@ -32,12 +32,11 @@ contract DriftBalancer is BaseBalancer {
         uint256[] memory _percentages,
         uint256 _driftPercentage,
         address[] memory _stablecoins,
-        address _limitOrderProtocol
-    ) BaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol) {
-
+        address _limitOrderProtocol,
+        string memory _name,
+        string memory _description
+    ) BaseBalancer(_owner, _factory, _assetAddresses, _percentages, _stablecoins, _limitOrderProtocol, _name, _description) {
         driftPercentage = _driftPercentage;
-        name = "Optimized Drift Balancer";
-        description = "Automatically rebalances when portfolio drift exceeds tolerance and stablecoin deviations are detected.";
     }
 
     // ===== Owner controls =====
