@@ -17,29 +17,41 @@ library StablecoinAnalysisLib {
     ) internal view returns (bool upkeepNeeded, bytes memory performData) {
         uint256 n = stablecoins.length;
         if (n <= 1) return (false, bytes(""));
+        if (priceFeed == address(0)) return (false, bytes(""));
         address ref = stablecoins[0];
+        bytes4 sel = IOracleAdapter.getRate.selector; // getRate(address,address,bool)
         unchecked {
             // Primary: check token -> ref pairs (what tests set)
             for (uint256 i = 1; i < n; i++) {
-                try IOracleAdapter(priceFeed).getRate(stablecoins[i], ref, false) returns (uint256 p) {
-                    if (p > 1e18 + minDrift || p + minDrift < 1e18) {
+                (bool ok, bytes memory ret) = priceFeed.staticcall(abi.encodeWithSelector(sel, stablecoins[i], ref, false));
+                if (ok && ret.length >= 32) {
+                    uint256 p = abi.decode(ret, (uint256));
+                    if (p >= 1e18 + minDrift || p + minDrift <= 1e18) {
                         return (true, abi.encode(stablecoins[i], ref, p));
                     }
-                } catch {}
+                }
             }
             // Secondary: full pairwise scan both directions as fallback
             for (uint256 i2 = 0; i2 + 1 < n; i2++) {
                 for (uint256 j2 = i2 + 1; j2 < n; j2++) {
-                    try IOracleAdapter(priceFeed).getRate(stablecoins[i2], stablecoins[j2], false) returns (uint256 p1) {
-                        if (p1 > 1e18 + minDrift || p1 + minDrift < 1e18) {
+                    (bool ok1, bytes memory ret1) = priceFeed.staticcall(
+                        abi.encodeWithSelector(sel, stablecoins[i2], stablecoins[j2], false)
+                    );
+                    if (ok1 && ret1.length >= 32) {
+                        uint256 p1 = abi.decode(ret1, (uint256));
+                        if (p1 >= 1e18 + minDrift || p1 + minDrift <= 1e18) {
                             return (true, abi.encode(stablecoins[i2], stablecoins[j2], p1));
                         }
-                    } catch {}
-                    try IOracleAdapter(priceFeed).getRate(stablecoins[j2], stablecoins[i2], false) returns (uint256 p2) {
-                        if (p2 > 1e18 + minDrift || p2 + minDrift < 1e18) {
+                    }
+                    (bool ok2, bytes memory ret2) = priceFeed.staticcall(
+                        abi.encodeWithSelector(sel, stablecoins[j2], stablecoins[i2], false)
+                    );
+                    if (ok2 && ret2.length >= 32) {
+                        uint256 p2 = abi.decode(ret2, (uint256));
+                        if (p2 >= 1e18 + minDrift || p2 + minDrift <= 1e18) {
                             return (true, abi.encode(stablecoins[j2], stablecoins[i2], p2));
                         }
-                    } catch {}
+                    }
                 }
             }
         }
@@ -68,7 +80,7 @@ library StablecoinAnalysisLib {
             for (uint256 k = 0; k < groupTokens.length; k++) {
                 if (groupTokens[k] == referenceStable) continue;
                 uint256 pRef = IOracleAdapter(priceFeed).getRate(groupTokens[k], referenceStable, false);
-                if (pRef > 1e18 + minDrift || pRef + minDrift < 1e18) {
+                if (pRef >= 1e18 + minDrift || pRef + minDrift <= 1e18) {
                     rebalanceNeeded = true;
                     deviation = pRef > 1e18 ? pRef - 1e18 : 1e18 - pRef;
                 }

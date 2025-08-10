@@ -47,8 +47,8 @@ contract DriftBalancer is BaseBalancer {
 
     // ===== Automation hooks =====
     function _checkUpkeep(bytes calldata /*checkData*/) internal view override returns (bool upkeepNeeded, bytes memory performData) {
-        // Require ~0.1% drift (1e15 in 18 decimals) to trigger upkeep
-        return StablecoinAnalysisLib.detectDeviation(stablecoins, factory.priceFeed(), 1e15);
+        // Require ~0.5% drift (5e15 in 18 decimals) to trigger upkeep
+        return StablecoinAnalysisLib.detectDeviation(stablecoins, factory.priceFeed(), 5e15);
     }
 
     function _performUpkeep(bytes calldata /*performData*/) internal override {
@@ -105,7 +105,7 @@ contract DriftBalancer is BaseBalancer {
                     group.tokens,
                     referenceStable,
                     factory.priceFeed(),
-                    1e15
+                    5e15
                 );
                 if (need) {
                     rebalanceNeeded = true;

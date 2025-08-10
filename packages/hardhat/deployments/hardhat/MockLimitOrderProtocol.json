@@ -1,0 +1,634 @@
+{
+  "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "maker",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "taker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "makingAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "takingAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "remainingMakingAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "MockOrderFilled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "maker",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "taker",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "makingAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "takingAmount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "remainingMakingAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "OrderFilled",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "cancelOrder",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "salt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "makerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "takerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "takingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makerTraits",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.Order",
+          "name": "order",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "traits",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "args",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.TakerTraits",
+          "name": "",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "fillContractOrderArgs",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "makingAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "takingAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "salt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "makerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "takerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "takingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makerTraits",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.Order",
+          "name": "order",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        },
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "traits",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "args",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.TakerTraits",
+          "name": "",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "fillOrderArgs",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "makingAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "takingAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "filledOrders",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getOrder",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "salt",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "maker",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "receiver",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "makerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "takerAsset",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "takingAmount",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "makerTraits",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct ILimitOrderProtocol.Order",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "orderHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "isOrderFilled",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "name": "orders",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "salt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "maker",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "receiver",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "makerAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "takerAsset",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "makingAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "takingAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "makerTraits",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0x1594ff3dd3f4348ad63b5d741c6e444afa41695915c5f87799f2fc41e91b81aa",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+    "transactionIndex": 0,
+    "gasUsed": "532901",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x7d4fd736d0715d6b85529fe25d45642968a89d32d3360f49fc5e317fc9730c48",
+    "transactionHash": "0x1594ff3dd3f4348ad63b5d741c6e444afa41695915c5f87799f2fc41e91b81aa",
+    "logs": [],
+    "blockNumber": 11,
+    "cumulativeGasUsed": "532901",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "a9676a96c68143630148e71508d4d26e",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"taker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remainingMakingAmount\",\"type\":\"uint256\"}],\"name\":\"MockOrderFilled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"taker\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"remainingMakingAmount\",\"type\":\"uint256\"}],\"name\":\"OrderFilled\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"cancelOrder\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"makerAsset\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"takerAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"makerTraits\",\"type\":\"uint256\"}],\"internalType\":\"struct ILimitOrderProtocol.Order\",\"name\":\"order\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"traits\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"internalType\":\"struct ILimitOrderProtocol.TakerTraits\",\"name\":\"\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"fillContractOrderArgs\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"makerAsset\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"takerAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"makerTraits\",\"type\":\"uint256\"}],\"internalType\":\"struct ILimitOrderProtocol.Order\",\"name\":\"order\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint256\",\"name\":\"traits\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"args\",\"type\":\"bytes\"}],\"internalType\":\"struct ILimitOrderProtocol.TakerTraits\",\"name\":\"\",\"type\":\"tuple\"},{\"internalType\":\"bytes\",\"name\":\"\",\"type\":\"bytes\"}],\"name\":\"fillOrderArgs\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"payable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"filledOrders\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"}],\"name\":\"getOrder\",\"outputs\":[{\"components\":[{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"makerAsset\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"takerAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"makerTraits\",\"type\":\"uint256\"}],\"internalType\":\"struct ILimitOrderProtocol.Order\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"orderHash\",\"type\":\"bytes32\"}],\"name\":\"isOrderFilled\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"name\":\"orders\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"salt\",\"type\":\"uint256\"},{\"internalType\":\"address\",\"name\":\"maker\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"receiver\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"makerAsset\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"takerAsset\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"makingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"takingAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"makerTraits\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"Mock implementation of ILimitOrderProtocol for testing\",\"kind\":\"dev\",\"methods\":{},\"title\":\"MockLimitOrderProtocol\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/mocks/MockLimitOrderProtocol.sol\":\"MockLimitOrderProtocol\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":10000000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"contracts/mocks/MockLimitOrderProtocol.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n\\npragma solidity ^0.8.23;\\n\\nimport \\\"../portfolio/interfaces/ILimitOrderProtocol.sol\\\";\\n\\n/**\\n * @title MockLimitOrderProtocol\\n * @dev Mock implementation of ILimitOrderProtocol for testing\\n */\\ncontract MockLimitOrderProtocol is ILimitOrderProtocol {\\n    mapping(bytes32 => bool) public filledOrders;\\n    mapping(bytes32 => Order) public orders;\\n    \\n    event MockOrderFilled(\\n        bytes32 indexed orderHash,\\n        address indexed maker,\\n        address indexed taker,\\n        uint256 makingAmount,\\n        uint256 takingAmount,\\n        uint256 remainingMakingAmount\\n    );\\n\\n    function fillOrderArgs(\\n        Order calldata order,\\n        bytes32 /* r */,\\n        bytes32 /* vs */,\\n        uint256 /* amount */,\\n        TakerTraits calldata /* takerTraits */,\\n        bytes calldata /* args */\\n    ) external payable returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash) {\\n        orderHash = calculateOrderHash(order);\\n        \\n        // Mock fill logic\\n        if (!filledOrders[orderHash]) {\\n            filledOrders[orderHash] = true;\\n            orders[orderHash] = order;\\n            \\n            makingAmount = order.makingAmount;\\n            takingAmount = order.takingAmount;\\n            \\n            emit MockOrderFilled(\\n                orderHash,\\n                order.maker,\\n                msg.sender,\\n                makingAmount,\\n                takingAmount,\\n                0 // remaining making amount\\n            );\\n        }\\n    }\\n\\n    function fillContractOrderArgs(\\n        Order calldata order,\\n        bytes calldata /* signature */,\\n        uint256 /* amount */,\\n        TakerTraits calldata /* takerTraits */,\\n        bytes calldata /* args */\\n    ) external returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash) {\\n        orderHash = calculateOrderHash(order);\\n        \\n        // Mock fill logic for contract orders\\n        if (!filledOrders[orderHash]) {\\n            filledOrders[orderHash] = true;\\n            orders[orderHash] = order;\\n            \\n            makingAmount = order.makingAmount;\\n            takingAmount = order.takingAmount;\\n            \\n            emit MockOrderFilled(\\n                orderHash,\\n                order.maker,\\n                msg.sender,\\n                makingAmount,\\n                takingAmount,\\n                0 // remaining making amount\\n            );\\n        }\\n    }\\n\\n    function cancelOrder(bytes32 orderHash, uint256 /* makerTraits */) external {\\n        // Mock cancellation\\n        filledOrders[orderHash] = true; // Mark as cancelled\\n    }\\n\\n    function calculateOrderHash(Order memory order) internal pure returns (bytes32) {\\n        return keccak256(abi.encode(\\n            order.salt,\\n            order.maker,\\n            order.receiver,\\n            order.makerAsset,\\n            order.takerAsset,\\n            order.makingAmount,\\n            order.takingAmount,\\n            order.makerTraits\\n        ));\\n    }\\n\\n    function isOrderFilled(bytes32 orderHash) external view returns (bool) {\\n        return filledOrders[orderHash];\\n    }\\n\\n    function getOrder(bytes32 orderHash) external view returns (Order memory) {\\n        return orders[orderHash];\\n    }\\n} \",\"keccak256\":\"0x6f332cd1058efe8854cda6ae0abfe4ef9f251d79de2212cfb4cafe713398c8c2\",\"license\":\"MIT\"},\"contracts/portfolio/interfaces/ILimitOrderProtocol.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\ninterface ILimitOrderProtocol {\\n    struct Order {\\n        uint256 salt;\\n        address maker;\\n        address receiver;\\n        address makerAsset;\\n        address takerAsset;\\n        uint256 makingAmount;\\n        uint256 takingAmount;\\n        uint256 makerTraits;\\n    }\\n\\n    struct TakerTraits {\\n        uint256 traits;\\n        bytes args;\\n    }\\n\\n    event OrderFilled(\\n        bytes32 indexed orderHash,\\n        address indexed maker,\\n        address indexed taker,\\n        uint256 makingAmount,\\n        uint256 takingAmount,\\n        uint256 remainingMakingAmount\\n    );\\n\\n    function fillOrderArgs(\\n        Order calldata order,\\n        bytes32 r,\\n        bytes32 vs,\\n        uint256 amount,\\n        TakerTraits calldata takerTraits,\\n        bytes calldata args\\n    ) external payable returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash);\\n\\n    function fillContractOrderArgs(\\n        Order calldata order,\\n        bytes calldata signature,\\n        uint256 amount,\\n        TakerTraits calldata takerTraits,\\n        bytes calldata args\\n    ) external returns(uint256 makingAmount, uint256 takingAmount, bytes32 orderHash);\\n\\n    function cancelOrder(bytes32 orderHash, uint256 makerTraits) external;\\n} \",\"keccak256\":\"0xcc296f803611ff5cef2f3e8bf47df596281248e08abf67441abcd8ab83646861\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x60808060405234610016576108ad908161001c8239f35b600080fdfe6080604081815260048036101561001557600080fd5b60009260e08435811c9182635778472a14610567575081637da7c058146104d35781639c3f1e9014610414578163abeaae5e146103ca578163b34b7c7f14610365578163bbf270d1146100be575063f859ffa01461007257600080fd5b346100ba5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100ba578160209360ff9235815280855220541690519015158152f35b8280fd5b929190507ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc8036016101a081126103615761010013610359576101643567ffffffffffffffff9182821161035d5784913603011261035957610184359081116103595761012e903690830161069f565b505083918493815161013f816106d2565b83359182825261014d61075f565b9081602084015261015c610782565b93848685015261016a6107a5565b928360608601526101796107c8565b608086810182905260a43560a080890182905260c43560c0808b0182905260e43598909a018890528b516020810188815273ffffffffffffffffffffffffffffffffffffffff97881660408301529b87166060820152988616938901939093529284169287019290925295850181905260e0850186905261010080860185905285529095909361020b6101208261071e565b51902096878b528a602052868b20805460ff811615610241575b88518b8152602081018d9052604081018b9052606090f35b0390f35b6007949596979b5061023d9a507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00600191161790556001602052868b2091825560018201908a61028f6107eb565b16917fffffffffffffffffffffffff00000000000000000000000000000000000000009283825416179055600283018b6102c761080e565b1683825416179055600383018b6102dc610831565b16838254161790558201908a6102f0610854565b16908254161790558360058201558460068201550155837f6869909e5b688b79fd281d8c42a3fe2a121c8e72ed2e3b64f24eb1863b8e030b60608398859a6103366107eb565b96885196875260208701528786015233951693a484939238808080808080610225565b8480fd5b8680fd5b8580fd5b5050346100ba57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100ba5735825281602052812060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905580f35b5050346100ba5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100ba578160209360ff9235815280855220541690519015158152f35b505091346104d05760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126104d057823581526001602081815291839020805491810154600282015460038301549683015460058401546006850154600790950154975195865273ffffffffffffffffffffffffffffffffffffffff9384169686019690965290821660408501529581166060840152909416608082015260a081019190915260c081019290925260e082015261010090f35b80fd5b9291905034610563577ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc803601610180811261036157610100136103595767ffffffffffffffff906101043582811161035d57610533903690850161069f565b5050610144359082821161035d5784913603011261035957610164359081116103595761012e903690830161069f565b8380fd5b9092939150346103595760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103595781856101009685846105ad82966106d2565b82815282602082015282858201528260608201528260808201528260a08201528260c0820152015285358152600160205220918281519384938480946105f2826106d2565b60078285549b8c825273ffffffffffffffffffffffffffffffffffffffff97889687948580946060826003816001890154169760208b019889528c836002830154169b019a8b520154169a01998a528b0154169960808d019a8b5260a060058201549d019c8d5260c060068201549e019d8e5201549c019b8c5284519d8e52511660208d01525116908a015251166060880152511660808601525160a08501525160c08401525190820152f35b9181601f840112156106cd5782359167ffffffffffffffff83116106cd57602083818601950101116106cd57565b600080fd5b610100810190811067ffffffffffffffff8211176106ef57604052565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b90601f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0910116810190811067ffffffffffffffff8211176106ef57604052565b6024359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b6044359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b6064359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b6084359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b60243573ffffffffffffffffffffffffffffffffffffffff811681036106cd5790565b60443573ffffffffffffffffffffffffffffffffffffffff811681036106cd5790565b60643573ffffffffffffffffffffffffffffffffffffffff811681036106cd5790565b60843573ffffffffffffffffffffffffffffffffffffffff811681036106cd579056fea2646970667358221220b1cc2299c36ea8a5a2a87ce245962bc69124c8bdce8242d0d97dfa496b6a198d64736f6c63430008170033",
+  "deployedBytecode": "0x6080604081815260048036101561001557600080fd5b60009260e08435811c9182635778472a14610567575081637da7c058146104d35781639c3f1e9014610414578163abeaae5e146103ca578163b34b7c7f14610365578163bbf270d1146100be575063f859ffa01461007257600080fd5b346100ba5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100ba578160209360ff9235815280855220541690519015158152f35b8280fd5b929190507ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc8036016101a081126103615761010013610359576101643567ffffffffffffffff9182821161035d5784913603011261035957610184359081116103595761012e903690830161069f565b505083918493815161013f816106d2565b83359182825261014d61075f565b9081602084015261015c610782565b93848685015261016a6107a5565b928360608601526101796107c8565b608086810182905260a43560a080890182905260c43560c0808b0182905260e43598909a018890528b516020810188815273ffffffffffffffffffffffffffffffffffffffff97881660408301529b87166060820152988616938901939093529284169287019290925295850181905260e0850186905261010080860185905285529095909361020b6101208261071e565b51902096878b528a602052868b20805460ff811615610241575b88518b8152602081018d9052604081018b9052606090f35b0390f35b6007949596979b5061023d9a507fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00600191161790556001602052868b2091825560018201908a61028f6107eb565b16917fffffffffffffffffffffffff00000000000000000000000000000000000000009283825416179055600283018b6102c761080e565b1683825416179055600383018b6102dc610831565b16838254161790558201908a6102f0610854565b16908254161790558360058201558460068201550155837f6869909e5b688b79fd281d8c42a3fe2a121c8e72ed2e3b64f24eb1863b8e030b60608398859a6103366107eb565b96885196875260208701528786015233951693a484939238808080808080610225565b8480fd5b8680fd5b8580fd5b5050346100ba57817ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100ba5735825281602052812060017fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0082541617905580f35b5050346100ba5760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126100ba578160209360ff9235815280855220541690519015158152f35b505091346104d05760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126104d057823581526001602081815291839020805491810154600282015460038301549683015460058401546006850154600790950154975195865273ffffffffffffffffffffffffffffffffffffffff9384169686019690965290821660408501529581166060840152909416608082015260a081019190915260c081019290925260e082015261010090f35b80fd5b9291905034610563577ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc803601610180811261036157610100136103595767ffffffffffffffff906101043582811161035d57610533903690850161069f565b5050610144359082821161035d5784913603011261035957610164359081116103595761012e903690830161069f565b8380fd5b9092939150346103595760207ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc3601126103595781856101009685846105ad82966106d2565b82815282602082015282858201528260608201528260808201528260a08201528260c0820152015285358152600160205220918281519384938480946105f2826106d2565b60078285549b8c825273ffffffffffffffffffffffffffffffffffffffff97889687948580946060826003816001890154169760208b019889528c836002830154169b019a8b520154169a01998a528b0154169960808d019a8b5260a060058201549d019c8d5260c060068201549e019d8e5201549c019b8c5284519d8e52511660208d01525116908a015251166060880152511660808601525160a08501525160c08401525190820152f35b9181601f840112156106cd5782359167ffffffffffffffff83116106cd57602083818601950101116106cd57565b600080fd5b610100810190811067ffffffffffffffff8211176106ef57604052565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052604160045260246000fd5b90601f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0910116810190811067ffffffffffffffff8211176106ef57604052565b6024359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b6044359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b6064359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b6084359073ffffffffffffffffffffffffffffffffffffffff821682036106cd57565b60243573ffffffffffffffffffffffffffffffffffffffff811681036106cd5790565b60443573ffffffffffffffffffffffffffffffffffffffff811681036106cd5790565b60643573ffffffffffffffffffffffffffffffffffffffff811681036106cd5790565b60843573ffffffffffffffffffffffffffffffffffffffff811681036106cd579056fea2646970667358221220b1cc2299c36ea8a5a2a87ce245962bc69124c8bdce8242d0d97dfa496b6a198d64736f6c63430008170033",
+  "devdoc": {
+    "details": "Mock implementation of ILimitOrderProtocol for testing",
+    "kind": "dev",
+    "methods": {},
+    "title": "MockLimitOrderProtocol",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 2457,
+        "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+        "label": "filledOrders",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_bytes32,t_bool)"
+      },
+      {
+        "astId": 2462,
+        "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+        "label": "orders",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_bytes32,t_struct(Order)6372_storage)"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes32": {
+        "encoding": "inplace",
+        "label": "bytes32",
+        "numberOfBytes": "32"
+      },
+      "t_mapping(t_bytes32,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_bytes32,t_struct(Order)6372_storage)": {
+        "encoding": "mapping",
+        "key": "t_bytes32",
+        "label": "mapping(bytes32 => struct ILimitOrderProtocol.Order)",
+        "numberOfBytes": "32",
+        "value": "t_struct(Order)6372_storage"
+      },
+      "t_struct(Order)6372_storage": {
+        "encoding": "inplace",
+        "label": "struct ILimitOrderProtocol.Order",
+        "members": [
+          {
+            "astId": 6357,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "salt",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6359,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "maker",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_address"
+          },
+          {
+            "astId": 6361,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "receiver",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address"
+          },
+          {
+            "astId": 6363,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "makerAsset",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_address"
+          },
+          {
+            "astId": 6365,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "takerAsset",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_address"
+          },
+          {
+            "astId": 6367,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "makingAmount",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6369,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "takingAmount",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 6371,
+            "contract": "contracts/mocks/MockLimitOrderProtocol.sol:MockLimitOrderProtocol",
+            "label": "makerTraits",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_uint256"
+          }
+        ],
+        "numberOfBytes": "256"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  }
+}

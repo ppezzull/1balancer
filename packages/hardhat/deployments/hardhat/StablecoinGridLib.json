@@ -1,0 +1,47 @@
+{
+  "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+  "abi": [],
+  "transactionHash": "0x78dcf589d48e8c975d2ba1874165ce2082efd99ef43e5f7b4b62e6cede3fb244",
+  "receipt": {
+    "to": null,
+    "from": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "contractAddress": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+    "transactionIndex": 0,
+    "gasUsed": "107964",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0x2c6b0f8fe7cc698c033c744f700ef8383ce6db6fdc3627b32902bef30c8520b5",
+    "transactionHash": "0x78dcf589d48e8c975d2ba1874165ce2082efd99ef43e5f7b4b62e6cede3fb244",
+    "logs": [],
+    "blockNumber": 2,
+    "cumulativeGasUsed": "107964",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "a9676a96c68143630148e71508d4d26e",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"author\":\"@ppezzull\",\"details\":\"Grid trading logic for stablecoins extracted from StableLimit\",\"kind\":\"dev\",\"methods\":{\"validateStablecoinPair(address,address,mapping(address => bool) storage)\":{\"details\":\"Validate stablecoin pair for grid trading\"}},\"title\":\"StablecoinGridLib\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"contracts/portfolio/libraries/StablecoinGridLib.sol\":\"StablecoinGridLib\"},\"evmVersion\":\"paris\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":10000000},\"remappings\":[],\"viaIR\":true},\"sources\":{\"contracts/portfolio/libraries/StablecoinGridLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\n/**\\n * @title StablecoinGridLib\\n * @dev Grid trading logic for stablecoins extracted from StableLimit\\n * @author @ppezzull\\n */\\nlibrary StablecoinGridLib {\\n    struct Order {\\n        address fromToken;\\n        address toToken;\\n        uint256 amount;\\n        uint256 limitPrice; // Price with 1e18 precision\\n    }\\n\\n    struct GridParams {\\n        uint256 capital;\\n        uint256 nLevels;\\n        uint256 minOrderSize;\\n        uint256 maxOrderSize;\\n        uint256 gridRangeBps;\\n        uint256 pegPrice;\\n    }\\n\\n    // Constants\\n    uint256 private constant PRICE_PRECISION = 1e18;\\n    uint256 private constant USDC_DECIMALS = 6;\\n\\n    // Price bounds for stablecoin deviation detection (wider bounds for testing)\\n    // Tighter bounds so a 1% deviation triggers actions (e.g., 0.99 is outside bounds)\\n    uint256 internal constant LOWER_BOUND = 995 * 1e15; // 0.995\\n    uint256 internal constant UPPER_BOUND = 1005 * 1e15; // 1.005\\n\\n    /**\\n     * @dev Generate grid orders for stablecoin pairs\\n     */\\n    function generateGridOrders(\\n        address[] memory stablecoins,\\n        GridParams memory params\\n    ) internal pure returns (Order[] memory orders) {\\n        if (params.nLevels == 0) return new Order[](0);\\n\\n        uint256 nPairs = stablecoins.length;\\n        if (nPairs < 2) return new Order[](0);\\n\\n        uint256 nLevelsAdjusted = params.nLevels;\\n        uint256 denominator = params.nLevels * 2 * (nPairs - 1);\\n        uint256 baseOrderAmount = denominator == 0 ? 0 : params.capital / denominator;\\n\\n        if (baseOrderAmount < params.minOrderSize) {\\n            uint256 denomMin = params.minOrderSize * 2 * (nPairs - 1);\\n            nLevelsAdjusted = denomMin == 0 ? 0 : params.capital / denomMin;\\n            if (nLevelsAdjusted == 0) nLevelsAdjusted = 1;\\n        } else if (baseOrderAmount > params.maxOrderSize) {\\n            uint256 denomMax = params.maxOrderSize * 2 * (nPairs - 1);\\n            nLevelsAdjusted = denomMax == 0 ? 0 : params.capital / denomMax;\\n            uint256 maxLevels = 100;\\n            if (nLevelsAdjusted > maxLevels) nLevelsAdjusted = maxLevels;\\n        }\\n\\n        if (nLevelsAdjusted == 0) return new Order[](0);\\n\\n        uint256 perLevelDenom = nLevelsAdjusted * 2 * (nPairs - 1);\\n        uint256 finalOrderAmount = params.capital / perLevelDenom;\\n        orders = new Order[](perLevelDenom);\\n        uint256 idx = 0;\\n        uint256 step = (PRICE_PRECISION * params.gridRangeBps) / 10000;\\n        uint256 peg = params.pegPrice;\\n\\n        unchecked {\\n            for (uint256 pair = 0; pair < nPairs - 1; pair++) {\\n                address fromToken = stablecoins[pair];\\n                address toToken = stablecoins[pair + 1];\\n                for (uint256 i = 0; i < nLevelsAdjusted; i++) {\\n                    uint256 offset = ((i + 1) * step) / nLevelsAdjusted;\\n                    orders[idx++] = Order(fromToken, toToken, finalOrderAmount, peg + offset);\\n                    orders[idx++] = Order(toToken, fromToken, finalOrderAmount, peg - offset);\\n                }\\n            }\\n        }\\n\\n        return orders;\\n    }\\n\\n    /**\\n     * @dev Check if price is within acceptable bounds\\n     */\\n    function isPriceWithinBounds(uint256 price) internal pure returns (bool) {\\n        return price >= LOWER_BOUND && price <= UPPER_BOUND;\\n    }\\n\\n    /**\\n     * @dev Calculate grid order parameters\\n     */\\n    function calculateGridParams(\\n        uint256 stablecoinValue,\\n        uint256 nLevels,\\n        uint256 gridRangeBps\\n    ) internal pure returns (GridParams memory params) {\\n        params.capital = stablecoinValue / 10; // Use 10% of stablecoin value\\n        params.nLevels = nLevels;\\n        params.minOrderSize = 10 * (10 ** USDC_DECIMALS); // 10 USDC\\n        params.maxOrderSize = params.capital;\\n        params.gridRangeBps = gridRangeBps;\\n        params.pegPrice = 1 * PRICE_PRECISION; // 1 USD for stablecoins\\n    }\\n\\n    /**\\n     * @dev Validate stablecoin pair for grid trading\\n     */\\n    function validateStablecoinPair(\\n        address token1,\\n        address token2,\\n        mapping(address => bool) storage isStablecoin\\n    ) external view returns (bool) {\\n        return isStablecoin[token1] && isStablecoin[token2] && token1 != token2;\\n    }\\n} \",\"keccak256\":\"0x0afbbe9122f46117a5d5e9766f5e3127384c348ea003e3a752d353e47b125a25\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608080604052346100195760fc908161001f823930815050f35b600080fdfe6080806040526004361015601257600080fd5b600090813560e01c63ac58423a14602857600080fd5b60607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011260c2576004359173ffffffffffffffffffffffffffffffffffffffff80841680940360c25760243590811680910360c257836020948352604435855260ff604084205416928360b0575b508260a6575b505015158152f35b141590503880609e565b828152604090205460ff169250386098565b5080fdfea26469706673582212204fc37d40628dec7929a343baf71cad8baf3f34d9ddda8bbb28c6ee18893e71f164736f6c63430008170033",
+  "deployedBytecode": "0x6080806040526004361015601257600080fd5b600090813560e01c63ac58423a14602857600080fd5b60607ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc36011260c2576004359173ffffffffffffffffffffffffffffffffffffffff80841680940360c25760243590811680910360c257836020948352604435855260ff604084205416928360b0575b508260a6575b505015158152f35b141590503880609e565b828152604090205460ff169250386098565b5080fdfea26469706673582212204fc37d40628dec7929a343baf71cad8baf3f34d9ddda8bbb28c6ee18893e71f164736f6c63430008170033",
+  "devdoc": {
+    "author": "@ppezzull",
+    "details": "Grid trading logic for stablecoins extracted from StableLimit",
+    "kind": "dev",
+    "methods": {
+      "validateStablecoinPair(address,address,mapping(address => bool) storage)": {
+        "details": "Validate stablecoin pair for grid trading"
+      }
+    },
+    "title": "StablecoinGridLib",
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [],
+    "types": null
+  }
+}
