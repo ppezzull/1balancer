@@ -1,12 +1,36 @@
 import { expect } from "chai";
 // import { ethers } from "hardhat";
 import { setupDriftBalancerMixed } from "../../../../utils/test/setup";
-import { forceStableDeviation } from "../../../../utils/test/baseBalancer";
+import { forceStableDeviation, setForwarder } from "../../../../utils/test/baseBalancer";
+import { ethers } from "hardhat";
 
 describe("DriftBalancer", function () {
   it("deploys and is owned by deployer", async function () {
     const { driftBalancer, deployer } = await setupDriftBalancerMixed();
     expect(await driftBalancer.owner()).to.equal(await deployer.getAddress());
+  });
+
+  it("allows owner to update base metadata (name/description)", async function () {
+    const { driftBalancer } = await setupDriftBalancerMixed();
+    await expect(driftBalancer.updateMetadata("Drift Name", "Desc")).to.not.be.reverted;
+    expect(await driftBalancer.name()).to.equal("Drift Name");
+  });
+
+  it("forwarder gating performUpkeep (owner-only forwarder)", async function () {
+    const { driftBalancer, dia } = await setupDriftBalancerMixed();
+    const [owner, other] = await ethers.getSigners();
+
+    // Ensure deviation so upkeep is needed
+    await forceStableDeviation(dia, "0.995");
+    const [needed, data] = await driftBalancer.checkUpkeep("0x");
+    if (!needed) return; // nothing to do
+
+    // Non-forwarder cannot perform
+    await expect(driftBalancer.connect(other).performUpkeep(data)).to.be.revertedWith("Not authorized forwarder");
+
+    // Set forwarder to owner and perform
+    await setForwarder(driftBalancer, await owner.getAddress());
+    await expect(driftBalancer.connect(owner).performUpkeep(data)).to.emit(driftBalancer, "OrdersGenerated");
   });
 
   it("signals upkeep needed after deviation (automation path)", async function () {
@@ -44,11 +68,5 @@ describe("DriftBalancer", function () {
     // Target call under test
     const [needed] = await driftBalancer.checkUpkeep("0x");
     expect(needed).to.equal(true);
-  });
-
-  it("allows owner to update base metadata (name/description)", async function () {
-    const { driftBalancer } = await setupDriftBalancerMixed();
-    await expect(driftBalancer.updateMetadata("Drift Name", "Desc")).to.not.be.reverted;
-    expect(await driftBalancer.name()).to.equal("Drift Name");
   });
 });

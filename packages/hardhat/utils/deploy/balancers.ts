@@ -7,6 +7,8 @@ export interface DriftBalancerConfig {
   percentages: bigint[];
   amounts: bigint[];
   driftPercentage: bigint;
+  name: string;
+  description: string;
 }
 
 export async function deployDriftBalancer(
@@ -24,6 +26,8 @@ export async function deployDriftBalancer(
     config.percentages,
     config.amounts,
     config.driftPercentage,
+    config.name,
+    config.description,
   );
 
   const receipt = await tx.wait();

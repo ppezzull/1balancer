@@ -283,7 +283,9 @@ export async function setupDriftBalancerMixed(
     const st2 = await factory.stablecoins(2);
     console.log("setup/drift: assets=", assetAddresses);
     console.log("setup/drift: factory.stablecoins=", [st0, st1, st2]);
-  } catch {}
+  } catch {
+    console.log("setup/drift: factory.stablecoins= not available");
+  }
 
   const tx = await (factory as any).createDriftBalancer(
     assetAddresses,
@@ -319,6 +321,8 @@ export interface TimeBalancerSetupOptions {
   percentages?: readonly [bigint, bigint];
   amounts?: readonly [bigint, bigint, bigint]; // [USDC(6), WETH(18), USDT(6)]
   intervalSeconds?: number;
+  name?: string;
+  description?: string;
 }
 
 export async function setupTimeBalancer(
@@ -331,6 +335,8 @@ export async function setupTimeBalancer(
   tokens: MockTokens;
   priceAggregator: OracleAdapter;
   dia: DiaPushOracleReceiverMock;
+  name?: string;
+  description?: string;
 }> {
   const [deployer] = await ethers.getSigners();
   const libraries = await deployLibraries(hre);
@@ -354,6 +360,10 @@ export async function setupTimeBalancer(
     ethers.parseUnits("2000", 6),
   ];
   const intervalSeconds = options?.intervalSeconds ?? 30 * 24 * 60 * 60; // ~30 days
+  const name = options?.name ?? "Optimized Time Balancer";
+  const description = options?.description
+    ? options.description
+    : "Periodically checks and rebalances based on a fixed interval and stablecoin deviations.";
 
   const deployerAddress = await deployer.getAddress();
   await tokens.mockUSDC.mint(deployerAddress, amounts[0]);
@@ -376,8 +386,8 @@ export async function setupTimeBalancer(
     [...percentages] as unknown as bigint[],
     [...amounts] as unknown as bigint[],
     intervalSeconds,
-    "Optimized Time Balancer",
-    "Periodically checks and rebalances based on a fixed interval and stablecoin deviations.",
+    name,
+    description,
   );
   const receipt = await tx.wait();
   const created = findEvent(receipt, "BalancerCreated")!;
@@ -385,5 +395,5 @@ export async function setupTimeBalancer(
   const timeAddr = parsed.args[1] as string;
   const timeBalancer = await ethers.getContractAt("TimeBalancer", timeAddr);
 
-  return { deployer, factory, timeBalancer, tokens, priceAggregator, dia };
+  return { deployer, factory, timeBalancer, tokens, priceAggregator, dia, name, description };
 }
