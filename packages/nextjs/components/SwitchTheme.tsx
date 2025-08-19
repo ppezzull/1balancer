@@ -2,41 +2,68 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { MoonIcon, SunIcon } from "@heroicons/react/24/outline";
+import { Moon, Sun } from "lucide-react";
+import { Button } from "~~/components/ui/button";
 
 export const SwitchTheme = ({ className }: { className?: string }) => {
-  const { setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  const isDarkMode = resolvedTheme === "dark";
+  // Determine current theme with proper fallbacks
+  let currentTheme = 'dark'; // default fallback
+  if (mounted) {
+    if (theme && theme !== 'system') {
+      currentTheme = theme;
+    } else {
+      currentTheme = resolvedTheme || 'dark';
+    }
+  }
+  
+  const isDarkMode = currentTheme === "dark";
 
   const handleToggle = () => {
-    if (isDarkMode) {
-      setTheme("light");
-      return;
+    const newTheme = isDarkMode ? "light" : "dark";
+    setTheme(newTheme);
+    
+    // Force immediate DOM update for better UX
+    if (typeof window !== 'undefined') {
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(newTheme);
     }
-    setTheme("dark");
   };
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  // Show loading state with current theme assumption
+  if (!mounted) {
+    return (
+      <Button
+        variant="outline"
+        size="icon"
+        className={className}
+        disabled
+      >
+        <Moon className="h-4 w-4" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+    );
+  }
 
   return (
-    <div className={`flex space-x-2 h-8 items-center justify-center text-sm ${className}`}>
-      <input
-        id="theme-toggle"
-        type="checkbox"
-        className="toggle bg-secondary toggle-primary hover:bg-accent transition-all"
-        onChange={handleToggle}
-        checked={isDarkMode}
-      />
-      <label htmlFor="theme-toggle" className={`swap swap-rotate ${!isDarkMode ? "swap-active" : ""}`}>
-        <SunIcon className="swap-on h-5 w-5" />
-        <MoonIcon className="swap-off h-5 w-5" />
-      </label>
-    </div>
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={handleToggle}
+      className={`${className} transition-all duration-200 hover:scale-105`}
+    >
+      {isDarkMode ? (
+        <Sun className="h-4 w-4 transition-transform duration-200" />
+      ) : (
+        <Moon className="h-4 w-4 transition-transform duration-200" />
+      )}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
   );
 };

@@ -12,7 +12,7 @@ BaseBalancer (abstract)
 ├─ IERC1271, AutomationCompatibleInterface
 ├─ using PortfolioCoreLib for Asset[]
 ├─ using AnalysisLib for deviation checks
-├─ using GridLib for order generation
+├─ using OrderGridLib for order generation
 ├─ using LimitOrderLib for 1inch orders
 └─ Core functions: fund(), withdraw(), updateAssets()
 
@@ -24,9 +24,47 @@ DriftBalancer : BaseBalancer
 
 TimeBalancer : BaseBalancer
 ├─ constructor(TimeParams)
-├─ checkUpkeep() → time-based triggers
-├─ performUpkeep() → periodic rebalance
+├─ checkUpkeep() → time-based global rebalance trigger OR stable deviation logger
+├─ performUpkeep() → periodic global rebalance OR generate & execute stable rebalance orders
 └─ setRebalanceInterval(uint256)
+
+## Chainlink Automation — Upkeep behavior
+
+This section documents the high-level Chainlink Automation (Upkeep) semantics implemented by the balancers. Both balancers expose the same automation contract interface (`checkUpkeep` and `performUpkeep`) but implement different trigger logic and actions.
+
+checkUpkeep() → (bool upkeepNeeded, bytes performData)
+- Purpose: cheaply inspect current state and return whether an upkeep is required and a compact `performData` payload describing the action.
+- `performData` shape (high-level): { actionType, assetAddresses[], encodedAmounts[], metadata }
+    - actionType examples: GLOBAL_REBALANCE, STABLE_REBALANCE, NOOP
+    - metadata can include encoded timestamps, drift values, or grid params required by `performUpkeep`.
+
+performUpkeep(bytes performData) → executes the requested action
+- Purpose: called by Chainlink when `upkeepNeeded == true`; decodes `performData` and runs the corresponding rebalance flow (order generation + submission).
+
+DriftBalancer automation
+- checkUpkeep behaviour:
+    - Runs two deviation checks in the same call: (1) stable deviation check and (2) global deviation check across all assets.
+    - Stable deviation check uses a fixed constant drift of 0.01 (1%). If pairwise stable deviations exceed 0.01 the balancer sets `upkeepNeeded` and returns `performData` with actionType = STABLE_REBALANCE and the list of affected stable tokens.
+    - Global deviation check uses the owner-configured global drift (driftBps). When the maximum asset deviation (including the aggregated stable slice) exceeds the configured global drift threshold the balancer sets `upkeepNeeded` and returns `performData` with actionType = GLOBAL_REBALANCE and all asset addresses.
+    - If both stable and global triggers are active in the same call the balancer prefers the stable rebalance action first (STABLE_REBALANCE) — stable fixes are cheaper and localized.
+
+- performUpkeep behaviour:
+    - STABLE_REBALANCE: generates stable-only orders (grid or limit orders) using `OrderGridLib` + `LimitOrderLib` and submits them to the configured `limitOrderProtocol`.
+    - GLOBAL_REBALANCE: generates rebalance orders that move every asset toward its target allocation (the stable slice is treated as a single aggregated asset in these calculations). Orders are created via `LimitOrderLib` (or as a sequence of limit orders) and submitted.
+
+TimeBalancer automation
+- checkUpkeep behaviour:
+    - Time trigger: checks whether the configured interval has elapsed since the last global rebalance. If so, set `upkeepNeeded` and return `performData` with actionType = GLOBAL_REBALANCE and parameters required to reset allocations perfectly.
+    - Stable logger: in the same `checkUpkeep` the contract also runs the stable deviation check (fixed 0.01 threshold). If stable deviation is detected it sets `upkeepNeeded` and returns `performData` with actionType = STABLE_REBALANCE. The stable logger path is used to generate stable rebalance orders without affecting the global time-scheduled reset.
+
+- performUpkeep behaviour:
+    - GLOBAL_REBALANCE (time-triggered): performs a deterministic, full rebalance that resets asset proportions to their configured targets (uses aggregated stable slice for calculations). This is intended to be an authoritative, owner-intended reset and may generate a larger set of orders.
+    - STABLE_REBALANCE (log-triggered): identical to DriftBalancer's stable flow — generate stable-only orders and submit.
+
+Notes
+- The balancers treat stablecoins as a single aggregated slice (V_s) when computing global rebalance deltas; stable-specific logic (pairwise checking and grid generation) still operates at the individual stable token level when creating orders.
+- `performData` is intentionally compact to minimize on-chain gas in `checkUpkeep` and is decoded in `performUpkeep` to perform heavier computations (order generation, hashing, submission).
+- Order creation and submission always use `LimitOrderLib` (EIP-712 hashing + protocol interaction) and may reference `OrderGridLib` for grid-based stable deployments.
 
 Libraries (pure/view functions)
 ├─ PortfolioCoreLib
@@ -38,32 +76,43 @@ Libraries (pure/view functions)
 │  ├─ detectDeviation(AnalysisConfig, address oracle)
 │  ├─ checkAssetBalance(uint256 current, uint256 target)
 │  └─ calculatePortfolioMetrics(uint256 total, uint256 stable)
-├─ GridLib
-│  ├─ generateGridOrders(address[], GridConfig)
+├─ OrderGridLib
+│  ├─ generateGridOrders(address[], OrderGridConfig)
 │  ├─ calculateGridParams(uint256 value, uint256 levels)
-│  └─ isPriceWithinBounds(uint256 price, GridConfig)
+│  └─ isPriceWithinBounds(uint256 price, OrderGridConfig)
 └─ LimitOrderLib
    ├─ createLimitOrder(Order)
    ├─ createRebalanceOrder(Order[])
    ├─ calculateOrderHash(Order)
    └─ submitOrders(Order[], address protocol, bytes signature)
 
-Mocks (testing only)
+### Mocks
+
+The repository includes three testing mocks used by deploy helpers and unit/integration tests. Below are their roles and explicit file references where they are instantiated or wired in the test/deploy helpers.
+
 ├─ MockERC20
-│  └─ mint(address to, uint256 amount)
+│  ├─ Role: Generic ERC-20 test token with mint/burn and configurable decimals. Used to seed balances, simulate approvals and transfers during tests.
+│  ├─ Used for: `PortfolioCoreLib` (fund/withdraw tests), `OrderGridLib` (order sizing/allocation tests), `LimitOrderLib` (maker/taker balance & allowance tests).
+│
 ├─ MockLimitOrderProtocol
-│  └─ fillOrder(Order, bytes signature)
+│  ├─ Role: Mock implementation of `ILimitOrderProtocol` that records orders and emits fill events to simulate the 1inch limit-order protocol during tests.
+│  ├─ Used for: `LimitOrderLib` (order submission, hashing and fill flows), and integration tests where the balancer submits orders to the protocol.
+│
 └─ DiaPushOracleReceiverMock
-   ├─ setMockUpdate(string key, uint128 ts, uint128 value)
-   └─ updates(string key) → (uint128 ts, uint128 value)
+    ├─ Role: Deterministic oracle stub that supports `setMockUpdate` / `updates` so tests can control price values used for valuation and deviation detection.
+    ├─ Used for: `AnalysisLib` (detectDeviation / calculatePortfolioMetrics), `PortfolioCoreLib` (getTotalValue tests), `OrderGridLib` (price/peg inputs for grid generation), and test setups that need deterministic prices for slippage/limit pricing
+
 ```
 
 ## File Structure
 ```
 portfolio/
 ├─ factory/BalancerFactory.sol
-├─ balancers/{Base,Drift,Time}Balancer.sol  
-├─ libraries/{PortfolioCore,Analysis,Grid,LimitOrder}.sol
+├─ balancers/{Base,Drift,Time}Balancer.sol
+├─ libraries/PortfolioCore.sol
+├─ libraries/Analysis.sol
+├─ libraries/OrderGrid.sol
+├─ libraries/LimitOrderLib.sol          
 └─ interfaces/{IBalancerFactory,IOracleAdapter,IDiaPushOracleReceiver,ILimitOrderProtocol,IERC1271}.sol
 mocks/{MockERC20,MockLimitOrderProtocol,DiaPushOracleReceiverMock}.sol
 ```
@@ -93,7 +142,7 @@ struct AnalysisConfig {
     bool isStableGroup;    // stable-specific logic
 }
 
-struct GridConfig {
+struct OrderGridConfig {
     uint256 lowerBound;    // price bounds (e.g. 0.995e18)
     uint256 upperBound;    // price bounds (e.g. 1.005e18)
     uint256 capitalRatio;  // % of value to deploy (bps)
@@ -138,8 +187,8 @@ struct FactoryParams {
 | Library | Used In | Purpose |
 |---------|---------|---------|
 | `PortfolioCoreLib` | BaseBalancer | Asset CRUD, funding, withdrawals, total value |
-| `AnalysisLib` | DriftBalancer, TimeBalancer | Deviation checks for any asset subset (global/stables) |
-| `GridLib` | BaseBalancer | Grid orders for stables + global rebalancing |
+| `AnalysisLib` | DriftBalancer, TimeBalancer | Deviation checks across all assets; supports an aggregated stable slice |
+| `OrderGridLib` | BaseBalancer | Grid orders for stables + global rebalancing |
 | `LimitOrderLib` | BaseBalancer | 1inch order creation & EIP-712 hashing |
 
 ## Integrations
@@ -147,3 +196,9 @@ struct FactoryParams {
 * **DIA/Chainlink** – price feeds  
 * **Chainlink Automation** – drift logs + time triggers
 * **EIP-1271** – contract signature validation for 1inch orders
+
+## Key concepts
+
+- Global rebalance — bring the whole portfolio back to target allocations across all assets. Stablecoins are aggregated and counted as a single slice (one unit) when computing required shifts. It can be triggered either by time (interval) or by drift (max deviation across assets). When triggered the balancer will generate orders (grid or rebalance orders) to move assets toward their targets.
+
+- Stable rebalance — monitors only the aggregated stable slice. It uses a fixed drift threshold of 0.01 (1e-2, i.e. 1%) as the trigger. When pairwise stable deviations exceed 0.01 the contract emits an event and will generate & submit orders to rebalance the affected stable tokens.
