@@ -1,4 +1,35 @@
-# 🏗 Scaffold-Privy-AA
+# 1Balancer
+
+## Project Description
+1Balancer provides an automated, capital-efficient way to manage crypto portfolios on Base. You can either:
+
+- **Pre-configured Portfolios** – pick from ready-made strategies.
+- **Custom Portfolios** – define your own allocations and rules.
+
+Either way, 1Balancer continuously rebalances for you. Idle stablecoins are routed into yield strategies, so capital is always productive.
+
+### Maximizing Your Capital
+While waiting to rebalance, unused stablecoins are automatically deployed to yield-generating protocols. You earn passive returns without lifting a finger.
+
+## How It’s Made
+1Balancer is a fully on-chain, non-custodial dApp built on the **Base** L2. Key smart-contract modules:
+
+- **`BalancerFactory`** – deploys user-specific balancer instances.
+- **`BaseBalancer`** – core percentage-based allocation using 1inch price feeds.
+- **`StableLimit`** – ultra-tight limit orders for stables (0.001 drift).
+- **`DriftBalancer`** – automatic drift-based rebalancing.
+- **`TimeBalancer`** – interval-based rebalancing with Chainlink Automation + 1inch Fusion.
+
+### Frontend Stack
+Next.js (SSR), Privy auth, Shadcn UI + Tailwind. Specialised 1inch APIs power balances, token data and charts.
+
+## Further Reading
+- [Architecture](packages/hardhat/contracts/portfolio/ARCHITECTURE.md)
+- [Economics](packages/hardhat/contracts/portfolio/ECONOMICS.md)
+
+---
+
+## 🏗 Scaffold-Privy-AA Template
 
 <h4 align="center">
   <a href="https://docs.scaffoldeth.io">Scaffold Documentation</a> |
