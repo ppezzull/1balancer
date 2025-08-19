@@ -202,3 +202,49 @@ struct FactoryParams {
 - Global rebalance — bring the whole portfolio back to target allocations across all assets. Stablecoins are aggregated and counted as a single slice (one unit) when computing required shifts. It can be triggered either by time (interval) or by drift (max deviation across assets). When triggered the balancer will generate orders (grid or rebalance orders) to move assets toward their targets.
 
 - Stable rebalance — monitors only the aggregated stable slice. It uses a fixed drift threshold of 0.01 (1e-2, i.e. 1%) as the trigger. When pairwise stable deviations exceed 0.01 the contract emits an event and will generate & submit orders to rebalance the affected stable tokens.
+
+## Cost & Gas Optimization Considerations
+
+The architecture deliberately exposes several tunable levers to minimize upkeep frequency and on-chain gas per execution while preserving portfolio tracking quality.
+
+### 1. Frequency Control
+- Drift Threshold (`driftBps`): Increasing driftBps reduces global rebalance frequency; adaptive bands can widen during low volatility and tighten after large moves.
+- Time Interval (TimeBalancer): Lengthening (e.g. weekly → bi-weekly) directly scales global time-triggered upkeeps down.
+- Stable Cooldown: Optional minimum elapsed time (or blocks) after a stable-only rebalance before another can trigger (debounces oscillations).
+- Hysteresis: Require deviation to fall below (threshold * 0.5) before clearing an active drift condition to avoid rapid re-triggering.
+
+### 2. Upkeep Consolidation
+- Multi-Portfolio Loop: A single upkeep ID could iterate across multiple balancers (if total gas stays < registry limit) amortizing Chainlink overhead across instances.
+- Action Prioritization: If both stable + global criteria are met in the same `checkUpkeep`, only encode the global action (absorbs stable adjustments) or vice‑versa depending on gas efficiency heuristics; currently stable prioritized due to cheaper, localized correction.
+
+### 3. performData Minimization
+- Compact Encoding: Use enums / uint8 flags, bitmaps for asset inclusion, and index arrays instead of full addresses where registry or internal mapping can resolve.
+- Off-Chain Pre-Computation: Pre-compute candidate asset indices & provide in performData; `performUpkeep` trusts and validates minimal set.
+
+### 4. Execution Path Pruning
+- Early Return: Abort global path mid-loop if cumulative residual deviation drops below a secondary micro-threshold.
+- Combined Pass: When executing a global rebalance, stable slice adjustments are folded into the same order netting flow (avoids separate stable loop gas).
+
+### 5. Computation Caching
+- Cached Totals: Maintain rolling total portfolio value & stable aggregate (updated on fund/withdraw) to avoid recomputing full sums inside `checkUpkeep`.
+- Prepacked Targets: Store target value ratios scaled (e.g. Q128) to remove divisions at runtime.
+
+### 6. Order Generation Efficiency
+- Netting: Aggregate per-token deltas across stable + global contexts before building orders; skip near-zero amounts below dust threshold.
+- Threshold Floor: Do not emit orders whose economic value < (fee * marginFactor) to avoid negative expected value fills.
+- Batch Signatures: If protocol supports, produce a single EIP-712 signature for a bundle of transfers.
+
+### 7. Storage & Layout
+- Struct Packing: Reorder fields (e.g. uint128/uint64) inside config structs to reduce SLOAD/SSTORE count and cold access cost.
+- Immutable Parameters: Promote rarely changed addresses (oracle, protocol) to immutable to save gas in reads.
+
+### 8. Off-Chain Simulation & Prediction
+- Off-chain drift projection (using recent price velocity) can be used in a custom Keeper script to skip calling `checkUpkeep` when drift unlikely to exceed threshold soon.
+
+### 9. Telemetry & Feedback
+- Emit `GasProfile(actionType, gasUsed, driftBefore, assetsTouched)` events to feed an optimizer that tunes thresholds automatically.
+
+### 10. Funding Strategy
+- Maintain ≥2× monthly expected cost in the registry to prevent underfunded retries (which raise effective premium). Replenish at 1× threshold.
+
+These design hooks keep the protocol flexible: base deployment can start with conservative parameters, then gradually reduce cost by activating more aggressive batching / caching once empirical gas metrics are collected.
