@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../interfaces/IERC1271.sol";
 
 /**
@@ -16,7 +15,7 @@ import "../interfaces/IERC1271.sol";
  * can adjust target percentages and move assets in/out (deposit/withdraw).
  * No on-chain price feeds, automation, or oracle integrations are present.
  */
-contract Balancer is Ownable {
+contract Balancer is Ownable, IERC1271 {
     using SafeERC20 for IERC20;
 
     // ===== Data Structures =====
@@ -244,7 +243,7 @@ contract Balancer is Ownable {
     // ===== EIP-1271 compatibility =====
     /// @notice Expose EIP-1271 `isValidSignature` for contract signers
     /// @dev Returns 0x1626ba7e when signature is valid per EIP-1271
-    function isValidSignature(bytes32 _hash, bytes memory _signature) public view returns (bytes4) {
+    function isValidSignature(bytes32 _hash, bytes calldata _signature) external view override returns (bytes4) {
         // Try EOA style recovery first
         (address recovered, ECDSA.RecoverError err, ) = ECDSA.tryRecover(_hash, _signature);
         if (err == ECDSA.RecoverError.NoError && (recovered == owner() || recovered == authorizedSigner)) {

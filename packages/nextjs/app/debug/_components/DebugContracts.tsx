@@ -34,7 +34,15 @@ export function DebugContracts() {
   return (
     <div className="flex flex-col gap-y-6 lg:gap-y-8 py-8 lg:py-12 justify-center items-center">
       {contractNames.length === 0 ? (
-        <p className="text-3xl mt-14">No contracts found!</p>
+        <div className="text-center mt-14">
+          <p className="text-3xl">No contracts found!</p>
+          <p className="mt-4 opacity-70 text-sm">
+            Make sure you deployed to the same chain as your target network and that
+            <code className="mx-1">packages/nextjs/contracts/deployedContracts.ts</code> has an entry for that
+            chainId. For local dev, run
+            <code className="mx-1">npx hardhat deploy --network hardhat --tags BalancerFactory</code>.
+          </p>
+        </div>
       ) : (
         <>
           {contractNames.length > 1 && (
