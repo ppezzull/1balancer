@@ -2,6 +2,6 @@
 pragma solidity ^0.8.23;
 
 interface IBalancerFactory {
-    function priceFeed() external view returns (address);
-    function stablecoins(uint256) external view returns (address);
+    function balancerCount() external view returns (uint256);
+    function getUserBalancers(address user) external view returns (address[] memory);
 }
