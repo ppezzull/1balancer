@@ -48,14 +48,11 @@ contract Balancer is Ownable, IERC1271 {
     uint256 public lastRebalanceTimestamp;  // last successful execution
     uint256 public nonce;                   // monotonically increasing signed proposal nonce
     address public authorizedSigner;        // optional delegate signer
-    string public nameMetadata;             // free-form metadata
-    string public descriptionMetadata;      // free-form metadata
 
     // ===== Events =====
     event AssetsInitialized(address[] assets, uint256[] targetPercBps, uint256[] deposits);
     event ProposalExecuted(uint256 indexed nonce, address executor, OrderDelta[] deltas);
     event SignerUpdated(address newSigner);
-    event MetadataUpdated(string nameMetadata, string descriptionMetadata);
 
     // ===== Errors =====
     error ArrayLengthMismatch();
@@ -68,9 +65,7 @@ contract Balancer is Ownable, IERC1271 {
         address _owner,
         address[] memory _assets,
         uint256[] memory _targetPercentageBps,
-        uint256[] memory _initialDepositAmounts,
-        string memory _name,
-        string memory _description
+        uint256[] memory _initialDepositAmounts
     ) Ownable(_owner) {
         if (_assets.length != _targetPercentageBps.length || _assets.length != _initialDepositAmounts.length) {
             revert ArrayLengthMismatch();
@@ -89,9 +84,7 @@ contract Balancer is Ownable, IERC1271 {
         }
         // soft requirement: total == 10_000 (100%). Not enforced strictly to retain flexibility.
         lastRebalanceTimestamp = block.timestamp;
-        authorizedSigner = _owner;
-        nameMetadata = _name;
-        descriptionMetadata = _description;
+    authorizedSigner = _owner;
 
         _CACHED_CHAIN_ID = block.chainid;
         _DOMAIN_SEPARATOR = keccak256(abi.encode(
@@ -102,7 +95,7 @@ contract Balancer is Ownable, IERC1271 {
             address(this)
         ));
 
-        emit AssetsInitialized(_assets, _targetPercentageBps, _initialDepositAmounts);
+    emit AssetsInitialized(_assets, _targetPercentageBps, _initialDepositAmounts);
     }
 
     // ===== View helpers =====
@@ -127,12 +120,6 @@ contract Balancer is Ownable, IERC1271 {
         if (newSigner == address(0)) revert ZeroAddress();
         authorizedSigner = newSigner;
         emit SignerUpdated(newSigner);
-    }
-
-    function updateMetadata(string calldata _name, string calldata _description) external onlyOwner {
-        nameMetadata = _name;
-        descriptionMetadata = _description;
-        emit MetadataUpdated(_name, _description);
     }
 
     // ===== Proposal Execution =====

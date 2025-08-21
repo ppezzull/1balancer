@@ -1,18 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { deployBalancerFactory as deployFactory } from "../utils/deploy/factory";
 
-const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
-  const { deployments, getNamedAccounts } = hre;
-  const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
-
-  await deploy("BalancerFactory", {
-    from: deployer,
-    args: [],
-    log: true,
-    skipIfAlreadyDeployed: true,
-  });
+const deployBalancerFactory: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
+  await deployFactory(hre);
 };
 
-export default func;
-func.tags = ["BalancerFactory"];
+export default deployBalancerFactory;
+deployBalancerFactory.tags = ["BalancerFactory"];

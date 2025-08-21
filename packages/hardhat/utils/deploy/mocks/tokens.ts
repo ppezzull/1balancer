@@ -1,12 +1,11 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { MockERC20 } from "../../../typechain-types";
 
 export interface MockTokens {
-  mockUSDC: MockERC20;
-  mockUSDT: MockERC20;
-  mockDAI: MockERC20;
-  mockWETH: MockERC20;
-  mockINCH: MockERC20;
+  mockUSDC_Permit: any;
+  mockUSDT_Permit: any;
+  mockDAI_Permit: any;
+  mockWETH_Permit: any;
+  mockINCH_Permit: any;
 }
 
 export async function deployMockTokens(hre: HardhatRuntimeEnvironment): Promise<MockTokens> {
@@ -14,89 +13,122 @@ export async function deployMockTokens(hre: HardhatRuntimeEnvironment): Promise<
   const { deploy, get } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  console.log("🪙 Deploying mock tokens...");
-
-  // Deploy USDC (6 decimals)
-  await deploy("MockUSDC", {
-    contract: "MockERC20",
+  console.log("🪙 Deploying permit-enabled mock tokens...");
+  // Deploy only permit-enabled mocks (EIP-2612)
+  await deploy("MockUSDC_Permit", {
+    contract: "MockERC20Permit",
     from: deployer,
-    args: ["USD Coin", "USDC", 6],
+    args: ["USD Coin Permit", "pUSDC", 6],
     log: true,
     skipIfAlreadyDeployed: true,
   });
-
-  // Deploy USDT (6 decimals)
-  await deploy("MockUSDT", {
-    contract: "MockERC20",
+  await deploy("MockUSDT_Permit", {
+    contract: "MockERC20Permit",
     from: deployer,
-    args: ["Tether USD", "USDT", 6],
+    args: ["Tether USD Permit", "pUSDT", 6],
     log: true,
     skipIfAlreadyDeployed: true,
   });
-
-  // Deploy DAI (18 decimals)
-  await deploy("MockDAI", {
-    contract: "MockERC20",
+  await deploy("MockDAI_Permit", {
+    contract: "MockERC20Permit",
     from: deployer,
-    args: ["Dai Stablecoin", "DAI", 18],
+    args: ["Dai Stablecoin Permit", "pDAI", 18],
     log: true,
     skipIfAlreadyDeployed: true,
   });
-
-  // Deploy WETH (18 decimals)
-  await deploy("MockWETH", {
-    contract: "MockERC20",
+  await deploy("MockWETH_Permit", {
+    contract: "MockERC20Permit",
     from: deployer,
-    args: ["Wrapped Ether", "WETH", 18],
+    args: ["Wrapped Ether Permit", "pWETH", 18],
     log: true,
     skipIfAlreadyDeployed: true,
   });
-
-  // Deploy INCH (18 decimals)
-  await deploy("MockINCH", {
-    contract: "MockERC20",
+  await deploy("MockINCH_Permit", {
+    contract: "MockERC20Permit",
     from: deployer,
-    args: ["1inch Token", "INCH", 18],
+    args: ["1inch Token Permit", "pINCH", 18],
     log: true,
     skipIfAlreadyDeployed: true,
   });
 
   // Get contract instances
-  const mockUSDC = (await ethers.getContractAt("MockERC20", (await get("MockUSDC")).address)) as unknown as MockERC20;
-  const mockUSDT = (await ethers.getContractAt("MockERC20", (await get("MockUSDT")).address)) as unknown as MockERC20;
-  const mockDAI = (await ethers.getContractAt("MockERC20", (await get("MockDAI")).address)) as unknown as MockERC20;
-  const mockWETH = (await ethers.getContractAt("MockERC20", (await get("MockWETH")).address)) as unknown as MockERC20;
-  const mockINCH = (await ethers.getContractAt("MockERC20", (await get("MockINCH")).address)) as unknown as MockERC20;
+  const mockUSDC_Permit = (await ethers.getContractAt(
+    "MockERC20Permit",
+    (await get("MockUSDC_Permit")).address,
+  )) as unknown as any;
+  const mockUSDT_Permit = (await ethers.getContractAt(
+    "MockERC20Permit",
+    (await get("MockUSDT_Permit")).address,
+  )) as unknown as any;
+  const mockDAI_Permit = (await ethers.getContractAt(
+    "MockERC20Permit",
+    (await get("MockDAI_Permit")).address,
+  )) as unknown as any;
+  const mockWETH_Permit = (await ethers.getContractAt(
+    "MockERC20Permit",
+    (await get("MockWETH_Permit")).address,
+  )) as unknown as any;
+  const mockINCH_Permit = (await ethers.getContractAt(
+    "MockERC20Permit",
+    (await get("MockINCH_Permit")).address,
+  )) as unknown as any;
 
-  console.log("✅ Mock tokens deployed:");
-  console.log("  USDC:", await mockUSDC.getAddress());
-  console.log("  USDT:", await mockUSDT.getAddress());
-  console.log("  DAI:", await mockDAI.getAddress());
-  console.log("  WETH:", await mockWETH.getAddress());
-  console.log("  INCH:", await mockINCH.getAddress());
+  console.log("✅ Permit mock tokens deployed:");
+  console.log("  pUSDC:", await mockUSDC_Permit.getAddress());
+  console.log("  pUSDT:", await mockUSDT_Permit.getAddress());
+  console.log("  pDAI:", await mockDAI_Permit.getAddress());
+  console.log("  pWETH:", await mockWETH_Permit.getAddress());
+  console.log("  pINCH:", await mockINCH_Permit.getAddress());
 
-  return { mockUSDC, mockUSDT, mockDAI, mockWETH, mockINCH };
+  return {
+    mockUSDC_Permit,
+    mockUSDT_Permit,
+    mockDAI_Permit,
+    mockWETH_Permit,
+    mockINCH_Permit,
+  };
 }
 
 export async function getOrDeployMockTokens(hre: HardhatRuntimeEnvironment): Promise<MockTokens> {
   const { deployments, ethers } = hre;
   const { get } = deployments;
 
-  console.log("🔄 Getting or deploying mock tokens...");
+  console.log("🔄 Getting or deploying permit-enabled mock tokens...");
 
   try {
     // Try to get already deployed tokens
-    const mockUSDC = (await ethers.getContractAt("MockERC20", (await get("MockUSDC")).address)) as unknown as MockERC20;
-    const mockUSDT = (await ethers.getContractAt("MockERC20", (await get("MockUSDT")).address)) as unknown as MockERC20;
-    const mockDAI = (await ethers.getContractAt("MockERC20", (await get("MockDAI")).address)) as unknown as MockERC20;
-    const mockWETH = (await ethers.getContractAt("MockERC20", (await get("MockWETH")).address)) as unknown as MockERC20;
-    const mockINCH = (await ethers.getContractAt("MockERC20", (await get("MockINCH")).address)) as unknown as MockERC20;
+    const mockUSDC_Permit = (await ethers.getContractAt(
+      "MockERC20Permit",
+      (await get("MockUSDC_Permit")).address,
+    )) as unknown as any;
+    const mockUSDT_Permit = (await ethers.getContractAt(
+      "MockERC20Permit",
+      (await get("MockUSDT_Permit")).address,
+    )) as unknown as any;
+    const mockDAI_Permit = (await ethers.getContractAt(
+      "MockERC20Permit",
+      (await get("MockDAI_Permit")).address,
+    )) as unknown as any;
+    const mockWETH_Permit = (await ethers.getContractAt(
+      "MockERC20Permit",
+      (await get("MockWETH_Permit")).address,
+    )) as unknown as any;
+    const mockINCH_Permit = (await ethers.getContractAt(
+      "MockERC20Permit",
+      (await get("MockINCH_Permit")).address,
+    )) as unknown as any;
 
-    console.log("♻️  Reusing existing mock tokens");
-    return { mockUSDC, mockUSDT, mockDAI, mockWETH, mockINCH };
+    console.log("♻️  Reusing existing permit mock tokens");
+    return {
+      mockUSDC_Permit,
+      mockUSDT_Permit,
+      mockDAI_Permit,
+      mockWETH_Permit,
+      mockINCH_Permit,
+    };
   } catch {
     // If tokens don't exist, deploy them
-    console.log("🆕 Deploying new mock tokens");
+    console.log("🆕 Deploying new permit mock tokens");
     return await deployMockTokens(hre);
   }
 }
@@ -124,27 +156,27 @@ export async function mintTestTokens(
 
   if (amounts.USDC && amounts.USDC > 0n) {
     console.log(`  💰 Minting ${amounts.USDC} USDC`);
-    mintPromises.push(tokens.mockUSDC.mint(recipient, amounts.USDC));
+    mintPromises.push(tokens.mockUSDC_Permit.mint(recipient, amounts.USDC));
   }
 
   if (amounts.USDT && amounts.USDT > 0n) {
     console.log(`  💰 Minting ${amounts.USDT} USDT`);
-    mintPromises.push(tokens.mockUSDT.mint(recipient, amounts.USDT));
+    mintPromises.push(tokens.mockUSDT_Permit.mint(recipient, amounts.USDT));
   }
 
   if (amounts.DAI && amounts.DAI > 0n) {
     console.log(`  💰 Minting ${amounts.DAI} DAI`);
-    mintPromises.push(tokens.mockDAI.mint(recipient, amounts.DAI));
+    mintPromises.push(tokens.mockDAI_Permit.mint(recipient, amounts.DAI));
   }
 
   if (amounts.WETH && amounts.WETH > 0n) {
     console.log(`  💰 Minting ${amounts.WETH} WETH`);
-    mintPromises.push(tokens.mockWETH.mint(recipient, amounts.WETH));
+    mintPromises.push(tokens.mockWETH_Permit.mint(recipient, amounts.WETH));
   }
 
   if (amounts.INCH && amounts.INCH > 0n) {
     console.log(`  💰 Minting ${amounts.INCH} INCH`);
-    mintPromises.push(tokens.mockINCH.mint(recipient, amounts.INCH));
+    mintPromises.push(tokens.mockINCH_Permit.mint(recipient, amounts.INCH));
   }
 
   await Promise.all(mintPromises);
@@ -158,47 +190,4 @@ export async function mintTestTokens(
  * @param factoryAddress The factory address to approve
  * @param amounts Array of amounts to approve [USDC, USDT, DAI, WETH, INCH]
  */
-export async function approveFactoryTokens(
-  tokens: MockTokens,
-  signer: any,
-  factoryAddress: string,
-  amounts: {
-    USDC?: bigint;
-    USDT?: bigint;
-    DAI?: bigint;
-    WETH?: bigint;
-    INCH?: bigint;
-  },
-): Promise<void> {
-  console.log("🔑 Approving factory to spend tokens:", factoryAddress);
-
-  const approvePromises: Promise<any>[] = [];
-
-  if (amounts.USDC && amounts.USDC > 0n) {
-    console.log(`  ✅ Approving ${amounts.USDC} USDC`);
-    approvePromises.push(tokens.mockUSDC.connect(signer).approve(factoryAddress, amounts.USDC));
-  }
-
-  if (amounts.USDT && amounts.USDT > 0n) {
-    console.log(`  ✅ Approving ${amounts.USDT} USDT`);
-    approvePromises.push(tokens.mockUSDT.connect(signer).approve(factoryAddress, amounts.USDT));
-  }
-
-  if (amounts.DAI && amounts.DAI > 0n) {
-    console.log(`  ✅ Approving ${amounts.DAI} DAI`);
-    approvePromises.push(tokens.mockDAI.connect(signer).approve(factoryAddress, amounts.DAI));
-  }
-
-  if (amounts.WETH && amounts.WETH > 0n) {
-    console.log(`  ✅ Approving ${amounts.WETH} WETH`);
-    approvePromises.push(tokens.mockWETH.connect(signer).approve(factoryAddress, amounts.WETH));
-  }
-
-  if (amounts.INCH && amounts.INCH > 0n) {
-    console.log(`  ✅ Approving ${amounts.INCH} INCH`);
-    approvePromises.push(tokens.mockINCH.connect(signer).approve(factoryAddress, amounts.INCH));
-  }
-
-  await Promise.all(approvePromises);
-  console.log("✅ Factory token approvals completed");
-}
+// Manual approvals removed; use EIP-2612 permits via Factory.createBalancer

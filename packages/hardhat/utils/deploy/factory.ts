@@ -1,43 +1,41 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
-import type { BalancerFactory, OracleAdapter, MockLimitOrderProtocol } from "../../typechain-types";
+import { DeployResult } from "hardhat-deploy/types";
 
-export async function deployBalancerFactory(
-  hre: HardhatRuntimeEnvironment,
-  _libraries: {
-    // kept for backward compat; no linking needed here anymore
-    limitOrderLib: any;
-    stablecoinGridLib: any;
-  },
-  mocks: {
-    priceFeedAdapter: OracleAdapter;
-    mockLimitOrderProtocol: MockLimitOrderProtocol;
-  },
-  stablecoinAddresses: string[],
-): Promise<BalancerFactory> {
-  const { deployments, getNamedAccounts, ethers } = hre;
+import type { BalancerFactory } from "../../typechain-types";
+
+export type DeployedFactory = {
+  address: string;
+  instance: BalancerFactory;
+  deployment: DeployResult;
+};
+
+export async function deployBalancerFactory(hre: HardhatRuntimeEnvironment): Promise<DeployedFactory> {
+  const { deployments, ethers, getNamedAccounts } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  // single-line output per request
+  // On dev networks, drop previous deployment to avoid ABI/bytecode drift
+  const isDev = hre.network.name === "hardhat" || hre.network.name === "localhost";
+  const existing = await deployments.getOrNull("BalancerFactory");
+  if (isDev && existing) {
+    await deployments.delete("BalancerFactory");
+  }
 
-  const factoryDeployment = await deploy("BalancerFactory", {
+  const deployment = await deploy("BalancerFactory", {
     from: deployer,
-    args: [
-      await mocks.priceFeedAdapter.getAddress(),
-      stablecoinAddresses,
-      await mocks.mockLimitOrderProtocol.getAddress(),
-    ],
+    args: [],
     log: true,
+    // Force redeploy to pick up ABI/signature changes during active development
     skipIfAlreadyDeployed: false,
   });
 
-  const optimizedBalancerFactory = (await ethers.getContractAt(
-    "BalancerFactory",
-    factoryDeployment.address,
-  )) as unknown as BalancerFactory;
+  const instance = (await ethers.getContractAt("BalancerFactory", deployment.address)) as unknown as BalancerFactory;
 
-  const addr = await optimizedBalancerFactory.getAddress();
-  console.log(`utils/factory: BalancerFactory=${addr} Stablecoins=${JSON.stringify(stablecoinAddresses)}`);
+  return { address: deployment.address, instance, deployment };
+}
 
-  return optimizedBalancerFactory;
+export async function getBalancerFactory(hre: HardhatRuntimeEnvironment): Promise<BalancerFactory> {
+  const { deployments, ethers } = hre;
+  const d = await deployments.get("BalancerFactory");
+  return (await ethers.getContractAt("BalancerFactory", d.address)) as unknown as BalancerFactory;
 }
