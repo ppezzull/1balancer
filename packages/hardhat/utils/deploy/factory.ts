@@ -18,6 +18,15 @@ export async function deployBalancerFactory(hre: HardhatRuntimeEnvironment): Pro
   const isDev = hre.network.name === "hardhat" || hre.network.name === "localhost";
   const existing = await deployments.getOrNull("BalancerFactory");
   if (isDev && existing) {
+    try {
+      // If bytecode is missing, or to force fresh deploy each run, delete the record
+      const code = await ethers.provider.getCode(existing.address);
+      if (code === "0x" || code.length <= 2) {
+        console.log("⚠️  Detected stale BalancerFactory deployment without code. Deleting before redeploy...");
+      }
+    } catch {
+      // ignore
+    }
     await deployments.delete("BalancerFactory");
   }
 

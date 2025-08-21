@@ -91,44 +91,80 @@ export async function deployMockTokens(hre: HardhatRuntimeEnvironment): Promise<
 
 export async function getOrDeployMockTokens(hre: HardhatRuntimeEnvironment): Promise<MockTokens> {
   const { deployments, ethers } = hre;
-  const { get } = deployments;
+  const { get, delete: del } = deployments as any;
 
   console.log("🔄 Getting or deploying permit-enabled mock tokens...");
 
   try {
     // Try to get already deployed tokens
-    const mockUSDC_Permit = (await ethers.getContractAt(
-      "MockERC20Permit",
-      (await get("MockUSDC_Permit")).address,
-    )) as unknown as any;
-    const mockUSDT_Permit = (await ethers.getContractAt(
-      "MockERC20Permit",
-      (await get("MockUSDT_Permit")).address,
-    )) as unknown as any;
-    const mockDAI_Permit = (await ethers.getContractAt(
-      "MockERC20Permit",
-      (await get("MockDAI_Permit")).address,
-    )) as unknown as any;
-    const mockWETH_Permit = (await ethers.getContractAt(
-      "MockERC20Permit",
-      (await get("MockWETH_Permit")).address,
-    )) as unknown as any;
-    const mockINCH_Permit = (await ethers.getContractAt(
-      "MockERC20Permit",
-      (await get("MockINCH_Permit")).address,
-    )) as unknown as any;
+    const usdcAddr = (await get("MockUSDC_Permit")).address;
+    const usdtAddr = (await get("MockUSDT_Permit")).address;
+    const daiAddr = (await get("MockDAI_Permit")).address;
+    const wethAddr = (await get("MockWETH_Permit")).address;
+    const inchAddr = (await get("MockINCH_Permit")).address;
+
+    // Verify code exists at these addresses (network may have been reset while JSONs persisted)
+    const codes = await Promise.all([
+      ethers.provider.getCode(usdcAddr),
+      ethers.provider.getCode(usdtAddr),
+      ethers.provider.getCode(daiAddr),
+      ethers.provider.getCode(wethAddr),
+      ethers.provider.getCode(inchAddr),
+    ]);
+    const anyMissing = codes.some((c: string) => c === "0x" || c.length <= 2);
+    if (anyMissing) {
+      console.log("⚠️  Detected missing bytecode for some mock tokens. Cleaning and redeploying...");
+      // Clean stale records to force redeploy
+      await Promise.all([
+        del?.("MockUSDC_Permit").catch(() => {}),
+        del?.("MockUSDT_Permit").catch(() => {}),
+        del?.("MockDAI_Permit").catch(() => {}),
+        del?.("MockWETH_Permit").catch(() => {}),
+        del?.("MockINCH_Permit").catch(() => {}),
+      ]);
+      throw new Error("stale-mocks");
+    }
+
+    // Bind contracts and sanity-check ABI by calling a couple of view methods
+    const mockUSDC_PermitC = (await ethers.getContractAt("MockERC20Permit", usdcAddr)) as unknown as any;
+    const mockUSDT_PermitC = (await ethers.getContractAt("MockERC20Permit", usdtAddr)) as unknown as any;
+    const mockDAI_PermitC = (await ethers.getContractAt("MockERC20Permit", daiAddr)) as unknown as any;
+    const mockWETH_PermitC = (await ethers.getContractAt("MockERC20Permit", wethAddr)) as unknown as any;
+    const mockINCH_PermitC = (await ethers.getContractAt("MockERC20Permit", inchAddr)) as unknown as any;
+
+    try {
+      await Promise.all([
+        mockUSDC_PermitC.name(),
+        mockUSDT_PermitC.name(),
+        mockDAI_PermitC.name(),
+        mockWETH_PermitC.name(),
+        mockINCH_PermitC.name(),
+        mockUSDC_PermitC.nonces(ethers.ZeroAddress),
+      ]);
+    } catch {
+      console.log("⚠️  Detected ABI/address mismatch for mock tokens. Cleaning and redeploying...");
+      await Promise.all([
+        del?.("MockUSDC_Permit").catch(() => {}),
+        del?.("MockUSDT_Permit").catch(() => {}),
+        del?.("MockDAI_Permit").catch(() => {}),
+        del?.("MockWETH_Permit").catch(() => {}),
+        del?.("MockINCH_Permit").catch(() => {}),
+      ]);
+      throw new Error("stale-mocks");
+    }
 
     console.log("♻️  Reusing existing permit mock tokens");
     return {
-      mockUSDC_Permit,
-      mockUSDT_Permit,
-      mockDAI_Permit,
-      mockWETH_Permit,
-      mockINCH_Permit,
+      mockUSDC_Permit: mockUSDC_PermitC,
+      mockUSDT_Permit: mockUSDT_PermitC,
+      mockDAI_Permit: mockDAI_PermitC,
+      mockWETH_Permit: mockWETH_PermitC,
+      mockINCH_Permit: mockINCH_PermitC,
     };
   } catch {
     // If tokens don't exist, deploy them
     console.log("🆕 Deploying new permit mock tokens");
+    // Force fresh deploys
     return await deployMockTokens(hre);
   }
 }

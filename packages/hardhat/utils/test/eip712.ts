@@ -1,29 +1,7 @@
-import { expect } from "chai";
 import { ethers } from "hardhat";
 import type { Signer } from "ethers";
 
-// EIP-1271 helpers
-export async function expectValidEip1271Signature(contractWith1271: any): Promise<void> {
-  const [owner] = await ethers.getSigners();
-  const orderHash = ethers.keccak256(ethers.toUtf8Bytes("TEST_ORDER"));
-  const messageBytes = ethers.getBytes(orderHash);
-  const signed = await owner.signMessage(messageBytes);
-  const digest = ethers.keccak256(
-    ethers.solidityPacked(["string", "bytes32"], ["\x19Ethereum Signed Message:\n32", orderHash]),
-  );
-  const isValid = await contractWith1271.isValidSignature(digest as any, signed);
-  expect(isValid).to.equal("0x1626ba7e");
-}
-
-export async function expectInvalidEip1271Signature(contractWith1271: any): Promise<void> {
-  const orderHash = ethers.keccak256(ethers.toUtf8Bytes("TEST_ORDER"));
-  const other = (await ethers.getSigners())[1];
-  const wrongSig = await other.signMessage(ethers.getBytes(orderHash));
-  const isValid = await contractWith1271.isValidSignature(orderHash, wrongSig);
-  expect(isValid).to.equal("0xffffffff");
-}
-
-// EIP-712 signing helper for Balancer proposals
+// EIP-712 signing helper for Balancer proposals (typed)
 export async function signBalancerProposal(
   signer: Signer,
   balancerAddr: string,
