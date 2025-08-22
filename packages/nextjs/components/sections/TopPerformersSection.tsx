@@ -23,9 +23,9 @@ import {
   MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
-import { SharedPortfolio } from "../types/portfolio";
+import { SharedPortfolio } from "../../utils/types/portfolio";
 import { PortfolioDetailModal } from "../modals/PortfolioDetailModal";
-import { generateCommunityPortfolios } from "~~/utils/portfolio-generator";
+import { generateCommunityPortfolios } from "~~/lib/portfolio-generator";
 
 export function TopPerformersSection() {
   const { ref: heroRef, isInView: heroInView } = useInViewAnimation();

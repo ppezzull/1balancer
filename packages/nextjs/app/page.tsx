@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { HomePage } from "~~/components/pages/HomePage";
-import { getHomeData } from "~~/utils/storage";
+import { getHomeData } from "~~/lib/storage";
 
 export default function Home() {
   const router = useRouter();

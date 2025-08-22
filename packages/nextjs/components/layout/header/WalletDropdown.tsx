@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Wallet, Copy, LogOut, Check } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 
 interface WalletDropdownProps {
   showDropdown: boolean;

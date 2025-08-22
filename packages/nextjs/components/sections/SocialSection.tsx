@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { Badge } from "./ui/badge";
-import { Input } from "./ui/input";
-import { Textarea } from "./ui/textarea";
-import { useIsMobile } from "./ui/use-mobile";
-import { useTheme } from "./ui/use-theme";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Badge } from "../ui/badge";
+import { Input } from "../ui/input";
+import { Textarea } from "../ui/textarea";
+import { useIsMobile } from "../ui/use-mobile";
+import { useTheme } from "../ui/use-theme";
 import { 
   Users, 
   Heart, 

@@ -1,4 +1,4 @@
-import { TOKEN_IMAGES, WALLET_CONFIG } from './constants';
+import { TOKEN_IMAGES, WALLET_CONFIG } from '../utils/constants';
 import { toast } from "sonner";
 
 export const getTokenImage = (symbol: string): string | null => {

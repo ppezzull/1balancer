@@ -1,5 +1,5 @@
-import { SharedPortfolio } from "../components/types/portfolio";
-import { CRYPTOCURRENCY_DATA } from "./constants";
+import { SharedPortfolio } from "../utils/types/portfolio";
+import { CRYPTOCURRENCY_DATA } from "../utils/constants";
 
 export function generateCommunityPortfolios(): SharedPortfolio[] {
   // Get saved portfolios from localStorage

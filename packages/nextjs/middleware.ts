@@ -1,44 +1,20 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { updateSession } from '~~/utils/supabase/middleware'
+import { type NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  // Get the pathname of the request
-  const { pathname } = request.nextUrl;
-
-  // Check if it's a wallet protected route
-  const isWalletRoute = pathname.startsWith('/wallet');
-  
-  if (isWalletRoute) {
-    // Check for Privy authentication tokens in cookies
-    // Privy typically stores tokens with these names
-    const privyTokens = [
-      'privy-token',
-      'privy-refresh-token', 
-      'privy-id-token',
-      'privy-access-token',
-      'privy-session',
-      '_privy_token',
-      '_privy_refresh_token'
-    ];
-    
-    const hasAuthToken = privyTokens.some(tokenName => 
-      request.cookies.get(tokenName)?.value
-    );
-    
-    // If no authentication token found, redirect to home
-    if (!hasAuthToken) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/';
-      url.searchParams.set('redirect', pathname); // Preserve intended destination
-      return NextResponse.redirect(url);
-    }
-  }
-
-  return NextResponse.next();
+export async function middleware(request: NextRequest) {
+  return await updateSession(request)
 }
 
 export const config = {
   matcher: [
-    '/wallet/:path*'
-  ]
-};
+    /*
+     * Match all request paths except:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
+     * Feel free to modify this pattern to include more paths.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}

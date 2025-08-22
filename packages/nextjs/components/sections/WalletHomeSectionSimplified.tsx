@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { 
   PieChart, 
   ArrowRight, 
@@ -29,10 +29,10 @@ import { toast } from "sonner";
 import { PortfolioSection } from "./PortfolioSection";
 import { TradeSection } from "./TradeSection";
 import { SocialSection } from "./SocialSection";
-import { UserProfileSection } from "./UserProfileSection";
-import { PieChartCreator } from "./PieChartCreator";
-import { TemplateSelectionModal } from "./wallet/TemplateSelectionModal";
-import { TemplateConfigurationModal } from "./wallet/TemplateConfigurationModal";
+import { UserProfileSection } from "../UserProfileSection";
+import { PieChartCreator } from "../PieChartCreator";
+import { TemplateSelectionModal } from "../wallet/TemplateSelectionModal";
+import { TemplateConfigurationModal } from "../wallet/TemplateConfigurationModal";
 
 interface WalletHomeSectionProps {
   activeWalletTab: 'home' | 'portfolio' | 'trade' | 'social' | 'profile';

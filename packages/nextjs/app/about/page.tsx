@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { HomePage } from "~~/components/pages/HomePage";
-import { getAboutData } from "~~/utils/storage";
+import { getAboutData } from "~~/lib/storage";
 
 export default function AboutPage() {
   const [aboutData, setAboutData] = useState(null);

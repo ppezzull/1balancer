@@ -1,10 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
+import { createClient } from "~~/utils/supabase/client";
 
 export function useWalletConnection(propIsWalletConnected?: boolean) {
   const [isWalletConnected, setIsWalletConnected] = useState(propIsWalletConnected || false);
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [isConnecting, setIsConnecting] = useState(false);
+  const router = useRouter();
+  const supabase = createClient();
+  const { address, isConnected } = useAccount();
 
   // Sync wallet connection state with prop
   useEffect(() => {
@@ -21,25 +27,12 @@ export function useWalletConnection(propIsWalletConnected?: boolean) {
     window.dispatchEvent(event);
   }, []);
 
-  // Function to simulate wallet connection
+  // Function to connect using Supabase UI
   const connectWallet = useCallback(async () => {
     try {
       setIsConnecting(true);
-      // Simulate connection delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate wallet connection (in a real app you would use Web3 or wallet provider)
-      const mockAddress = "0x" + Math.random().toString(16).substring(2, 42);
-      setWalletAddress(mockAddress);
-      setIsWalletConnected(true);
-      
-      // Emit connection event
+      router.push("/auth/login");
       emitWalletConnectionEvent(true);
-      
-      toast.success("Wallet connected successfully!", {
-        description: `Address: ${mockAddress.slice(0, 6)}...${mockAddress.slice(-4)}`,
-        duration: 3000,
-      });
     } catch (error) {
       console.error("Error connecting wallet:", error);
       toast.error("Error connecting wallet", {
@@ -49,34 +42,37 @@ export function useWalletConnection(propIsWalletConnected?: boolean) {
     } finally {
       setIsConnecting(false);
     }
-  }, [emitWalletConnectionEvent]);
+  }, [emitWalletConnectionEvent, router]);
 
   // Function to disconnect wallet
-  const disconnectWallet = useCallback(() => {
-    console.log('Disconnecting wallet');
-    setIsWalletConnected(false);
-    setWalletAddress("");
-    
-    // Emit disconnection event
-    emitWalletConnectionEvent(false);
-    
-    toast.info("Wallet disconnected", {
-      description: "Your wallet has been disconnected successfully",
-      duration: 2000,
-    });
-  }, [emitWalletConnectionEvent]);
+  const disconnectWallet = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+      emitWalletConnectionEvent(false);
+      toast.info("Signed out", { duration: 2000 });
+    } catch (e) {
+      console.error(e);
+    }
+  }, [emitWalletConnectionEvent, supabase.auth]);
 
   // Function to shorten address
   const shortenAddress = useCallback((address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
   }, []);
 
+  // Sync local state: consider connected if there is a wagmi address or a Supabase session
+  useEffect(() => {
+    // We can't read Supabase session here without async; rely on header components to show auth UI when not connected
+    setIsWalletConnected(Boolean(isConnected && address));
+    setWalletAddress((address || "").toString());
+  }, [isConnected, address]);
+
   return {
     isWalletConnected,
     walletAddress,
-    isConnecting,
+  isConnecting,
     connectWallet,
     disconnectWallet,
-    shortenAddress
+    shortenAddress,
   };
 }

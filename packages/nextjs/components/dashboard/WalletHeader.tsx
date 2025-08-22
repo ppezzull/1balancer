@@ -14,7 +14,7 @@ import {
   RefreshCw 
 } from 'lucide-react';
 import { WALLET_CONFIG } from '~~/utils/constants';
-import { copyWalletAddress, generateWalletAvatar } from '~~/utils/dashboard-helpers';
+import { copyWalletAddress, generateWalletAvatar } from '~~/lib/dashboard-helpers';
 
 interface WalletHeaderProps {
   isInView: boolean;

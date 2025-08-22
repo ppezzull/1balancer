@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { HomePage } from "~~/components/pages/HomePage";
-import { getTopPerformersData } from "~~/utils/storage";
+import { getTopPerformersData } from "~~/lib/storage";
 
 export default function TopPerformersPage() {
   const [topPerformersData, setTopPerformersData] = useState(null);

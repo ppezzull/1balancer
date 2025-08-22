@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
 import { HomePage } from "~~/components/pages/HomePage";
-import { getRebalanceData } from "~~/utils/storage";
+import { getRebalanceData } from "~~/lib/storage";
 
 export default function RebalancePage() {
   const router = useRouter();

@@ -17,7 +17,7 @@ import {
   Target,
   DollarSign
 } from "lucide-react";
-import { SharedPortfolio } from "../types/portfolio";
+import { SharedPortfolio } from "../../utils/types/portfolio";
 
 interface PortfolioDetailModalProps {
   portfolio: SharedPortfolio | null;

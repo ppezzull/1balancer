@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { useTheme } from "./ui/use-theme";
-import { useIsMobile } from "./ui/use-mobile";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { useTheme } from "../ui/use-theme";
+import { useIsMobile } from "../ui/use-mobile";
 import { 
   PieChart, 
   TrendingUp, 
@@ -34,7 +34,7 @@ import {
   TrendingDown as Drift
 } from "lucide-react";
 import { toast } from "sonner";
-import { PortfolioDetailModal } from "./PortfolioDetailModal";
+import { PortfolioDetailModal } from "../PortfolioDetailModal";
 import { 
   getPortfolios, 
   deletePortfolio, 

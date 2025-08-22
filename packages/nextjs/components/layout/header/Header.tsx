@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Button } from "./ui/button";
-import { ThemeToggle } from "./ui/theme-toggle";
-import { useIsMobile } from "./ui/use-mobile";
+import { Button } from "../../ui/button";
+import { ThemeToggle } from "../../ui/theme-toggle";
+import { useIsMobile } from "../../ui/use-mobile";
 import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import { NavigationTabs } from "./header/NavigationTabs";

@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
-import { useInViewAnimation } from "./interactive/useInViewAnimation";
-import { useIsMobile } from "./ui/use-mobile";
-import { useTheme } from "./ui/use-theme";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Input } from "./ui/input";
-import { Badge } from "./ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useInViewAnimation } from "../interactive/useInViewAnimation";
+import { useIsMobile } from "../ui/use-mobile";
+import { useTheme } from "../ui/use-theme";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Input } from "../ui/input";
+import { Badge } from "../ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -29,8 +29,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CRYPTOCURRENCY_DATA } from "~~/utils/constants";
-import { CryptoDetailScreen } from "./CryptoDetailScreen";
-import { BuyCryptoModal } from "./BuyCryptoModal";
+import { CryptoDetailScreen } from "../CryptoDetailScreen";
+import { BuyCryptoModal } from "../BuyCryptoModal";
 import { LineChart, Line, ResponsiveContainer, Tooltip, Area, AreaChart } from "recharts";
 
 interface TradingPair {
