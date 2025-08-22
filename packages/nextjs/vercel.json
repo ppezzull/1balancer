@@ -11,6 +11,12 @@
       ]
     }
   ],
+  "crons": [
+    {
+      "path": "/api/balance",
+      "schedule": "*/5 * * * *"
+    }
+  ],
   "env": {
     "NEXT_PUBLIC_ALCHEMY_API_KEY": "your_alchemy_api_key_here",
     "NEXT_PUBLIC_PRIVY_APP_ID": "your_privy_app_id_here",
