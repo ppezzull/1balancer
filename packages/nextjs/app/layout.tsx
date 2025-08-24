@@ -1,6 +1,6 @@
 import "./globals.css";
-import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
-import { ThemeProvider } from "~~/components/ThemeProvider";
+import { ScaffoldEthAppWithProviders } from "~~/components/providers/ScaffoldEthAppWithProviders";
+import { ThemeProvider } from "~~/components/providers/ThemeProvider";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({
@@ -13,7 +13,7 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
     <html suppressHydrationWarning className={``}>
       <body>
         <ThemeProvider 
-          themes={["light", "dark"]} 
+          themes={["light", "dark"]}
           defaultTheme="dark"
           enableSystem={true}
           attribute="class"
