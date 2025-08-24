@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/card";
 import { PieChart, Crown, ArrowRight, Rocket, Shield, Users } from "lucide-react";
 
 interface PortfolioOptionsProps {

@@ -1,6 +1,6 @@
 import "./globals.css";
-import { ScaffoldEthAppWithProviders } from "~~/components/providers/ScaffoldEthAppWithProviders";
-import { ThemeProvider } from "~~/components/providers/ThemeProvider";
+import { ScaffoldEthAppWithProviders } from "~~/components/layout/provider/ScaffoldEthAppWithProviders";
+import { ThemeProvider } from "~~/components/layout/provider/ThemeProvider";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
 export const metadata = getMetadata({

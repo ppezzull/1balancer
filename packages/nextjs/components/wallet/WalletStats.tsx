@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Card, CardContent } from "../ui/card";
+import { Card, CardContent } from "~~/components/shared/card";
 import { DollarSign, PieChart, BarChart3, Target } from "lucide-react";
 
 interface WalletStatsProps {

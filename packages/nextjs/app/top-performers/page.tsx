@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { HomePage } from "~~/components/pages/HomePage";
+import { HomePage } from "~~/components/home/HomePage";
 import { getTopPerformersData } from "~~/utils/storage";
 
 export default function TopPerformersPage() {

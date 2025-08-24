@@ -874,6 +874,7 @@ export const TOKEN_IMAGES = {
     "defaultPortfoliosInitialized";
   
   export interface Portfolio {
+    isTemplate: any;
     id: string;
     name: string;
     tokens: Array<{

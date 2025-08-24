@@ -1,4 +1,4 @@
-import { SharedPortfolio } from "../components/types/portfolio";
+import { SharedPortfolio } from "../types/portfolio";
 import { CRYPTOCURRENCY_DATA } from "./constants";
 
 export function generateCommunityPortfolios(): SharedPortfolio[] {

@@ -1,9 +1,9 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Card, CardContent } from "../ui/card";
-import { Badge } from "../ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~~/components/shared/dialog";
+import { Card, CardContent } from "~~/components/shared/card";
+import { Badge } from "~~/components/shared/badge";
 import { Crown, Target, TrendingUp, Rocket, Shield, Globe, Zap, Star, Bot } from "lucide-react";
 
 const PORTFOLIO_ICONS = {

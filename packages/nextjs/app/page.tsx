@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { usePrivy } from "@privy-io/react-auth";
-import { HomePage } from "~~/components/pages/HomePage";
+import { HomePage } from "~~/components/home/HomePage";
 import { getHomeData } from "~~/utils/storage";
 
 export default function Home() {

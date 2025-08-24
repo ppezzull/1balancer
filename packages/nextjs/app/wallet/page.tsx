@@ -1,6 +1,6 @@
 "use client";
 
-import { WalletHomeSectionSimplified } from "~~/components/WalletHomeSectionSimplified";
+import { WalletHomeSectionSimplified } from "~~/components/wallet/WalletHomeSectionSimplified";
 
 export default function WalletHome() {
   return (
