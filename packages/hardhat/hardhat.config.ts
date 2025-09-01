@@ -1,6 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { HardhatUserConfig } from "hardhat/config";
+import "tsconfig-paths/register";
 import "@nomicfoundation/hardhat-ethers";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@typechain/hardhat";
@@ -9,6 +10,7 @@ import "solidity-coverage";
 import "@nomicfoundation/hardhat-verify";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
+import "hardhat-tracer";
 import { task } from "hardhat/config";
 import generateTsAbis from "./scripts/generateTsAbis";
 
@@ -26,13 +28,14 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.20",
+        version: "0.8.23",
         settings: {
           optimizer: {
             enabled: true,
             // https://docs.soliditylang.org/en/latest/using-the-compiler.html#optimizer-options
-            runs: 200,
+            runs: 10000000,
           },
+          viaIR: true,
         },
       },
     ],
@@ -48,6 +51,9 @@ const config: HardhatUserConfig = {
     // View the networks that are pre-configured.
     // If the network you are looking for is not here you can add new network settings
     hardhat: {
+      allowUnlimitedContractSize: true,
+      gas: 100000000000, // Set high gas limit for testing
+      blockGasLimit: 100000000000,
       forking: {
         url: `https://eth-mainnet.alchemyapi.io/v2/${providerApiKey}`,
         enabled: process.env.MAINNET_FORKING_ENABLED === "true",
