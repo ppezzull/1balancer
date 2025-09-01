@@ -6,10 +6,6 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@utils/*": ["utils/*"]
-    }
+    "skipLibCheck": true
   }
 }
