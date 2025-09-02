@@ -11,8 +11,9 @@ import { HeaderSimplified } from "~~/components/layout/header";
 import { SupabaseProvider } from "~~/components/layout/provider/SupabaseProvider";
 import { LiveCryptoTicker } from "~~/components/shared/interactive/LiveCryptoTicker";
 import { useInitializeNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
+import { useTheme } from "~~/hooks/use-theme";
 import scaffoldConfig from "~~/scaffold.config";
-import { privyConfig } from "~~/services/web3/privyConfig";
+import { getPrivyConfig } from "~~/services/web3/privyConfig";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 import { initializeDefaultPortfolios } from "~~/utils/constants";
 
@@ -62,8 +63,13 @@ export const queryClient = new QueryClient({
 });
 
 export const ScaffoldEthAppWithProviders = ({ children }: { children: React.ReactNode }) => {
+  const { theme } = useTheme();
+  const privyConfig = getPrivyConfig(theme as any);
+
+  // When the theme changes, remount the PrivyProvider (by key) so appearance
+  // updates immediately. Privy may only read appearance at init.
   return (
-    <PrivyProvider appId={scaffoldConfig.privyProjectId} config={privyConfig}>
+    <PrivyProvider key={theme} appId={scaffoldConfig.privyProjectId} config={privyConfig}>
       <QueryClientProvider client={queryClient}>
         <WagmiProvider config={wagmiConfig} reconnectOnMount={false}>
           <SupabaseProvider>
