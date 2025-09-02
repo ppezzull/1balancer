@@ -19,10 +19,10 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/card";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/ui/card";
+import { useTheme } from "~~/hooks/use-theme";
 import { SharedPortfolio } from "~~/types/portfolio";
 import { CRYPTOCURRENCY_DATA, Portfolio } from "~~/utils/constants";
 

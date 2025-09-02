@@ -19,13 +19,13 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { Cell, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "sonner";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent, CardHeader } from "~~/components/shared/card";
-import { Input } from "~~/components/shared/input";
 import { useInViewAnimation } from "~~/components/shared/interactive/useInViewAnimation";
-import { useIsMobile } from "~~/components/shared/use-mobile";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent, CardHeader } from "~~/components/shared/ui/card";
+import { Input } from "~~/components/shared/ui/input";
+import { useIsMobile } from "~~/hooks/use-mobile";
+import { useTheme } from "~~/hooks/use-theme";
 import { CRYPTOCURRENCY_DATA } from "~~/utils/constants";
 
 interface TokenAllocation {

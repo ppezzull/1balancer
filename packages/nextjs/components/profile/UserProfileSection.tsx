@@ -18,13 +18,13 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/card";
-import { Input } from "~~/components/shared/input";
-import { Switch } from "~~/components/shared/switch";
-import { Textarea } from "~~/components/shared/textarea";
-import { useIsMobile } from "~~/components/shared/use-mobile";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/ui/card";
+import { Input } from "~~/components/shared/ui/input";
+import { Switch } from "~~/components/shared/ui/switch";
+import { Textarea } from "~~/components/shared/ui/textarea";
+import { useIsMobile } from "~~/hooks/use-mobile";
 import {
   Portfolio,
   USER_PROFILE_STORAGE_KEY,

@@ -25,9 +25,9 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { SwitchTheme } from "~~/components/shared/SwitchTheme";
-import { Button } from "~~/components/shared/button";
-import { useIsMobile } from "~~/components/shared/use-mobile";
+import { SwitchTheme } from "~~/components/shared/ui/SwitchTheme";
+import { Button } from "~~/components/shared/ui/button";
+import { useIsMobile } from "~~/hooks/use-mobile";
 
 export function HeaderSimplified() {
   const { ready, authenticated, login, logout, user } = usePrivy();

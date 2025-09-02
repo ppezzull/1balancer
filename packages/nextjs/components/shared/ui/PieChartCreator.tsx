@@ -1,14 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+// import { useIsMobile } from "./use-mobile";
+import { useTheme } from "../../../hooks/use-theme";
 import { Button } from "./button";
 import { Card, CardContent } from "./card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./dialog";
 import { Input } from "./input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 import { Slider } from "./slider";
-// import { useIsMobile } from "./use-mobile";
-import { useTheme } from "./use-theme";
 import {
   AlertCircle,
   ArrowLeft,

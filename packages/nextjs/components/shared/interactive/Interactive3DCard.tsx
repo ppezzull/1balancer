@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useTheme } from "../use-theme";
+import { useTheme } from "../../../hooks/use-theme";
 import { useInViewAnimation } from "./useInViewAnimation";
 import { motion } from "motion/react";
 

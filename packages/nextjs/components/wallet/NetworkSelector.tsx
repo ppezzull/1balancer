@@ -1,9 +1,9 @@
 import { memo } from "react";
 import { Globe } from "lucide-react";
 import { motion } from "motion/react";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { useTheme } from "~~/hooks/use-theme";
 import { NETWORKS } from "~~/utils/constants";
 import type { NetworkId } from "~~/utils/constants";
 

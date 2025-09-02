@@ -1,6 +1,6 @@
-import { Button } from "~~/components/shared/button";
-import { Card, CardDescription, CardHeader, CardTitle } from "~~/components/shared/card";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardDescription, CardHeader, CardTitle } from "~~/components/shared/ui/card";
+import { useTheme } from "~~/hooks/use-theme";
 
 interface MainContentProps {
   activeTab: "home" | "about" | "rebalance";

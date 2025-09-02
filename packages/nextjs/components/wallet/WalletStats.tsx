@@ -1,6 +1,6 @@
 import { BarChart3, DollarSign, PieChart, Target } from "lucide-react";
 import { motion } from "motion/react";
-import { Card, CardContent } from "~~/components/shared/card";
+import { Card, CardContent } from "~~/components/shared/ui/card";
 
 interface WalletStatsProps {
   defaultPortfolios: any[];

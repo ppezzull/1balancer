@@ -2,9 +2,9 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import { Bot, Crown, Globe, Rocket, Shield, Star, Target, TrendingUp, Zap } from "lucide-react";
 import { motion } from "motion/react";
-import { Badge } from "~~/components/shared/badge";
-import { Card, CardContent } from "~~/components/shared/card";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~~/components/shared/dialog";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Card, CardContent } from "~~/components/shared/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~~/components/shared/ui/dialog";
 
 const PORTFOLIO_ICONS = {
   endgame: Crown,

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useTheme } from "../use-theme";
+import { useTheme } from "../../../hooks/use-theme";
 import { motion } from "motion/react";
 
 interface Particle {

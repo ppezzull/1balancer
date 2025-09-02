@@ -14,14 +14,14 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent, CardHeader } from "~~/components/shared/card";
-import { Input } from "~~/components/shared/input";
 import { useInViewAnimation } from "~~/components/shared/interactive/useInViewAnimation";
 import { PortfolioDetailModal } from "~~/components/shared/modals/PortfolioDetailModal";
-import { useIsMobile } from "~~/components/shared/use-mobile";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent, CardHeader } from "~~/components/shared/ui/card";
+import { Input } from "~~/components/shared/ui/input";
+import { useIsMobile } from "~~/hooks/use-mobile";
+import { useTheme } from "~~/hooks/use-theme";
 import { SharedPortfolio } from "~~/types/portfolio";
 import { generateCommunityPortfolios } from "~~/utils/portfolio-generator";
 

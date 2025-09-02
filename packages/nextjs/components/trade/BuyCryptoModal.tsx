@@ -17,10 +17,10 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent } from "~~/components/shared/card";
-import { useIsMobile } from "~~/components/shared/use-mobile";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent } from "~~/components/shared/ui/card";
+import { useIsMobile } from "~~/hooks/use-mobile";
+import { useTheme } from "~~/hooks/use-theme";
 
 interface BuyCryptoModalProps {
   crypto: {

@@ -6,9 +6,9 @@ import { usePrivy } from "@privy-io/react-auth";
 import { ArrowRight, BarChart3, Brain, Shield, Target, TrendingUp, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/card";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/ui/card";
+import { useTheme } from "~~/hooks/use-theme";
 
 interface RebalanceProps {
   onStartRebalancing?: () => void;

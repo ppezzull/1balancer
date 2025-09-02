@@ -1,12 +1,12 @@
 import React from "react";
 import { Activity, Check, Clock, Info, Target } from "lucide-react";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~~/components/shared/dialog";
-import { Input } from "~~/components/shared/input";
-import { Label } from "~~/components/shared/label";
-import { RadioGroup, RadioGroupItem } from "~~/components/shared/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~~/components/shared/select";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "~~/components/shared/ui/dialog";
+import { Input } from "~~/components/shared/ui/input";
+import { Label } from "~~/components/shared/ui/label";
+import { RadioGroup, RadioGroupItem } from "~~/components/shared/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~~/components/shared/ui/select";
 
 interface RebalanceConfigModalProps {
   isOpen: boolean;

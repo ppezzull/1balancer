@@ -1,14 +1,14 @@
 import React from "react";
 import Image from "next/image";
-import { Badge } from "../badge";
-import { Button } from "../button";
-import { Card, CardContent, CardHeader } from "../card";
-import { useIsMobile } from "../use-mobile";
-import { useTheme } from "../use-theme";
+import { useTheme } from "../../../hooks/use-theme";
+import { Badge } from "../ui/badge";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader } from "../ui/card";
 import { BarChart3 } from "lucide-react";
 import { Activity, DollarSign, Heart, Share, Star, Target, TrendingDown, TrendingUp, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { Cell, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { useIsMobile } from "~~/hooks/use-mobile";
 import { SharedPortfolio } from "~~/types/portfolio";
 
 interface PortfolioDetailModalProps {

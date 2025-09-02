@@ -7,7 +7,7 @@ import { WalletStats } from "./WalletStats";
 import { toast } from "sonner";
 import { PortfolioSection } from "~~/components/portfolio/PortfolioSection";
 import { UserProfileSection } from "~~/components/profile/UserProfileSection";
-import { PieChartCreator } from "~~/components/shared/PieChartCreator";
+import { PieChartCreator } from "~~/components/shared/ui/PieChartCreator";
 import { SocialSection } from "~~/components/social/SocialSection";
 import { CryptoDetailScreen } from "~~/components/trade/CryptoDetailScreen";
 import { TradeSection } from "~~/components/trade/TradeSection";

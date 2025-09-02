@@ -1,10 +1,9 @@
 import { useState } from "react";
 import Image from "next/image";
-import { Button } from "../button";
-import { Card, CardContent, CardHeader } from "../card";
-import { ScrollArea } from "../scroll-area";
-import { useIsMobile } from "../use-mobile";
-import { useTheme } from "../use-theme";
+import { useTheme } from "../../../hooks/use-theme";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader } from "../ui/card";
+import { ScrollArea } from "../ui/scroll-area";
 import { Target, TrendingUp } from "lucide-react";
 import {
   AlertTriangle,
@@ -22,6 +21,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { toast } from "sonner";
+import { useIsMobile } from "~~/hooks/use-mobile";
 
 interface WhitepaperModalProps {
   isOpen: boolean;

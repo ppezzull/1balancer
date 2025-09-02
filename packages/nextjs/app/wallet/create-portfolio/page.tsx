@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PieChartCreator } from "~~/components/shared/PieChartCreator";
+import { PieChartCreator } from "~~/components/shared/ui/PieChartCreator";
 
 export default function WalletCreatePortfolio() {
   const router = useRouter();

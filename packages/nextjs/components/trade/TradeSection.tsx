@@ -6,12 +6,12 @@ import { TrendingUp } from "lucide-react";
 import { Activity, ArrowDownRight, ArrowUpRight, BarChart3, Clock, Eye, Search, Volume2, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { Area, AreaChart, Line, LineChart, ResponsiveContainer } from "recharts";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/card";
-import { Input } from "~~/components/shared/input";
 import { useInViewAnimation } from "~~/components/shared/interactive/useInViewAnimation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~~/components/shared/select";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/ui/card";
+import { Input } from "~~/components/shared/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~~/components/shared/ui/select";
 import { CRYPTOCURRENCY_DATA } from "~~/utils/constants";
 
 interface TradingPair {

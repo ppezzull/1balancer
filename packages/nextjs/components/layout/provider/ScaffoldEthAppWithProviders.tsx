@@ -7,7 +7,7 @@ import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { Toaster } from "react-hot-toast";
-import { HeaderSimplified } from "~~/components/layout/header/HeaderSimplified";
+import { HeaderSimplified } from "~~/components/layout/header";
 import { SupabaseProvider } from "~~/components/layout/provider/SupabaseProvider";
 import { LiveCryptoTicker } from "~~/components/shared/interactive/LiveCryptoTicker";
 import { useInitializeNativeCurrencyPrice } from "~~/hooks/scaffold-eth";

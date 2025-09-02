@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "../shared/button";
 import { WhitepaperModal } from "../shared/modals/WhitepaperModal";
+import { Button } from "../shared/ui/button";
 import { usePrivy } from "@privy-io/react-auth";
 import { AlertCircle, ArrowRight, FileText, Shield, TrendingUp, Wallet, Zap } from "lucide-react";
 import { motion } from "motion/react";

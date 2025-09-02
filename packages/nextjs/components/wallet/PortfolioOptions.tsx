@@ -1,6 +1,6 @@
 import { ArrowRight, Crown, PieChart, Rocket, Shield, Users } from "lucide-react";
 import { motion } from "motion/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/ui/card";
 
 interface PortfolioOptionsProps {
   onCreateCustom: () => void;

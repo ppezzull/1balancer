@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PortfolioSection } from "../portfolio/PortfolioSection";
 import { UserProfileSection } from "../profile/UserProfileSection";
-import { PieChartCreator } from "../shared/PieChartCreator";
+import { PieChartCreator } from "../shared/ui/PieChartCreator";
 import { SocialSection } from "../social/SocialSection";
 import { TradeSection } from "../trade/TradeSection";
 import { TemplateSelectionModal } from "../wallet/TemplateSelectionModal";
@@ -20,7 +20,7 @@ import {
   Users,
 } from "lucide-react";
 import { motion } from "motion/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/ui/card";
 import { initializeDefaultPortfolios } from "~~/utils/constants";
 
 interface WalletHomeSectionProps {

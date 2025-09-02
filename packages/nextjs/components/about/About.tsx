@@ -17,11 +17,11 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { Button } from "~~/components/shared/button";
-import { Card } from "~~/components/shared/card";
 import { useInViewAnimation } from "~~/components/shared/interactive/useInViewAnimation";
 import { WhitepaperModal } from "~~/components/shared/modals/WhitepaperModal";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Button } from "~~/components/shared/ui/button";
+import { Card } from "~~/components/shared/ui/card";
+import { useTheme } from "~~/hooks/use-theme";
 
 interface AboutProps {
   onGetStarted?: () => void;

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "~~/components/shared/button";
+import { Button } from "~~/components/shared/ui/button";
 
 export const SwitchTheme = ({ className }: { className?: string }) => {
   const { setTheme, resolvedTheme, theme } = useTheme();

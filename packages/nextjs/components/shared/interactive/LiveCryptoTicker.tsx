@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useTheme } from "../use-theme";
+import { useTheme } from "../../../hooks/use-theme";
 import { motion } from "framer-motion";
 import { TrendingDown, TrendingUp } from "lucide-react";
 

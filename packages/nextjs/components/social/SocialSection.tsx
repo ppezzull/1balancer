@@ -25,14 +25,14 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { Cell, Legend, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "~~/components/shared/avatar";
-import { Badge } from "~~/components/shared/badge";
-import { Button } from "~~/components/shared/button";
-import { Card, CardContent, CardHeader } from "~~/components/shared/card";
-import { Input } from "~~/components/shared/input";
-import { Textarea } from "~~/components/shared/textarea";
-import { useIsMobile } from "~~/components/shared/use-mobile";
-import { useTheme } from "~~/components/shared/use-theme";
+import { Avatar, AvatarFallback, AvatarImage } from "~~/components/shared/ui/avatar";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
+import { Card, CardContent, CardHeader } from "~~/components/shared/ui/card";
+import { Input } from "~~/components/shared/ui/input";
+import { Textarea } from "~~/components/shared/ui/textarea";
+import { useIsMobile } from "~~/hooks/use-mobile";
+import { useTheme } from "~~/hooks/use-theme";
 import { CRYPTOCURRENCY_DATA, Portfolio, getPortfolios, getUserProfile } from "~~/utils/constants";
 
 interface SocialPortfolio extends Portfolio {
