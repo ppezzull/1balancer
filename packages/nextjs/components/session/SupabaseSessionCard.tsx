@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSupabaseSession } from "../providers/SupabaseProvider";
+import { useSupabaseSession } from "../layout/provider/SupabaseProvider";
 import SessionCard from "~~/components/ui/session-card";
 
 export function SupabaseSessionCard({ initialClaims }: { initialClaims?: Record<string, unknown> | null }) {

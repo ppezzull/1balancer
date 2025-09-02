@@ -1,5 +1,5 @@
-import { ScaffoldEthAppWithProviders } from "~~/components/providers/ScaffoldEthAppWithProviders";
-import { ThemeProvider } from "~~/components/providers/ThemeProvider";
+import { ScaffoldEthAppWithProviders } from "~~/components/layout/provider/ScaffoldEthAppWithProviders";
+import { ThemeProvider } from "~~/components/layout/provider/ThemeProvider";
 import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 

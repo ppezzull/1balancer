@@ -1,11 +1,21 @@
-import { ChainWithAttributes, getAlchemyHttpUrl } from "./networks";
+import { ChainWithAttributes, getOneInchHttpUrl } from "./networks";
 import { CurrencyAmount, Token } from "@uniswap/sdk-core";
 import { Pair, Route } from "@uniswap/v2-sdk";
 import { Address, createPublicClient, fallback, http, parseAbi } from "viem";
 import { mainnet } from "viem/chains";
+import scaffoldConfig from "~~/scaffold.config";
 
-const alchemyHttpUrl = getAlchemyHttpUrl(mainnet.id);
-const rpcFallbacks = alchemyHttpUrl ? [http(alchemyHttpUrl), http()] : [http()];
+const oneInchHttpUrl = getOneInchHttpUrl(mainnet.id);
+const rpcFallbacks = oneInchHttpUrl
+  ? [
+      http(oneInchHttpUrl, {
+        fetchOptions: {
+          headers: scaffoldConfig.oneInchApiKey ? { Authorization: `Bearer ${scaffoldConfig.oneInchApiKey}` } : {},
+        },
+      }),
+      http(),
+    ]
+  : [http()];
 const publicClient = createPublicClient({
   chain: mainnet,
   transport: fallback(rpcFallbacks),

@@ -99,6 +99,22 @@
 
 /* Deprecated Daisy helper class overrides removed during migration */
 
+/* Minimal parity with legacy Daisy button/link styles */
+.btn {
+  box-shadow:
+    0 1px 2px 0 rgb(0 0 0 / 0.05),
+    0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+.btn.btn-ghost {
+  box-shadow: none;
+}
+.link {
+  text-underline-offset: 2px;
+}
+.link:hover {
+  opacity: 0.8;
+}
+
 /*
   ---break---
 */
@@ -124,6 +140,8 @@
   --color-destructive: var(--destructive);
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -179,6 +197,27 @@
   --sidebar-accent-foreground: var(--color-accent-content);
   --sidebar-border: var(--color-base-300);
   --sidebar-ring: var(--color-primary);
+
+  /* Additional tokens ported from legacy globals */
+  --font-size: 14px;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+
+  /* Gradients and visual effects - light mode */
+  --gradient-primary: linear-gradient(135deg, #0891b2, #0284c7, #2563eb);
+  --gradient-secondary: linear-gradient(135deg, #1e40af, #3730a3, #5b21b6);
+  --gradient-accent: linear-gradient(135deg, #1e40af, #3730a3, #5b21b6);
+  --header-bg: rgba(255, 255, 255, 0.85);
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --overlay-bg: rgba(255, 255, 255, 0.3);
+  --particle-color: rgba(14, 165, 233, 0.4);
+  --glow-color: rgba(14, 165, 233, 0.3);
+  --border-light: rgba(0, 0, 0, 0.08);
+  --text-muted-light: rgba(0, 0, 0, 0.65);
+  --universe-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%);
+  --light-particle: rgba(59, 130, 246, 0.6);
+  --light-glow: rgba(59, 130, 246, 0.4);
+  --light-wave: rgba(59, 130, 246, 0.2);
 }
 
 /*
@@ -188,14 +227,246 @@
   vars above will reflect the active theme automatically via --color-* vars.
   No separate .dark block is required at this stage. */
 
+/* Dark-mode extras that don't map 1:1 from Daisy color tokens */
+[data-theme="dark"] {
+  /* Keep semantic tokens mapped via --color-*; add extra dark-only visuals */
+  --input-background: oklch(0.269 0 0);
+  --switch-background: oklch(0.439 0 0);
+
+  --gradient-primary: linear-gradient(135deg, #14b8a6, #22d3ee, #6366f1);
+  --gradient-secondary: linear-gradient(135deg, #1e40af, #3730a3, #5b21b6);
+  --gradient-accent: linear-gradient(135deg, #1e40af, #3730a3, #5b21b6);
+  --header-bg: rgba(17, 24, 39, 0.95);
+  --card-bg: rgba(17, 24, 39, 0.7);
+  --overlay-bg: rgba(0, 0, 0, 0.3);
+  --particle-color: rgba(20, 184, 166, 0.6);
+  --glow-color: rgba(20, 184, 166, 0.4);
+  --border-light: rgba(255, 255, 255, 0.1);
+  --text-muted-light: rgba(255, 255, 255, 0.6);
+}
+
 /*
   ---break---
 */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* Equivalent of Tailwind `border-border outline-ring/50` */
+    border-color: var(--color-border);
+    outline-color: color-mix(in oklab, var(--ring) 50%, transparent);
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
   body {
-    @apply bg-background text-foreground;
+    /* Equivalent of Tailwind `bg-background text-foreground` */
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Smooth theme transitions and FOUC prevention */
+  html {
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+  html.changing-theme * {
+    transition: none !important;
+  }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor
+ * with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+  }
+}
+
+/* Custom utility classes for scrollbar hiding and no-scroll functionality */
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-default {
+    -ms-overflow-style: auto;
+    scrollbar-width: thin;
+  }
+  .scrollbar-default::-webkit-scrollbar {
+    width: 8px;
+  }
+  .scrollbar-default::-webkit-scrollbar-track {
+    background: var(--muted);
+    border-radius: 4px;
+  }
+  .scrollbar-default::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .scrollbar-default::-webkit-scrollbar-thumb:hover {
+    background: var(--foreground);
+  }
+
+  /* No-scroll utilities for home page */
+  .no-scroll {
+    overflow: hidden !important;
+    height: 100vh !important;
+  }
+  .no-scroll-body {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Ensure proper viewport handling */
+  .viewport-fixed {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+  }
+
+  /* Perfect centering utilities for home page content */
+  .perfect-center {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 100% !important;
+  }
+  .center-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  /* Responsive typography scaling for centered content */
+  .hero-title {
+    font-size: clamp(2rem, 5vw, 4rem) !important;
+    line-height: 1.1 !important;
+    font-weight: 700 !important;
+  }
+  .hero-subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.25rem) !important;
+    line-height: 1.6 !important;
+    opacity: 0.8 !important;
+  }
+
+  /* Viewport-aware spacing */
+  .viewport-padding {
+    padding: clamp(1rem, 4vh, 2rem) clamp(1rem, 4vw, 2rem) !important;
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Specific styles for home page no-scroll behavior */
+body.home-page-no-scroll {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
+html.home-page-no-scroll {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+/* Enhanced centering for home page content */
+.home-page-centered {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 100vh !important;
+  width: 100% !important;
+  position: relative !important;
+}
+.home-content-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  max-width: 72rem !important;
+  margin: 0 auto !important;
+  padding: clamp(1rem, 4vh, 2rem) clamp(1rem, 4vw, 2rem) !important;
+}
+
+/* Fixed navbar utilities */
+.fixed-navbar-offset {
+  padding-top: 4rem !important;
+}
+@media (min-width: 640px) {
+  .fixed-navbar-offset {
+    padding-top: 5rem !important;
+  }
+}
+
+/* Smooth scroll behavior for sections with fixed navbar */
+.smooth-scroll-section {
+  scroll-margin-top: 5rem !important;
+}
+@media (max-width: 639px) {
+  .smooth-scroll-section {
+    scroll-margin-top: 4rem !important;
   }
 }
