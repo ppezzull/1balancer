@@ -1,9 +1,9 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ContractInput } from "./ContractInput";
 import { getFunctionInputKey, getInitialTupleArrayFormState } from "./utilsContract";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~~/components/ui/accordion";
-import { Badge } from "~~/components/ui/badge";
-import { Button } from "~~/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "~~/components/shared/ui/accordion";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
 import { replacer } from "~~/utils/scaffold-eth/common";
 import { AbiParameterTuple } from "~~/utils/scaffold-eth/contract";
 

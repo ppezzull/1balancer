@@ -5,7 +5,7 @@ import { Address, isAddress } from "viem";
 import { normalize } from "viem/ens";
 import { useEnsAddress, useEnsAvatar, useEnsName } from "wagmi";
 import { CommonInputProps, InputBase, isENS } from "~~/components/scaffold-eth";
-import { Skeleton } from "~~/components/ui/skeleton";
+import { Skeleton } from "~~/components/shared/ui/skeleton";
 
 /**
  * Address input with ENS name resolution

@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from "../../ui/dialog";
+import { Dialog, DialogContent } from "../../shared/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { Address as AddressType } from "viem";
 import { Address } from "~~/components/scaffold-eth";

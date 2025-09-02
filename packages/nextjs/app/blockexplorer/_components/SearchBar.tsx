@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { isAddress, isHex } from "viem";
 import { hardhat } from "viem/chains";
 import { usePublicClient } from "wagmi";
-import { Button } from "~~/components/ui/button";
-import { Input } from "~~/components/ui/input";
+import { Button } from "~~/components/shared/ui/button";
+import { Input } from "~~/components/shared/ui/input";
 
 export const SearchBar = () => {
   const [searchInput, setSearchInput] = useState("");

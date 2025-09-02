@@ -1,5 +1,5 @@
 import { InformationCircleIcon } from "@heroicons/react/20/solid";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/shared/ui/tooltip";
 
 export const InheritanceTooltip = ({ inheritedFrom }: { inheritedFrom?: string }) => (
   <>

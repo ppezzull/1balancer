@@ -7,7 +7,7 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/solid";
-import { Spinner } from "~~/components/ui/spinner";
+import { Spinner } from "~~/components/shared/ui/spinner";
 
 type NotificationProps = {
   content: React.ReactNode;

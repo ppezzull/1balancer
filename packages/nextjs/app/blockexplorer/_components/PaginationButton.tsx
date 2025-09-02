@@ -1,5 +1,5 @@
 import { ArrowLeftIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
-import { Button } from "~~/components/ui/button";
+import { Button } from "~~/components/shared/ui/button";
 
 type PaginationButtonProps = {
   currentPage: number;

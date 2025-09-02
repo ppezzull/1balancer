@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useSupabaseSession } from "../layout/provider/SupabaseProvider";
-import SessionCard from "~~/components/ui/session-card";
+import SessionCard from "~~/components/shared/ui/session-card";
 
 export function SupabaseSessionCard({ initialClaims }: { initialClaims?: Record<string, unknown> | null }) {
   const { claims: ctxClaims, loading: ctxLoading } = useSupabaseSession();

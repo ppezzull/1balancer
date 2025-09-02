@@ -5,9 +5,9 @@ import { createWalletClient, http, parseEther } from "viem";
 import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
-import { Button } from "~~/components/ui/button";
-import { Spinner } from "~~/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/ui/tooltip";
+import { Button } from "~~/components/shared/ui/button";
+import { Spinner } from "~~/components/shared/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/shared/ui/tooltip";
 import { useTransactor } from "~~/hooks/scaffold-eth";
 import { useWatchBalance } from "~~/hooks/scaffold-eth/useWatchBalance";
 

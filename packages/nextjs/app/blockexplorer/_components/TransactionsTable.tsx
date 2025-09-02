@@ -1,7 +1,7 @@
 import { formatEther } from "viem";
 import { TransactionHash } from "~~/app/blockexplorer/_components";
 import { Address } from "~~/components/scaffold-eth";
-import { Badge } from "~~/components/ui/badge";
+import { Badge } from "~~/components/shared/ui/badge";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import { TransactionWithFunction, TransactionsTableProps } from "~~/utils/scaffold-eth";
 
@@ -51,11 +51,7 @@ export const TransactionsTable = ({ blocks, transactionReceipts }: TransactionsT
                       </td>
                       <td className="w-2/12 md:py-4 px-4">
                         {tx.functionName === "0x" ? "" : <span className="mr-1">{tx.functionName}</span>}
-                        {functionCalled !== "0x" && (
-                          <Badge variant="primary" size="sm">
-                            {functionCalled}
-                          </Badge>
-                        )}
+                        {functionCalled !== "0x" && <Badge variant="default">{functionCalled}</Badge>}
                       </td>
                       <td className="w-1/12 md:py-6 px-6">{block.number?.toString()}</td>
                       <td className="w-2/12 md:py-6 px-6">{timeMined}</td>

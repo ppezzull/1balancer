@@ -1,7 +1,7 @@
 "use client";
 
 import { Address, formatEther } from "viem";
-import { Button } from "~~/components/ui/button";
+import { Button } from "~~/components/shared/ui/button";
 import { useDisplayUsdMode } from "~~/hooks/scaffold-eth/useDisplayUsdMode";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import { useWatchBalance } from "~~/hooks/scaffold-eth/useWatchBalance";

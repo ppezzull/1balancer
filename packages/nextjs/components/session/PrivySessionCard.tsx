@@ -2,7 +2,7 @@
 
 import React, { useMemo } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import SessionCard from "~~/components/ui/session-card";
+import SessionCard from "~~/components/shared/ui/session-card";
 
 function summarizePrivyUser(u: any) {
   if (!u) return null;

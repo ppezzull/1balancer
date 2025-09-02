@@ -6,8 +6,8 @@ import { Hash, Transaction, TransactionReceipt, formatEther, formatUnits } from 
 import { hardhat } from "viem/chains";
 import { usePublicClient } from "wagmi";
 import { Address } from "~~/components/scaffold-eth";
-import { Badge } from "~~/components/ui/badge";
-import { Button } from "~~/components/ui/button";
+import { Badge } from "~~/components/shared/ui/badge";
+import { Button } from "~~/components/shared/ui/button";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import { decodeTransactionData, getFunctionDetails } from "~~/utils/scaffold-eth";
 import { replacer } from "~~/utils/scaffold-eth/common";
@@ -103,7 +103,7 @@ const TransactionComp = ({ txHash }: { txHash: Hash }) => {
                     ) : (
                       <>
                         <span className="mr-2">{getFunctionDetails(transaction)}</span>
-                        <Badge variant="primary">{functionCalled}</Badge>
+                        <Badge variant="default">{functionCalled}</Badge>
                       </>
                     )}
                   </div>

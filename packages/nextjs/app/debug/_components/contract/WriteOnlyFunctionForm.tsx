@@ -14,9 +14,9 @@ import {
   transformAbiFunction,
 } from "~~/app/debug/_components/contract";
 import { IntegerInput } from "~~/components/scaffold-eth";
-import { Button } from "~~/components/ui/button";
-import { Spinner } from "~~/components/ui/spinner";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/ui/tooltip";
+import { Button } from "~~/components/shared/ui/button";
+import { Spinner } from "~~/components/shared/ui/spinner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/shared/ui/tooltip";
 import { useTransactor } from "~~/hooks/scaffold-eth";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import { AllowedChainIds } from "~~/utils/scaffold-eth";

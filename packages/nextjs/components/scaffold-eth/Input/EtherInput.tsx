@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { ArrowsRightLeftIcon } from "@heroicons/react/24/outline";
 import { CommonInputProps, InputBase, SIGNED_NUMBER_REGEX } from "~~/components/scaffold-eth";
-import { Button } from "~~/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/ui/tooltip";
+import { Button } from "~~/components/shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/shared/ui/tooltip";
 import { useDisplayUsdMode } from "~~/hooks/scaffold-eth/useDisplayUsdMode";
 import { useGlobalState } from "~~/services/store/store";
 

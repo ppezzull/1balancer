@@ -4,8 +4,8 @@ import { useEffect, useMemo } from "react";
 import { useSessionStorage } from "usehooks-ts";
 import { BarsArrowUpIcon } from "@heroicons/react/20/solid";
 import { ContractUI } from "~~/app/debug/_components/contract";
-import { Button } from "~~/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/ui/tooltip";
+import { Button } from "~~/components/shared/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "~~/components/shared/ui/tooltip";
 import { ContractName, GenericContract } from "~~/utils/scaffold-eth/contract";
 import { useAllContracts } from "~~/utils/scaffold-eth/contractsData";
 

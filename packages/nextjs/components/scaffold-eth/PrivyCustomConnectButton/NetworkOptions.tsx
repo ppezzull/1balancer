@@ -1,4 +1,4 @@
-import { DropdownMenuItem } from "../../ui/dropdown-menu";
+import { DropdownMenuItem } from "../../shared/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import { useAccount, useSwitchChain } from "wagmi";
 import { ArrowsRightLeftIcon } from "@heroicons/react/24/solid";

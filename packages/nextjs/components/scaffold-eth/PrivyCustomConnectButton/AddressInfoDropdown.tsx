@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { Button } from "../../ui/button";
+import { Button } from "../../shared/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../ui/dropdown-menu";
+} from "../../shared/ui/dropdown-menu";
 import { NetworkOptions } from "./NetworkOptions";
 import { usePrivy } from "@privy-io/react-auth";
 import { getAddress } from "viem";

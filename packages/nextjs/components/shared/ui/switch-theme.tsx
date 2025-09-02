@@ -3,8 +3,8 @@
 import { useEffect, useId, useState } from "react";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Label } from "~~/components/ui/label";
-import { Switch } from "~~/components/ui/switch";
+import { Label } from "~~/components/shared/ui/label";
+import { Switch } from "~~/components/shared/ui/switch";
 
 export const SwitchTheme = ({ className }: { className?: string }) => {
   const id = useId();

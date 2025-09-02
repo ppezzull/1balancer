@@ -13,8 +13,8 @@ import {
   getParsedContractFunctionArgs,
   transformAbiFunction,
 } from "~~/app/debug/_components/contract";
-import { Button } from "~~/components/ui/button";
-import { Spinner } from "~~/components/ui/spinner";
+import { Button } from "~~/components/shared/ui/button";
+import { Spinner } from "~~/components/shared/ui/spinner";
 import { useTargetNetwork } from "~~/hooks/scaffold-eth/useTargetNetwork";
 import { getParsedError, notification } from "~~/utils/scaffold-eth";
 
