@@ -572,6 +572,8 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
                     <Image
                       src={crypto.image}
                       alt={crypto.name}
+                      width={20}
+                      height={20}
                       className={`object-contain ${isMobile ? "w-4 h-4" : "w-5 h-5"}`}
                       onError={e => {
                         const img = e.currentTarget as HTMLImageElement;
@@ -1359,6 +1361,8 @@ export function BuyCryptoModal({ crypto, isOpen, onClose }: BuyCryptoModalProps)
                               <Image
                                 src={crypto.image}
                                 alt={crypto.name}
+                                width={12}
+                                height={12}
                                 className="w-3 h-3 object-contain"
                                 onError={e => {
                                   const img = e.currentTarget as HTMLImageElement;

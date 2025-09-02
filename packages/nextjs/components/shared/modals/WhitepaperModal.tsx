@@ -625,7 +625,13 @@ export function WhitepaperModal({ isOpen, onClose }: WhitepaperModalProps) {
             <CardHeader className={`border-b border-border/30 ${isMobile ? "p-3" : "p-4"} flex-shrink-0`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 sm:gap-4 min-w-0">
-                  <Image src={"/logo.png"} alt="1Balancer" className={`h-15 sm:h-30 w-auto flex-shrink-0`} />
+                  <Image
+                    src={"/logo.png"}
+                    alt="1Balancer"
+                    width={120}
+                    height={40}
+                    className={`h-15 sm:h-30 w-auto flex-shrink-0`}
+                  />
                   <div className="min-w-0">
                     <h1 className={`font-bold text-foreground ${isMobile ? "text-lg" : "text-xl"} truncate`}>
                       1Balancer Protocol

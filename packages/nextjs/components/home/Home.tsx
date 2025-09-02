@@ -19,30 +19,32 @@ export function Home({ onGetStarted }: HomeProps) {
   const router = useRouter();
   const { ready, authenticated, login } = usePrivy();
   const [showWhitepaper, setShowWhitepaper] = useState(false);
+  const [redirectAfterAuth, setRedirectAfterAuth] = useState(false);
 
   // Use Privy state as primary source of truth
   const isWalletConnected = ready && authenticated;
 
-  // Redirect to wallet after successful authentication
+  // Redirect to wallet only if the user explicitly requested Get Started
   useEffect(() => {
-    if (ready && authenticated && onGetStarted) {
+    if (ready && authenticated && redirectAfterAuth) {
       // Small delay to allow authentication to complete
       const timer = setTimeout(() => {
         router.push("/wallet");
-      }, 1000);
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [ready, authenticated, router, onGetStarted]);
+  }, [ready, authenticated, router, redirectAfterAuth]);
 
   const handleGetStarted = async () => {
     if (!isWalletConnected) {
       try {
-        await login();
+        login();
         toast.success("Wallet connected successfully!", {
           description: "Redirecting to your dashboard...",
           duration: 3000,
         });
-        // Redirect will happen in useEffect above
+        // Mark that we should redirect after authentication completes
+        setRedirectAfterAuth(true);
       } catch {
         toast.error("Connection Failed", {
           description: "Failed to connect wallet. Please try again.",

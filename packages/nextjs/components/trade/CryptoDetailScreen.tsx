@@ -97,6 +97,8 @@ export function CryptoDetailScreen({ crypto, onBack }: CryptoDetailScreenProps) 
               <Image
                 src={crypto.image}
                 alt={crypto.name}
+                width={20}
+                height={20}
                 className="w-5 h-5 object-contain"
                 onError={e => {
                   e.currentTarget.style.display = "none";

@@ -349,6 +349,8 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                                 <Image
                                   src={allocation.image}
                                   alt={allocation.name}
+                                  width={20}
+                                  height={20}
                                   className={`${isMobile ? "w-4 h-4" : "w-5 h-5"} object-contain`}
                                   onError={e => {
                                     (e.currentTarget as HTMLImageElement).style.display = "none";

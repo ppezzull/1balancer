@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { PrivyCustomConnectButton } from "../../scaffold-eth/PrivyCustomConnectButton/index";
-import { FaucetButton } from "../../shared/scaffold-eth/FaucetButton";
+// import { PrivyCustomConnectButton } from "../../scaffold-eth/PrivyCustomConnectButton/index";
+// import { FaucetButton } from "../../shared/scaffold-eth/FaucetButton";
 import { usePrivy } from "@privy-io/react-auth";
 import {
   Bug,
@@ -272,14 +272,17 @@ export function HeaderSimplified() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link href="/" className="transition-opacity duration-200 hover:opacity-80 cursor-pointer flex-shrink-0">
-              <Image src="/logo.png" alt="1balancer" className="h-35 w-auto" />
+          <div className="flex items-center h-full">
+            <Link
+              href="/"
+              className="transition-opacity duration-200 hover:opacity-80 cursor-pointer flex-shrink-0 flex items-center h-full"
+            >
+              <Image src="/logo.png" alt="1balancer" width={80} height={60} className="h-35 sm:h-40 w-auto" />
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
+          <nav className="hidden md:flex items-center h-full space-x-6 lg:space-x-8">
             {shouldShowWalletNavigation
               ? // Wallet Navigation with enhanced styling
                 walletNavItems.map(item => (
@@ -399,7 +402,7 @@ export function HeaderSimplified() {
           </nav>
 
           {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-3 relative">
+          <div className="hidden md:flex items-center h-full gap-3 relative">
             {/* Theme Toggle - Only show when not in wallet section */}
             {!shouldShowWalletNavigation && <SwitchTheme />}
 
@@ -459,7 +462,7 @@ export function HeaderSimplified() {
           </div>
 
           {/* Mobile Actions */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="md:hidden flex items-center h-full gap-2">
             {/* Mobile Theme Toggle - Only show when not in wallet section */}
             {!shouldShowWalletNavigation && <SwitchTheme />}
 
@@ -711,8 +714,8 @@ export function HeaderSimplified() {
           </AnimatePresence>,
           document.body,
         )}
-      <PrivyCustomConnectButton />
-      <FaucetButton />
+      {/* <PrivyCustomConnectButton />
+      <FaucetButton /> */}
     </header>
   );
 }
