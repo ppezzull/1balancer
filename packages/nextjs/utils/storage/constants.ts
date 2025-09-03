@@ -1,3 +1,6 @@
+import { Portfolio, PortfolioPerformance, PortfolioStrategy } from "../../types/balancer/portfolio";
+import { UserProfile } from "../../types/balancer/user";
+
 export const CHAIN_ID = process.env.CHAIN_ID || 8453;
 export const ONEINCH_API_BASE = "https://api.1inch.dev";
 export const API_KEY = process.env.ONEINCH_API_KEY!;
@@ -73,45 +76,9 @@ export const TOKEN_IMAGES = {
   FARTCOIN: "https://cryptologos.cc/logos/dogecoin-doge-logo.png", // Placeholder
   FDOG: "https://cryptologos.cc/logos/dogecoin-doge-logo.png", // Placeholder
   WIF: "https://cryptologos.cc/logos/dogwifhat-wif-logo.png",
-
-  // AI Tokens
-  TAO: "https://cryptologos.cc/logos/bittensor-tao-logo.png",
-  NEAR: "https://cryptologos.cc/logos/near-protocol-near-logo.png",
-  RENDER: "https://cryptologos.cc/logos/render-token-rndr-logo.png",
-  FET: "https://cryptologos.cc/logos/fetch-ai-fet-logo.png",
-  VIRTUAL: "https://cryptologos.cc/logos/virtual-protocol-virtual-logo.png",
-
-  // Privacy & Security Tokens (ERC-20)
-  RPL: "https://cryptologos.cc/logos/rocket-pool-rpl-logo.png",
-  OCEAN: "https://cryptologos.cc/logos/ocean-protocol-ocean-logo.png",
-} as const;
-
-// Cryptocurrency Data for WalletHomeSection - ERC-20 Tokens Only
-export const CRYPTOCURRENCY_DATA = [
-  // Custom StableCoin with Shield and Lion (Protected minimum 25%)
-  {
-    symbol: "SLD",
-    name: "Shield StableCoin",
-    price: "1.00",
-    change: "+0.00",
-    image:
-      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPCEtLSBTaGllbGQgLS0+CjxwYXRoIGQ9Ik0yMCAzNkMyMCAzNiAzNCAzMCAzNCAyMEMzNCAyMCAzNCA4IDIwIDggQzIwIDggNiA4IDYgMjBDNiAzMCAyMCAzNiAyMCAzNloiIGZpbGw9InVybCgjZ3JhZGllbnQwKSIgc3Ryb2tlPSIjMkY1NTg2IiBzdHJva2Utd2lkdGg9IjEuNSIvPgo8IS0tIExpb24gLS0+CjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwLCAxMikiPgo8IS0tIExpb24gZmFjZSAtLT4KPGNpcmNsZSBjeD0iMCIgY3k9IjAiIHI9IjQiIGZpbGw9IiNGRkQ3MDAiLz4KPCEtLSBMaW9uIG1hbmUgLS0+CjxwYXRoIGQ9Ik0tMy41IC0yLjVDLTMuNSAtMy41IC0yLjUgLTQuNSAtMS41IC00LjVDLTAuNSAtNC41IDAuNSAtNC41IDEuNSAtNC41QzIuNSAtNC41IDMuNSAtMy41IDMuNSAtMi41QzMuNSAtMS41IDIuNSAtMC41IDEuNSAtMC41QzAuNSAtMC41IC0wLjUgLTAuNSAtMS41IC0wLjVDLTIuNSAtMC41IC0zLjUgLTEuNSAtMy41IC0yLjVaIiBmaWxsPSIjRkY4QzAwIi8+CjwhLS0gTGlvbiBleWVzIC0tPgo8Y2lyY2xlIGN4PSItMS4yIiBjeT0iLTAuNSIgcj0iMC42IiBmaWxsPSIjMDAwIi8+CjxjaXJjbGUgY3g9IjEuMiIgY3k9Ii0wLjUiIHI9IjAuNiIgZmlsbD0iIzAwMCIvPgo8IS0tIExpb24gbm9zZSAtLT4KPGVsbGlwc2UgY3g9IjAiIGN5PSIwLjUiIHJ4PSIxIiByeT0iMC42IiBmaWxsPSIjRkZEQjAwIi8+CjwvZz4KPCEtLSBHcmFkaWVudCBkZWZpbml0aW9uIC0tPgo8ZGVmcz4KPGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudDAiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgo8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMkY1NTg2O3N0b3Atb3BhY2l0eToxIiAvPgo8c3RvcCBvZmZzZXQ9IjUwJSIgc3R5bGU9InN0b3AtY29sb3I6IzMzNzNCRDtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMkY1NTg2O3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+Cjwvc3ZnPg==",
-    isProtected: true,
-    minPercentage: 25,
-    category: "stablecoin",
-  },
-
-  // Generic Stablecoin (for portfolio configurations)
-  {
-    symbol: "STABLE",
-    name: "Stable Token",
-    price: "1.00",
-    change: "+0.00",
-    image: "https://cryptologos.cc/logos/tether-usdt-logo.png",
-    category: "stablecoin",
-  },
-
-  // Major Cryptocurrencies
+};
+// Token List - ERC-20 Token Objects
+export const TOKENS = [
   {
     symbol: "BTC",
     name: "Bitcoin",
@@ -128,8 +95,6 @@ export const CRYPTOCURRENCY_DATA = [
     image: "https://cryptologos.cc/logos/ethereum-eth-logo.png",
     category: "layer1",
   },
-
-  // Major Stablecoins (ERC-20)
   {
     symbol: "USDC",
     name: "USD Coin",
@@ -575,142 +540,143 @@ export const CRYPTOCURRENCY_DATA = [
 ] as const;
 
 // Portfolio Mock Data - ERC-20 Tokens Only
-export const PORTFOLIO_DATA = [
-  {
-    name: "USDC",
-    value: 35,
-    amount: "$12,456.78",
-    color: "#2775CA",
-  },
-  {
-    name: "USDT",
-    value: 25,
-    amount: "$8,900.12",
-    color: "#26A17B",
-  },
-  {
-    name: "UNI",
-    value: 15,
-    amount: "$5,340.45",
-    color: "#FF007A",
-  },
-  {
-    name: "AAVE",
-    value: 12,
-    amount: "$4,270.67",
-    color: "#B6509E",
-  },
-  {
-    name: "LINK",
-    value: 8,
-    amount: "$2,845.23",
-    color: "#2A5ADA",
-  },
-  {
-    name: "COMP",
-    value: 5,
-    amount: "$1,778.90",
-    color: "#00D395",
-  },
-] as const;
+type DefaultPortfolioSeed = Required<Pick<Portfolio, "name" | "allocations" | "isTemplate" | "isPublic" | "type">> & {
+  performance: Required<Pick<PortfolioPerformance, "totalValue" | "returnPercentage">>;
+  strategy?: PortfolioStrategy;
+  config?: Portfolio["config"];
+  category?: string;
+  tags?: string[];
+  presetType?: string;
+};
 
-// Performance Chart Data - Updated with ERC-20 portfolio growth
-export const PERFORMANCE_DATA = [
-  { date: "Jan", value: 22500 },
-  { date: "Feb", value: 26200 },
-  { date: "Mar", value: 24800 },
-  { date: "Apr", value: 31200 },
-  { date: "May", value: 35800 },
-  { date: "Jun", value: 39900 },
-  { date: "Jul", value: 42985 },
-] as const;
-
-// Token Holdings Mock Data - ERC-20 Tokens Only
-export const TOKEN_HOLDINGS = [
+export const DEFAULT_PORTFOLIOS: DefaultPortfolioSeed[] = [
   {
-    symbol: "USDC",
-    name: "USD Coin",
-    network: "Ethereum",
-    balance: "12,456.78",
-    price: "$1.00",
-    value: "$12,456.78",
-    pnl: "+$123.45",
-    roi: "+1.00%",
-    change24h: "+0.01%",
-    isPositive: true,
+    isTemplate: true,
+    name: "1Balancer EndGame",
+    allocations: [
+      { symbol: "STABLE", percentage: 50, amount: 5000 },
+      { symbol: "BTC", percentage: 30, amount: 3000 },
+      { symbol: "ETH", percentage: 20, amount: 2000 },
+    ],
+    performance: { totalValue: 10000, returnPercentage: 8.45 },
+    isPublic: true,
+    strategy: {
+      description:
+        "Conservative long-term strategy focusing on stability with major cryptocurrency exposure. Perfect for risk-averse investors seeking steady growth with minimal volatility.",
+      riskLevel: "conservative",
+    },
+    type: "drift",
+    config: { driftThreshold: 5 },
   },
   {
-    symbol: "USDT",
-    name: "Tether",
-    network: "Ethereum",
-    balance: "8,900.12",
-    price: "$1.00",
-    value: "$8,900.12",
-    pnl: "+$89.00",
-    roi: "+1.01%",
-    change24h: "0.00%",
-    isPositive: true,
+    isTemplate: true,
+    name: "1Balancer Gomora",
+    allocations: [
+      { symbol: "STABLE", percentage: 40, amount: 4000 },
+      { symbol: "BTC", percentage: 30, amount: 3000 },
+      { symbol: "ETH", percentage: 20, amount: 2000 },
+      { symbol: "LINK", percentage: 10, amount: 1000 },
+    ],
+    performance: { totalValue: 10000, returnPercentage: 12.67 },
+    isPublic: true,
+    strategy: {
+      description:
+        "Balanced approach with oracle exposure through Chainlink. Combines stability with growth potential from established cryptocurrencies and infrastructure protocols.",
+      riskLevel: "moderate",
+    },
+    type: "time",
+    config: { rebalanceFrequency: "monthly" },
   },
   {
-    symbol: "UNI",
-    name: "Uniswap",
-    network: "Ethereum",
-    balance: "429.23",
-    price: "$12.45",
-    value: "$5,340.45",
-    pnl: "+$834.67",
-    roi: "+18.53%",
-    change24h: "-1.89%",
-    isPositive: true,
+    isTemplate: true,
+    name: "1Balancer Tanos",
+    allocations: [
+      { symbol: "STABLE", percentage: 30, amount: 3000 },
+      { symbol: "BTC", percentage: 25, amount: 2500 },
+      { symbol: "ETH", percentage: 20, amount: 2000 },
+      { symbol: "LINK", percentage: 10, amount: 1000 },
+      { symbol: "PENDLE", percentage: 10, amount: 1000 },
+      { symbol: "UNI", percentage: 5, amount: 500 },
+    ],
+    performance: { totalValue: 10000, returnPercentage: 15.23 },
+    isPublic: true,
+    strategy: {
+      description:
+        "Diversified portfolio with DeFi exposure including DeFi protocols for enhanced returns and yield generation.",
+      riskLevel: "aggressive",
+    },
+    type: "drift",
+    config: { driftThreshold: 3 },
   },
   {
-    symbol: "AAVE",
-    name: "Aave",
-    network: "Ethereum",
-    balance: "27.24",
-    price: "$156.78",
-    value: "$4,270.67",
-    pnl: "+$945.23",
-    roi: "+28.42%",
-    change24h: "+5.67%",
-    isPositive: true,
+    isTemplate: true,
+    name: "Real Yield RWA",
+    allocations: [
+      { symbol: "STABLE", percentage: 25, amount: 2500 },
+      { symbol: "ONDO", percentage: 10, amount: 1000 },
+      { symbol: "CENTRIFUGE", percentage: 20, amount: 2000 },
+      { symbol: "SKY", percentage: 15, amount: 1500 },
+      { symbol: "PAXGOLD", percentage: 20, amount: 2000 },
+      { symbol: "LINK", percentage: 10, amount: 1000 },
+    ],
+    performance: { totalValue: 10000, returnPercentage: 18.95 },
+    isPublic: true,
+    strategy: {
+      description:
+        "RWA-focused portfolio with exposure to tokenized real-world assets, gold, and DeFi protocols for yield generation.",
+      riskLevel: "moderate",
+    },
+    type: "drift",
+    config: { driftThreshold: 4 },
   },
   {
-    symbol: "LINK",
-    name: "Chainlink",
-    network: "Ethereum",
-    balance: "152.67",
-    price: "$18.67",
-    value: "$2,845.23",
-    pnl: "+$523.45",
-    roi: "+22.55%",
-    change24h: "+3.45%",
-    isPositive: true,
+    isTemplate: true,
+    name: "DeFi Powerhouse",
+    allocations: [
+      { symbol: "STABLE", percentage: 20, amount: 2000 },
+      { symbol: "AAVE", percentage: 20, amount: 2000 },
+      { symbol: "UNI", percentage: 20, amount: 2000 },
+      { symbol: "CRV", percentage: 20, amount: 2000 },
+      { symbol: "COMP", percentage: 20, amount: 2000 },
+    ],
+    performance: { totalValue: 10000, returnPercentage: 22.34 },
+    isPublic: true,
+    strategy: {
+      description:
+        "DeFi-focused portfolio with equal allocation to top protocols for diversified yield and governance exposure.",
+      riskLevel: "aggressive",
+    },
+    type: "time",
+    config: { rebalanceFrequency: "quarterly" },
   },
   {
-    symbol: "COMP",
-    name: "Compound",
-    network: "Ethereum",
-    balance: "19.91",
-    price: "$89.34",
-    value: "$1,778.90",
-    pnl: "+$267.89",
-    roi: "+17.72%",
-    change24h: "+2.12%",
-    isPositive: true,
+    isTemplate: true,
+    name: "ETH Maxi",
+    allocations: [{ symbol: "ETH", percentage: 100, amount: 10000 }],
+    performance: { totalValue: 10000, returnPercentage: 45.67 },
+    isPublic: true,
+    strategy: {
+      description: "Single asset portfolio for Ethereum maximalists seeking pure ETH exposure.",
+      riskLevel: "aggressive",
+    },
+    type: "drift",
+    config: { driftThreshold: 0 },
   },
   {
-    symbol: "MATIC",
-    name: "Polygon",
-    network: "Ethereum",
-    balance: "1,205.45",
-    price: "$1.12",
-    value: "$1,350.10",
-    pnl: "+$200.78",
-    roi: "+17.46%",
-    change24h: "+2.45%",
-    isPositive: true,
+    isTemplate: true,
+    name: "BTC Maxi",
+    allocations: [{ symbol: "BTC", percentage: 100, amount: 10000 }],
+    performance: { totalValue: 10000, returnPercentage: 28.91 },
+    isPublic: true,
+    strategy: {
+      description: "Single asset portfolio for Bitcoin maximalists seeking pure BTC exposure.",
+      riskLevel: "aggressive",
+    },
+    type: "drift",
+    config: { driftThreshold: 0 },
   },
+];
+export const CRYPTOCURRENCY_DATA = [
   {
     symbol: "LDO",
     name: "Lido DAO",
@@ -723,6 +689,33 @@ export const TOKEN_HOLDINGS = [
     change24h: "+6.78%",
     isPositive: true,
   },
+  {
+    symbol: "ARB",
+    name: "Arbitrum",
+    network: "Arbitrum",
+    balance: "567.89",
+    price: "$1.89",
+    value: "$1,073.31",
+    pnl: "+$334.56",
+    roi: "+45.26%",
+    change24h: "+7.23%",
+    isPositive: true,
+  },
+  {
+    symbol: "SNX",
+    name: "Synthetix",
+    network: "Ethereum",
+    balance: "278.45",
+    price: "$3.42",
+    value: "$952.30",
+    pnl: "-$123.45",
+    roi: "-11.47%",
+    change24h: "-3.21%",
+    isPositive: false,
+  },
+];
+// Portfolio Token Mock Data - ERC-20 Tokens Only
+export const MOCK_PORTFOLIO_TOKENS = [
   {
     symbol: "ARB",
     name: "Arbitrum",
@@ -804,206 +797,13 @@ export const SITE_ASSETS = {
   logoImage: "/logo.png",
 } as const;
 
-// Site Images/Assets
-export const SITE_IMAGES = {
-  heroImage:
-    "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop&crop=center&auto=format&q=80",
-  aboutImage:
-    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&h=400&fit=crop&crop=center&auto=format&q=80",
-};
-
 // Portfolio management utilities
 export const PORTFOLIO_STORAGE_KEY = "userPortfolios";
 export const USER_PROFILE_STORAGE_KEY = "userProfile";
 export const DEFAULT_PORTFOLIOS_INITIALIZED_KEY = "defaultPortfoliosInitialized";
 
-export interface Portfolio {
-  isTemplate: any;
-  id: string;
-  name: string;
-  tokens: Array<{
-    symbol: string;
-    percentage: number;
-    amount: number;
-  }>;
-  totalValue: number;
-  performance: number;
-  isPublic: boolean;
-  strategy?: string;
-  createdAt: string;
-  investmentType?: "drift" | "time";
-  investmentConfig?: {
-    initialDeposit?: number;
-    monthlyInvestment?: number;
-    years?: number;
-  };
-  rebalanceConfig?: {
-    driftThreshold?: number; // For drift-based rebalancing
-    rebalanceFrequency?: "weekly" | "monthly" | "quarterly" | "semi-annual"; // For time-based rebalancing
-  };
-}
-
-export interface UserProfile {
-  username: string;
-  description: string;
-  joinDate: string;
-  totalPortfolios: number;
-  publicPortfolios: number;
-  totalInvestment: number;
-  bestPerformance: number;
-  isFirstTime: boolean;
-}
-
 // Default Portfolios Configuration - EXACT percentages from user's image
-export const DEFAULT_PORTFOLIOS: Omit<Portfolio, "id" | "createdAt">[] = [
-  {
-    isTemplate: true,
-    name: "1Balancer EndGame",
-    tokens: [
-      { symbol: "STABLE", percentage: 50, amount: 5000 },
-      { symbol: "BTC", percentage: 30, amount: 3000 },
-      { symbol: "ETH", percentage: 20, amount: 2000 },
-    ],
-    totalValue: 10000,
-    performance: 8.45,
-    isPublic: true,
-    strategy:
-      "Conservative long-term strategy focusing on stability with major cryptocurrency exposure. Perfect for risk-averse investors seeking steady growth with minimal volatility.",
-    investmentType: "drift",
-    rebalanceConfig: {
-      driftThreshold: 5,
-    },
-  },
-  {
-    isTemplate: true,
-    name: "1Balancer Gomora",
-    tokens: [
-      { symbol: "STABLE", percentage: 40, amount: 4000 },
-      { symbol: "BTC", percentage: 30, amount: 3000 },
-      { symbol: "ETH", percentage: 20, amount: 2000 },
-      { symbol: "LINK", percentage: 10, amount: 1000 },
-    ],
-    totalValue: 10000,
-    performance: 12.67,
-    isPublic: true,
-    strategy:
-      "Balanced approach with oracle exposure through Chainlink. Combines stability with growth potential from established cryptocurrencies and infrastructure protocols.",
-    investmentType: "time",
-    rebalanceConfig: {
-      rebalanceFrequency: "monthly",
-    },
-  },
-  {
-    isTemplate: true,
-    name: "1Balancer Tanos",
-    tokens: [
-      { symbol: "STABLE", percentage: 30, amount: 3000 },
-      { symbol: "BTC", percentage: 25, amount: 2500 },
-      { symbol: "ETH", percentage: 20, amount: 2000 },
-      { symbol: "LINK", percentage: 10, amount: 1000 },
-      { symbol: "PENDLE", percentage: 10, amount: 1000 },
-      { symbol: "UNI", percentage: 5, amount: 500 },
-    ],
-    totalValue: 10000,
-    performance: 15.23,
-    isPublic: true,
-    strategy:
-      "Diversified portfolio with DeFi exposure including yield optimization through Pendle. Balances stability with innovative DeFi protocols for enhanced returns and yield generation.",
-    investmentType: "drift",
-    rebalanceConfig: {
-      driftThreshold: 3,
-    },
-  },
-  {
-    isTemplate: true,
-    name: "Real Yield RWA",
-    tokens: [
-      { symbol: "STABLE", percentage: 25, amount: 2500 },
-      { symbol: "ONDO", percentage: 10, amount: 1000 },
-      { symbol: "CENTRIFUGE", percentage: 20, amount: 2000 },
-      { symbol: "SKY", percentage: 15, amount: 1500 },
-      { symbol: "PAXGOLD", percentage: 20, amount: 2000 },
-      { symbol: "LINK", percentage: 10, amount: 1000 },
-    ],
-    totalValue: 10000,
-    performance: 18.95,
-    isPublic: true,
-    strategy:
-      "Real World Asset focused portfolio targeting tokenized traditional assets. Provides exposure to gold, real estate, and institutional-grade yields through established RWA protocols.",
-    investmentType: "time",
-    rebalanceConfig: {
-      rebalanceFrequency: "quarterly",
-    },
-  },
-  {
-    isTemplate: true,
-    name: "Defi",
-    tokens: [
-      { symbol: "STABLE", percentage: 25, amount: 2500 },
-      { symbol: "UNI", percentage: 20, amount: 2000 },
-      { symbol: "1INCH", percentage: 5, amount: 500 },
-      { symbol: "LINK", percentage: 20, amount: 2000 },
-      { symbol: "AAVE", percentage: 20, amount: 2000 },
-      { symbol: "SPARK", percentage: 5, amount: 500 },
-      { symbol: "PENDLE", percentage: 5, amount: 500 },
-    ],
-    totalValue: 10000,
-    performance: 22.34,
-    isPublic: true,
-    strategy:
-      "Pure DeFi strategy focusing on leading protocols including DEXes, lending platforms, and yield optimization. High growth potential through exposure to DeFi innovation and protocol tokens.",
-    investmentType: "drift",
-    rebalanceConfig: {
-      driftThreshold: 7,
-    },
-  },
-  {
-    isTemplate: true,
-    name: "Meme",
-    tokens: [
-      { symbol: "STABLE", percentage: 40, amount: 4000 },
-      { symbol: "DOGE", percentage: 10, amount: 1000 },
-      { symbol: "SHIB", percentage: 10, amount: 1000 },
-      { symbol: "PEPE", percentage: 10, amount: 1000 },
-      { symbol: "PENGU", percentage: 5, amount: 500 },
-      { symbol: "BONK", percentage: 5, amount: 500 },
-      { symbol: "SPX6900", percentage: 5, amount: 500 },
-      { symbol: "FARTCOIN", percentage: 5, amount: 500 },
-      { symbol: "FLOKI", percentage: 5, amount: 500 },
-      { symbol: "WIF", percentage: 5, amount: 500 },
-    ],
-    totalValue: 10000,
-    performance: 45.67,
-    isPublic: true,
-    strategy:
-      "High-risk meme coin portfolio with substantial stablecoin protection. Captures viral crypto momentum while maintaining significant downside protection through large stablecoin allocation.",
-    investmentType: "time",
-    rebalanceConfig: {
-      rebalanceFrequency: "weekly",
-    },
-  },
-  {
-    isTemplate: true,
-    name: "AI",
-    tokens: [
-      { symbol: "STABLE", percentage: 40, amount: 4000 },
-      { symbol: "TAO", percentage: 20, amount: 2000 },
-      { symbol: "NEAR", percentage: 10, amount: 1000 },
-      { symbol: "RENDER", percentage: 10, amount: 1000 },
-      { symbol: "FET", percentage: 10, amount: 1000 },
-      { symbol: "VIRTUAL", percentage: 10, amount: 1000 },
-    ],
-    totalValue: 10000,
-    performance: 28.91,
-    isPublic: true,
-    strategy:
-      "Artificial Intelligence and machine learning focused portfolio targeting the convergence of blockchain and AI. Positions for the future of decentralized AI infrastructure and services.",
-    investmentType: "drift",
-    rebalanceConfig: {
-      driftThreshold: 4,
-    },
-  },
-];
+// (removed duplicate older DEFAULT_PORTFOLIOS block using deprecated shape)
 
 // Function to initialize default portfolios immediately on app startup
 export const initializeDefaultPortfolios = (): Portfolio[] => {
@@ -1031,9 +831,9 @@ export const initializeDefaultPortfolios = (): Portfolio[] => {
     updateUserProfileStats();
 
     console.log(`✅ Initialized ${portfoliosWithIds.length} default portfolios:`);
-    portfoliosWithIds.forEach(p => console.log(`   - ${p.name} (${p.tokens.length} tokens)`));
+    portfoliosWithIds.forEach(p => console.log(`   - ${p.name} (${p.allocations.length} allocations)`));
 
-    return portfoliosWithIds;
+    return portfoliosWithIds as unknown as Portfolio[];
   }
 
   return existingPortfolios;
@@ -1054,7 +854,9 @@ export const ensureAllDefaultPortfolios = (): Portfolio[] => {
   const existingPortfolios = getPortfolios();
   const existingNames = existingPortfolios.map(p => p.name);
 
-  const missingPortfolios = DEFAULT_PORTFOLIOS.filter(defaultP => !existingNames.includes(defaultP.name));
+  const missingPortfolios = DEFAULT_PORTFOLIOS.filter(
+    defaultP => defaultP.name && !existingNames.includes(defaultP.name),
+  );
 
   if (missingPortfolios.length > 0) {
     const newPortfolios = missingPortfolios.map((portfolio, index) => ({
@@ -1063,7 +865,7 @@ export const ensureAllDefaultPortfolios = (): Portfolio[] => {
       createdAt: new Date().toISOString(),
     }));
 
-    const updatedPortfolios = [...existingPortfolios, ...newPortfolios];
+    const updatedPortfolios = [...existingPortfolios, ...(newPortfolios as unknown as Portfolio[])];
     localStorage.setItem(PORTFOLIO_STORAGE_KEY, JSON.stringify(updatedPortfolios));
     updateUserProfileStats();
 
@@ -1117,8 +919,8 @@ export const updateUserProfileStats = () => {
     ...profile,
     totalPortfolios: portfolios.length,
     publicPortfolios: portfolios.filter(p => p.isPublic).length,
-    totalInvestment: portfolios.reduce((sum, p) => sum + p.totalValue, 0),
-    bestPerformance: Math.max(...portfolios.map(p => p.performance), 0),
+    totalInvestment: portfolios.reduce((sum, p) => sum + (p.performance?.totalValue ?? 0), 0),
+    bestPerformance: Math.max(...portfolios.map(p => p.performance?.returnPercentage ?? 0), 0),
   };
 
   localStorage.setItem(USER_PROFILE_STORAGE_KEY, JSON.stringify(updatedProfile));
@@ -1129,5 +931,4 @@ export type TokenSymbol = keyof typeof TOKEN_IMAGES;
 export type NetworkId = (typeof NETWORKS)[number]["id"];
 export type Timeframe = (typeof TIMEFRAMES)[number];
 export type TokenFilter = (typeof TOKEN_FILTERS)[number];
-export type TokenHolding = (typeof TOKEN_HOLDINGS)[number];
 export type CryptocurrencyData = (typeof CRYPTOCURRENCY_DATA)[number];

@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useInViewAnimation } from "../../components/shared/interactive/useInViewAnimation";
+import { Badge } from "../../components/shared/ui/badge";
+import { Button } from "../../components/shared/ui/button";
+import { Card, CardContent, CardHeader } from "../../components/shared/ui/card";
+import { Input } from "../../components/shared/ui/input";
+import { useIsMobile } from "../../hooks/use-mobile";
+import { useTheme } from "../../hooks/use-theme";
+import { Portfolio } from "../../types/balancer/portfolio";
+import { TOKEN_IMAGES } from "../../utils/storage/constants";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity,
   BarChart3,
@@ -16,67 +26,11 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { Cell, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "sonner";
-import { useInViewAnimation } from "~~/components/shared/interactive/useInViewAnimation";
-import { Badge } from "~~/components/shared/ui/badge";
-import { Button } from "~~/components/shared/ui/button";
-import { Card, CardContent, CardHeader } from "~~/components/shared/ui/card";
-import { Input } from "~~/components/shared/ui/input";
-import { useIsMobile } from "~~/hooks/use-mobile";
-import { useTheme } from "~~/hooks/use-theme";
-import { CRYPTOCURRENCY_DATA } from "~~/utils/constants";
-
-interface TokenAllocation {
-  symbol: string;
-  name: string;
-  percentage: number;
-  color: string;
-  image: string;
-  amount: number;
-}
-
-interface SharedPortfolio {
-  id: string;
-  name: string;
-  author: {
-    username: string;
-    avatar: string;
-    isVerified: boolean;
-    followers: number;
-  };
-  type: "autoinvest" | "manual";
-  presetType: string;
-  totalInvestment: number;
-  allocations: TokenAllocation[];
-  performance: {
-    totalValue: number;
-    totalReturn: number;
-    returnPercentage: number;
-    dailyChange: number;
-    dailyChangePercentage: number;
-  };
-  metrics: {
-    likes: number;
-    shares: number;
-    bookmarks: number;
-    comments: number;
-  };
-  strategy: {
-    description: string;
-    riskLevel: "conservative" | "moderate" | "aggressive";
-    timeHorizon: string;
-    rebalanceFrequency: string;
-  };
-  tags: string[];
-  createdAt: string;
-  isPublic: boolean;
-  category: "defi" | "layer2" | "yield" | "growth" | "institutional";
-}
 
 interface PortfolioDetailModalProps {
-  portfolio: SharedPortfolio | null;
+  portfolio: Portfolio | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -107,7 +61,7 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
     }
   };
 
-  const isPositiveReturn = portfolio.performance.returnPercentage > 0;
+  const isPositiveReturn = (portfolio.performance?.returnPercentage ?? 0) > 0;
 
   return (
     <AnimatePresence>
@@ -146,7 +100,7 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                   <div
                     className={`${isMobile ? "w-12 h-12" : "w-16 h-16"} rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold ${isMobile ? "text-lg" : "text-xl"}`}
                   >
-                    {portfolio.author.avatar}
+                    {portfolio.author?.avatar ?? "U"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h2 className={`${isMobile ? "text-lg" : "text-2xl"} font-bold text-foreground mb-1 truncate`}>
@@ -155,14 +109,14 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                     <div
                       className={`flex items-center gap-2 ${isMobile ? "text-xs" : "text-sm"} text-muted-foreground flex-wrap`}
                     >
-                      <span>by @{portfolio.author.username}</span>
-                      {portfolio.author.isVerified && <Star className="w-4 h-4 text-yellow-400" />}
+                      <span>by @{portfolio.author?.username ?? "unknown"}</span>
+                      {portfolio.author?.isVerified && <Star className="w-4 h-4 text-yellow-400" />}
                       <span>•</span>
-                      <span>{portfolio.author.followers.toLocaleString()} followers</span>
+                      <span>{(portfolio.author?.followers ?? 0).toLocaleString()} followers</span>
                     </div>
                     <div className="flex items-center gap-2 mt-2 flex-wrap">
-                      <Badge variant="outline" className={getRiskColor(portfolio.strategy.riskLevel)}>
-                        {portfolio.strategy.riskLevel}
+                      <Badge variant="outline" className={getRiskColor(portfolio.strategy?.riskLevel ?? "moderate")}>
+                        {portfolio.strategy?.riskLevel ?? "moderate"}
                       </Badge>
                       <Badge variant="outline">{portfolio.type}</Badge>
                       <Badge variant="outline">{portfolio.category}</Badge>
@@ -174,11 +128,11 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm">
                       <Heart className="w-4 h-4" />
-                      {isMobile ? portfolio.metrics.likes : `${portfolio.metrics.likes}`}
+                      {isMobile ? (portfolio.metrics?.likes ?? 0) : `${portfolio.metrics?.likes ?? 0}`}
                     </Button>
                     <Button variant="ghost" size="sm">
                       <Share className="w-4 h-4" />
-                      {isMobile ? portfolio.metrics.shares : `${portfolio.metrics.shares}`}
+                      {isMobile ? (portfolio.metrics?.shares ?? 0) : `${portfolio.metrics?.shares ?? 0}`}
                     </Button>
                   </div>
                   <Button variant="ghost" size="sm" onClick={onClose}>
@@ -209,13 +163,13 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                         <div>
                           <p className="text-sm text-muted-foreground">Current Value</p>
                           <p className={`${isMobile ? "text-xl" : "text-2xl"} font-bold text-foreground`}>
-                            ${portfolio.performance.totalValue.toLocaleString()}
+                            ${(portfolio.performance?.totalValue ?? 0).toLocaleString()}
                           </p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Initial Investment</p>
                           <p className={`${isMobile ? "text-lg" : "text-xl"} font-semibold text-foreground`}>
-                            ${portfolio.totalInvestment.toLocaleString()}
+                            ${(portfolio.totalInvestment ?? 0).toLocaleString()}
                           </p>
                         </div>
                       </div>
@@ -228,11 +182,11 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                         >
                           {isPositiveReturn ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                           <span className="font-bold">
-                            {isPositiveReturn ? "+" : ""}${portfolio.performance.totalReturn.toLocaleString()}
+                            {isPositiveReturn ? "+" : ""}${(portfolio.performance?.totalReturn ?? 0).toLocaleString()}
                           </span>
                           <span className="text-sm">
                             ({isPositiveReturn ? "+" : ""}
-                            {portfolio.performance.returnPercentage.toFixed(2)}%)
+                            {(portfolio.performance?.returnPercentage ?? 0).toFixed(2)}%)
                           </span>
                         </div>
                       </div>
@@ -299,23 +253,27 @@ function PortfolioDetailModal({ portfolio, isOpen, onClose }: PortfolioDetailMod
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Description</p>
                         <p className={`text-foreground ${isMobile ? "text-sm" : ""} leading-relaxed`}>
-                          {portfolio.strategy.description}
+                          {portfolio.strategy?.description ?? "No description available"}
                         </p>
                       </div>
                       <div className={`grid ${isMobile ? "grid-cols-1 gap-3" : "grid-cols-2 gap-4"}`}>
                         <div>
                           <p className="text-sm text-muted-foreground">Time Horizon</p>
-                          <p className="font-medium text-foreground">{portfolio.strategy.timeHorizon}</p>
+                          <p className="font-medium text-foreground">
+                            {portfolio.strategy?.timeHorizon ?? "Not specified"}
+                          </p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Rebalance</p>
-                          <p className="font-medium text-foreground">{portfolio.strategy.rebalanceFrequency}</p>
+                          <p className="font-medium text-foreground">
+                            {portfolio.strategy?.rebalanceFrequency ?? "Not specified"}
+                          </p>
                         </div>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Tags</p>
                         <div className="flex flex-wrap gap-2">
-                          {portfolio.tags.map((tag, index) => (
+                          {(portfolio.tags ?? []).map((tag, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {tag}
                             </Badge>
@@ -408,12 +366,12 @@ export function TopPerformers({}: TopPerformersProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("performance");
-  const [selectedPortfolio, setSelectedPortfolio] = useState<SharedPortfolio | null>(null);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [communityPortfolios, setCommunityPortfolios] = useState<SharedPortfolio[]>([]);
+  const [communityPortfolios, setCommunityPortfolios] = useState<Portfolio[]>([]);
 
   // Generate shared community portfolios from localStorage data + mock data
-  const generateCommunityPortfolios = useCallback((): SharedPortfolio[] => {
+  const generateCommunityPortfolios = useCallback((): Portfolio[] => {
     // Get saved portfolios from localStorage
     const savedPortfolios = localStorage.getItem("1balancer-wallets");
     let userPortfolios: any[] = [];
@@ -434,14 +392,19 @@ export function TopPerformers({}: TopPerformersProps) {
         author: {
           username: `user${1000 + index}`,
           avatar: `U${index + 1}`,
-          isVerified: Math.random() > 0.7,
           followers: Math.floor(Math.random() * 5000) + 100,
+          description: `Experienced trader with focus on ${portfolio.presetType || "diversified"} strategies.`,
+          joinDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+          totalPortfolios: Math.floor(Math.random() * 10) + 1,
+          publicPortfolios: Math.floor(Math.random() * 8) + 1,
+          totalInvestment: Math.floor(Math.random() * 100000) + 10000,
+          bestPerformance: Math.random() * 50,
         },
         performance: {
-          totalValue: portfolio.totalInvestment * (1 + (Math.random() * 0.4 - 0.1)),
-          totalReturn: portfolio.totalInvestment * (Math.random() * 0.3),
+          totalValue: (portfolio.totalInvestment ?? 0) * (1 + (Math.random() * 0.4 - 0.1)),
+          totalReturn: (portfolio.totalInvestment ?? 0) * (Math.random() * 0.3),
           returnPercentage: Math.random() * 40 - 10,
-          dailyChange: portfolio.totalInvestment * (Math.random() * 0.02 - 0.01),
+          dailyChange: (portfolio.totalInvestment ?? 0) * (Math.random() * 0.02 - 0.01),
           dailyChangePercentage: Math.random() * 6 - 3,
         },
         metrics: {
@@ -467,15 +430,21 @@ export function TopPerformers({}: TopPerformersProps) {
       }));
 
     // Add some famous mock portfolios
-    const mockPortfolios: SharedPortfolio[] = [
+    const mockPortfolios: Portfolio[] = [
       {
         id: "community-defi-master",
         name: "DeFi Yield Maximizer Pro",
         author: {
           username: "defimaster2024",
           avatar: "DM",
-          isVerified: true,
           followers: 15420,
+          description:
+            "Professional DeFi strategist with 5+ years experience in yield farming and portfolio optimization.",
+          joinDate: "2020-03-15T00:00:00Z",
+          totalPortfolios: 12,
+          publicPortfolios: 8,
+          totalInvestment: 250000,
+          bestPerformance: 45.67,
         },
         type: "manual",
         presetType: "aggressive",
@@ -494,7 +463,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Uniswap",
             percentage: 30,
             color: "#FF007A",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "UNI")?.image || "",
+            image: TOKEN_IMAGES.UNI || "",
             amount: 22500,
           },
           {
@@ -502,7 +471,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Aave",
             percentage: 25,
             color: "#B6509E",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "AAVE")?.image || "",
+            image: TOKEN_IMAGES.AAVE || "",
             amount: 18750,
           },
           {
@@ -510,7 +479,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Curve DAO Token",
             percentage: 20,
             color: "#FF0000",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "CRV")?.image || "",
+            image: TOKEN_IMAGES.CRV || "",
             amount: 15000,
           },
         ],
@@ -545,8 +514,13 @@ export function TopPerformers({}: TopPerformersProps) {
         author: {
           username: "scalingpro",
           avatar: "L2",
-          isVerified: true,
           followers: 8900,
+          description: "Layer 2 specialist focusing on scaling solutions and cross-chain opportunities.",
+          joinDate: "2021-01-20T00:00:00Z",
+          totalPortfolios: 9,
+          publicPortfolios: 6,
+          totalInvestment: 180000,
+          bestPerformance: 38.92,
         },
         type: "autoinvest",
         presetType: "moderate",
@@ -565,7 +539,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Polygon",
             percentage: 28,
             color: "#8247E5",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "MATIC")?.image || "",
+            image: TOKEN_IMAGES.MATIC || "",
             amount: 14000,
           },
           {
@@ -573,7 +547,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Optimism",
             percentage: 22,
             color: "#FF0420",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "OP")?.image || "",
+            image: TOKEN_IMAGES.OP || "",
             amount: 11000,
           },
           {
@@ -581,7 +555,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Arbitrum",
             percentage: 20,
             color: "#2D374B",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "ARB")?.image || "",
+            image: TOKEN_IMAGES.ARB || "",
             amount: 10000,
           },
         ],
@@ -616,8 +590,14 @@ export function TopPerformers({}: TopPerformersProps) {
         author: {
           username: "institutionalfund",
           avatar: "IF",
-          isVerified: true,
           followers: 25600,
+          description:
+            "Institutional-grade portfolio management with focus on risk-adjusted returns and capital preservation.",
+          joinDate: "2019-08-10T00:00:00Z",
+          totalPortfolios: 15,
+          publicPortfolios: 10,
+          totalInvestment: 500000,
+          bestPerformance: 52.34,
         },
         type: "manual",
         presetType: "conservative",
@@ -636,7 +616,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "USD Coin",
             percentage: 25,
             color: "#2775CA",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "USDC")?.image || "",
+            image: TOKEN_IMAGES.USDC || "",
             amount: 37500,
           },
           {
@@ -644,7 +624,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Chainlink",
             percentage: 20,
             color: "#2A5ADA",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "LINK")?.image || "",
+            image: TOKEN_IMAGES.LINK || "",
             amount: 30000,
           },
           {
@@ -652,7 +632,7 @@ export function TopPerformers({}: TopPerformersProps) {
             name: "Maker",
             percentage: 15,
             color: "#1AAB9B",
-            image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "MKR")?.image || "",
+            image: TOKEN_IMAGES.MKR || "",
             amount: 22500,
           },
         ],
@@ -702,8 +682,8 @@ export function TopPerformers({}: TopPerformersProps) {
       filtered = filtered.filter(
         portfolio =>
           portfolio.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          portfolio.author.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          portfolio.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())),
+          (portfolio.author?.username.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+          (portfolio.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ?? false),
       );
     }
 
@@ -714,30 +694,32 @@ export function TopPerformers({}: TopPerformersProps) {
     // Sort
     switch (sortBy) {
       case "performance":
-        filtered.sort((a, b) => b.performance.returnPercentage - a.performance.returnPercentage);
+        filtered.sort((a, b) => (b.performance?.returnPercentage ?? 0) - (a.performance?.returnPercentage ?? 0));
         break;
       case "value":
-        filtered.sort((a, b) => b.performance.totalValue - a.performance.totalValue);
+        filtered.sort((a, b) => (b.performance?.totalValue ?? 0) - (a.performance?.totalValue ?? 0));
         break;
       case "likes":
-        filtered.sort((a, b) => b.metrics.likes - a.metrics.likes);
+        filtered.sort((a, b) => (b.metrics?.likes ?? 0) - (a.metrics?.likes ?? 0));
         break;
       case "recent":
-        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        filtered.sort((a, b) => new Date(b.createdAt ?? "").getTime() - new Date(a.createdAt ?? "").getTime());
         break;
     }
 
     return filtered;
   }, [communityPortfolios, searchQuery, selectedCategory, sortBy]);
 
-  const handlePortfolioClick = (portfolio: SharedPortfolio) => {
+  const handlePortfolioClick = (portfolio: Portfolio) => {
     setSelectedPortfolio(portfolio);
     setShowDetailModal(true);
   };
 
   const handleLike = (portfolioId: string) => {
     setCommunityPortfolios(prev =>
-      prev.map(p => (p.id === portfolioId ? { ...p, metrics: { ...p.metrics, likes: p.metrics.likes + 1 } } : p)),
+      prev.map(p =>
+        p.id === portfolioId ? { ...p, metrics: { ...p.metrics, likes: (p.metrics?.likes ?? 0) + 1 } } : p,
+      ),
     );
     toast.success("Portfolio liked!");
   };
@@ -842,14 +824,14 @@ export function TopPerformers({}: TopPerformersProps) {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 flex items-center justify-center text-white font-bold">
-                        {portfolio.author.avatar}
+                        {portfolio.author?.avatar ?? "U"}
                       </div>
                       <div>
-                        <p className="font-semibold text-foreground">@{portfolio.author.username}</p>
+                        <p className="font-semibold text-foreground">@{portfolio.author?.username ?? "unknown"}</p>
                         <div className="flex items-center gap-1">
-                          {portfolio.author.isVerified && <Star className="w-4 h-4 text-yellow-400" />}
+                          {portfolio.author?.isVerified && <Star className="w-4 h-4 text-yellow-400" />}
                           <span className="text-sm text-muted-foreground">
-                            {portfolio.author.followers.toLocaleString()} followers
+                            {(portfolio.author?.followers ?? 0).toLocaleString()} followers
                           </span>
                         </div>
                       </div>
@@ -867,24 +849,24 @@ export function TopPerformers({}: TopPerformersProps) {
                     <div>
                       <p className="text-sm text-muted-foreground">Total Value</p>
                       <p className="text-2xl font-bold text-foreground">
-                        ${portfolio.performance.totalValue.toLocaleString()}
+                        ${(portfolio.performance?.totalValue ?? 0).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Performance</p>
                       <div
                         className={`flex items-center gap-1 ${
-                          portfolio.performance.returnPercentage > 0 ? "text-green-500" : "text-red-500"
+                          (portfolio.performance?.returnPercentage ?? 0) > 0 ? "text-green-500" : "text-red-500"
                         }`}
                       >
-                        {portfolio.performance.returnPercentage > 0 ? (
+                        {(portfolio.performance?.returnPercentage ?? 0) > 0 ? (
                           <TrendingUp className="w-4 h-4" />
                         ) : (
                           <TrendingDown className="w-4 h-4" />
                         )}
                         <span className="text-2xl font-bold">
-                          {portfolio.performance.returnPercentage > 0 ? "+" : ""}
-                          {portfolio.performance.returnPercentage.toFixed(1)}%
+                          {(portfolio.performance?.returnPercentage ?? 0) > 0 ? "+" : ""}
+                          {(portfolio.performance?.returnPercentage ?? 0).toFixed(1)}%
                         </span>
                       </div>
                     </div>
@@ -929,7 +911,7 @@ export function TopPerformers({}: TopPerformersProps) {
 
                   {/* Strategy Tags */}
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {portfolio.tags.slice(0, 3).map(tag => (
+                    {(portfolio.tags ?? []).slice(0, 3).map(tag => (
                       <Badge key={tag} variant="secondary" className="text-xs">
                         {tag}
                       </Badge>
@@ -947,11 +929,11 @@ export function TopPerformers({}: TopPerformersProps) {
                         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-red-500 transition-colors"
                       >
                         <Heart className="w-4 h-4" />
-                        {portfolio.metrics.likes}
+                        {portfolio.metrics?.likes ?? 0}
                       </button>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <MessageCircle className="w-4 h-4" />
-                        {portfolio.metrics.comments}
+                        {portfolio.metrics?.comments ?? 0}
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">

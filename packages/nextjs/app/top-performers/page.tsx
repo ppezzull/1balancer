@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { HomePage } from "~~/components/home/HomePage";
-import { TokenWithBalance } from "~~/types/api";
+import { TokenWithBalance } from "~~/types/1inch/api";
 import { getTopPerformersData } from "~~/utils/storage";
 
 export default function TopPerformersPage() {

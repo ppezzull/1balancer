@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~~/components/shared/ui/card";
-import { initializeDefaultPortfolios } from "~~/utils/constants";
+import { initializeDefaultPortfolios } from "~~/utils/storage/constants";
 
 interface WalletHomeSectionProps {
   activeWalletTab: "home" | "portfolio" | "trade" | "social" | "profile";

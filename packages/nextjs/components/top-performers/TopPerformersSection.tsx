@@ -22,8 +22,8 @@ import { Card, CardContent, CardHeader } from "~~/components/shared/ui/card";
 import { Input } from "~~/components/shared/ui/input";
 import { useIsMobile } from "~~/hooks/use-mobile";
 import { useTheme } from "~~/hooks/use-theme";
-import { SharedPortfolio } from "~~/types/portfolio";
-import { generateCommunityPortfolios } from "~~/utils/portfolio-generator";
+import { Portfolio } from "~~/types/balancer/portfolio";
+import { generateCommunityPortfolios } from "~~/utils/storage/portfolio-generator";
 
 export function TopPerformersSection() {
   const { ref: heroRef, isInView: heroInView } = useInViewAnimation<HTMLDivElement>();
@@ -35,9 +35,9 @@ export function TopPerformersSection() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("performance");
-  const [selectedPortfolio, setSelectedPortfolio] = useState<SharedPortfolio | null>(null);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [communityPortfolios, setCommunityPortfolios] = useState<SharedPortfolio[]>([]);
+  const [communityPortfolios, setCommunityPortfolios] = useState<Portfolio[]>([]);
 
   // Generate portfolios on mount
   useEffect(() => {
@@ -83,7 +83,7 @@ export function TopPerformersSection() {
     return filtered;
   }, [communityPortfolios, searchQuery, selectedCategory, sortBy]);
 
-  const handlePortfolioClick = (portfolio: SharedPortfolio) => {
+  const handlePortfolioClick = (portfolio: Portfolio) => {
     setSelectedPortfolio(portfolio);
     setShowDetailModal(true);
   };
@@ -259,7 +259,7 @@ export function TopPerformersSection() {
 
 // Portfolio Card Component
 interface PortfolioCardProps {
-  portfolio: SharedPortfolio;
+  portfolio: Portfolio;
   index: number;
   onClick: () => void;
   isMobile: boolean;

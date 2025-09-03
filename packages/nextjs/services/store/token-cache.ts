@@ -1,7 +1,7 @@
 "use client";
 
 import { getPrivyToken } from "../../services/web3/privyToken";
-import { exchangePrivyToken } from "~~/utils/actions/auth";
+import { exchangePrivyToken } from "~~/utils/actions/supabase/auth";
 
 let cached: { token: string; exp: number } | null = null;
 const LS_KEY = "sb_exch";

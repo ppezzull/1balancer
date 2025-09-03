@@ -30,9 +30,21 @@ export async function deployBalancerFactory(hre: HardhatRuntimeEnvironment): Pro
     await deployments.delete("BalancerFactory");
   }
 
-  const deployment = await deploy("BalancerFactory", {
+  // 1) Deploy or reuse Balancer implementation to be cloned by the factory
+  const impl = await deploy("Balancer", {
     from: deployer,
     args: [],
+    log: true,
+    skipIfAlreadyDeployed: false,
+  });
+
+  const implAddr = impl.address;
+  console.log(`Balancer implementation deployed at: ${implAddr}`);
+
+  // 2) Deploy Factory pointing at implementation
+  const deployment = await deploy("BalancerFactory", {
+    from: deployer,
+    args: [implAddr],
     log: true,
     // Force redeploy to pick up ABI/signature changes during active development
     skipIfAlreadyDeployed: false,

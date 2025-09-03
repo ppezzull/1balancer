@@ -1,7 +1,7 @@
-import { SharedPortfolio } from "../types/portfolio";
-import { CRYPTOCURRENCY_DATA } from "./constants";
+import { Portfolio } from "../../types/balancer/portfolio";
+import { TOKEN_IMAGES } from "./constants";
 
-export function generateCommunityPortfolios(): SharedPortfolio[] {
+export function generateCommunityPortfolios(): Portfolio[] {
   // Get saved portfolios from localStorage
   const savedPortfolios = localStorage.getItem("1balancer-wallets");
   let userPortfolios: any[] = [];
@@ -22,8 +22,13 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
       author: {
         username: `user${1000 + index}`,
         avatar: `U${index + 1}`,
-        isVerified: Math.random() > 0.7,
         followers: Math.floor(Math.random() * 5000) + 100,
+        description: "Crypto enthusiast and portfolio sharer",
+        joinDate: new Date(Date.now() - Math.floor(Math.random() * 720) * 24 * 60 * 60 * 1000).toISOString(),
+        totalPortfolios: Math.floor(Math.random() * 10) + 1,
+        publicPortfolios: Math.floor(Math.random() * 5) + 1,
+        totalInvestment: Math.floor(Math.random() * 100_000) + 5_000,
+        bestPerformance: parseFloat((Math.random() * 60).toFixed(2)),
       },
       performance: {
         totalValue: portfolio.totalInvestment * (1 + (Math.random() * 0.4 - 0.1)),
@@ -55,17 +60,22 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
     }));
 
   // Add some famous mock portfolios
-  const mockPortfolios: SharedPortfolio[] = [
+  const mockPortfolios: Portfolio[] = [
     {
       id: "community-defi-master",
       name: "DeFi Yield Maximizer Pro",
       author: {
         username: "defimaster2024",
         avatar: "DM",
-        isVerified: true,
         followers: 15420,
+        description: "DeFi strategist",
+        joinDate: new Date(Date.now() - 500 * 24 * 60 * 60 * 1000).toISOString(),
+        totalPortfolios: 9,
+        publicPortfolios: 7,
+        totalInvestment: 350000,
+        bestPerformance: 44.2,
       },
-      type: "manual",
+      type: "drift",
       presetType: "aggressive",
       totalInvestment: 75000,
       allocations: [
@@ -82,7 +92,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Uniswap",
           percentage: 30,
           color: "#FF007A",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "UNI")?.image || "",
+          image: TOKEN_IMAGES.UNI,
           amount: 22500,
         },
         {
@@ -90,7 +100,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Aave",
           percentage: 25,
           color: "#B6509E",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "AAVE")?.image || "",
+          image: TOKEN_IMAGES.AAVE,
           amount: 18750,
         },
         {
@@ -98,7 +108,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Curve DAO Token",
           percentage: 20,
           color: "#FF0000",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "CRV")?.image || "",
+          image: TOKEN_IMAGES.CRV,
           amount: 15000,
         },
       ],
@@ -133,10 +143,15 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
       author: {
         username: "scalingpro",
         avatar: "L2",
-        isVerified: true,
         followers: 8900,
+        description: "Layer 2 researcher",
+        joinDate: new Date(Date.now() - 400 * 24 * 60 * 60 * 1000).toISOString(),
+        totalPortfolios: 6,
+        publicPortfolios: 4,
+        totalInvestment: 120000,
+        bestPerformance: 38.5,
       },
-      type: "autoinvest",
+      type: "drift",
       presetType: "moderate",
       totalInvestment: 50000,
       allocations: [
@@ -153,7 +168,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Polygon",
           percentage: 28,
           color: "#8247E5",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "MATIC")?.image || "",
+          image: TOKEN_IMAGES.MATIC,
           amount: 14000,
         },
         {
@@ -161,7 +176,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Optimism",
           percentage: 22,
           color: "#FF0420",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "OP")?.image || "",
+          image: TOKEN_IMAGES.OP,
           amount: 11000,
         },
         {
@@ -169,7 +184,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Arbitrum",
           percentage: 20,
           color: "#2D374B",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "ARB")?.image || "",
+          image: TOKEN_IMAGES.ARB,
           amount: 10000,
         },
       ],
@@ -204,10 +219,15 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
       author: {
         username: "institutionalfund",
         avatar: "IF",
-        isVerified: true,
         followers: 25600,
+        description: "Institutional grade asset manager",
+        joinDate: new Date(Date.now() - 800 * 24 * 60 * 60 * 1000).toISOString(),
+        totalPortfolios: 12,
+        publicPortfolios: 7,
+        totalInvestment: 2_500_000,
+        bestPerformance: 22.1,
       },
-      type: "manual",
+      type: "time",
       presetType: "conservative",
       totalInvestment: 150000,
       allocations: [
@@ -224,7 +244,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "USD Coin",
           percentage: 25,
           color: "#2775CA",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "USDC")?.image || "",
+          image: TOKEN_IMAGES.USDC,
           amount: 37500,
         },
         {
@@ -232,7 +252,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Chainlink",
           percentage: 20,
           color: "#2A5ADA",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "LINK")?.image || "",
+          image: TOKEN_IMAGES.LINK,
           amount: 30000,
         },
         {
@@ -240,7 +260,7 @@ export function generateCommunityPortfolios(): SharedPortfolio[] {
           name: "Maker",
           percentage: 15,
           color: "#1AAB9B",
-          image: CRYPTOCURRENCY_DATA.find(c => c.symbol === "MKR")?.image || "",
+          image: TOKEN_IMAGES.MKR,
           amount: 22500,
         },
       ],

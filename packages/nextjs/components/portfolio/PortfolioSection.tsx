@@ -23,72 +23,12 @@ import { Badge } from "~~/components/shared/ui/badge";
 import { Button } from "~~/components/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/ui/card";
 import { useTheme } from "~~/hooks/use-theme";
-import { SharedPortfolio } from "~~/types/portfolio";
-import { CRYPTOCURRENCY_DATA, Portfolio } from "~~/utils/constants";
+import { Portfolio } from "~~/types/balancer/portfolio";
+import { CRYPTOCURRENCY_DATA } from "~~/utils/storage/constants";
 
-// Function to convert Portfolio to SharedPortfolio
-const convertPortfolioToShared = (portfolio: any): SharedPortfolio => {
-  // Debug: log original portfolio data
-  console.log("convertPortfolioToShared - original portfolio:", portfolio);
-  console.log("convertPortfolioToShared - portfolio.tokens:", portfolio.tokens);
-  console.log("convertPortfolioToShared - portfolio.allocations:", portfolio.allocations);
-
-  // Handle both formats: Portfolio with tokens OR local portfolio with allocations
-  const allocationsData = portfolio.tokens || portfolio.allocations || [];
-  console.log("convertPortfolioToShared - using allocationsData:", allocationsData);
-
-  return {
-    id: portfolio.id,
-    name: portfolio.name,
-    author: {
-      username: "you",
-      avatar: "Y",
-      isVerified: false,
-      followers: 0,
-    },
-    type: "manual",
-    presetType: "custom",
-    totalInvestment: portfolio.totalValue || portfolio.totalInvestment || 0,
-    allocations: allocationsData.map((item: any, index: number) => {
-      console.log("convertPortfolioToShared - mapping item:", item);
-      return {
-        symbol: item.symbol || "Unknown",
-        name: item.name || CRYPTOCURRENCY_DATA.find(c => c.symbol === item.symbol)?.name || item.symbol || "Unknown",
-        percentage: Number(item.percentage) || 0,
-        color: item.color || `hsl(${(index * 137.5) % 360}, 70%, 50%)`, // Use existing color or generate
-        image: item.image || CRYPTOCURRENCY_DATA.find(c => c.symbol === item.symbol)?.image || "/placeholder.png",
-        amount: Number(item.amount) || 0,
-      };
-    }),
-    performance: {
-      totalValue: Number(portfolio.performance?.totalValue || portfolio.totalValue || portfolio.totalInvestment) || 0,
-      totalReturn:
-        Number(
-          portfolio.performance?.totalReturn ||
-            ((Number(portfolio.performance?.returnPercentage || portfolio.performance) || 0) / 100) *
-              (Number(portfolio.totalValue || portfolio.totalInvestment) || 0),
-        ) || 0,
-      returnPercentage: Number(portfolio.performance?.returnPercentage || portfolio.performance) || 0,
-      dailyChange: Number(portfolio.performance?.dailyChange) || 0,
-      dailyChangePercentage: Number(portfolio.performance?.dailyChangePercentage) || 0,
-    },
-    metrics: {
-      likes: 0,
-      shares: 0,
-      bookmarks: 0,
-      comments: 0,
-    },
-    strategy: {
-      description: portfolio.strategy || "Custom portfolio strategy",
-      riskLevel: "moderate",
-      timeHorizon: "long-term",
-      rebalanceFrequency: portfolio.rebalanceConfig?.rebalanceFrequency || "monthly",
-    },
-    tags: [],
-    createdAt: portfolio.createdAt || new Date().toISOString(),
-    isPublic: portfolio.isPublic || false,
-    category: "defi",
-  };
+// Identity converter: assume incoming data already matches centralized `Portfolio` type
+const convertPortfolioToShared = (portfolio: Portfolio | any): Portfolio => {
+  return portfolio as Portfolio;
 };
 
 interface DeleteModalProps {
@@ -165,70 +105,12 @@ function DeleteModal({ isOpen, onClose, onConfirm, walletName }: DeleteModalProp
   );
 }
 
-// Convert Portfolio from constants.tsx to local Portfolio format
-const convertToLocalPortfolio = (portfolio: Portfolio) => {
-  return {
-    id: portfolio.id,
-    name: portfolio.name,
-    type: portfolio.investmentType || ("drift" as const),
-    presetType: getPresetTypeFromName(portfolio.name),
-    totalInvestment: portfolio.totalValue,
-    allocations: portfolio.tokens.map((token, index) => {
-      const cryptoData = CRYPTOCURRENCY_DATA.find(c => c.symbol === token.symbol);
-      const colors = [
-        "#2F5586",
-        "#2775CA",
-        "#B6509E",
-        "#00D395",
-        "#FF007A",
-        "#2A5ADA",
-        "#1AAB9B",
-        "#5FCDF8",
-        "#8247E5",
-        "#FF0420",
-      ];
-
-      return {
-        symbol: token.symbol,
-        name: cryptoData?.name || token.symbol,
-        percentage: token.percentage,
-        color: colors[index % colors.length],
-        image: cryptoData?.image || "",
-        amount: token.amount,
-      };
-    }),
-    autoinvestConfig: portfolio.investmentConfig
-      ? {
-          initialDeposit: portfolio.investmentConfig.initialDeposit || 0,
-          monthlyInvestment: portfolio.investmentConfig.monthlyInvestment || 0,
-          years: portfolio.investmentConfig.years || 1,
-          projectedValue: portfolio.totalValue * 1.5, // Estimated projection
-        }
-      : undefined,
-    createdAt: portfolio.createdAt,
-    performance: {
-      totalValue: portfolio.totalValue,
-      totalReturn: portfolio.totalValue * (portfolio.performance / 100),
-      returnPercentage: portfolio.performance,
-      dailyChange: Math.random() * 1000 - 500, // Random daily change
-      dailyChangePercentage: Math.random() * 10 - 5, // Random daily percentage
-    },
-  };
-};
-
-// Determine preset type from portfolio name
-function getPresetTypeFromName(name: string): string {
-  if (name.includes("EndGame") || name.includes("Conservative")) return "conservative";
-  if (name.includes("Gomora") || name.includes("Balanced")) return "balanced";
-  if (name.includes("Tanos") || name.includes("Aggressive") || name.includes("Meme")) return "aggressive";
-  if (name.includes("RWA") || name.includes("DeFi") || name.includes("AI")) return "balanced";
-  return "balanced";
-}
+// (No conversion function required)
 
 export function PortfolioSection() {
-  const [savedWallets, setSavedWallets] = useState<any[]>([]);
-  const [filteredWallets, setFilteredWallets] = useState<any[]>([]);
-  const [selectedWallet, setSelectedWallet] = useState<any>(null);
+  const [savedWallets, setSavedWallets] = useState<Portfolio[]>([]);
+  const [filteredWallets, setFilteredWallets] = useState<Portfolio[]>([]);
+  const [selectedWallet, setSelectedWallet] = useState<Portfolio | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -299,13 +181,12 @@ export function PortfolioSection() {
         return dateB - dateA;
       });
 
-      // Convert to local format and set
-      const convertedPortfolios = portfolios.map(convertToLocalPortfolio);
-      setSavedWallets(convertedPortfolios);
+      // Use stored Portfolio objects directly
+      setSavedWallets(portfolios);
 
       console.log(
-        `✅ Loaded ${convertedPortfolios.length} total user portfolios:`,
-        convertedPortfolios.map(p => p.name),
+        `✅ Loaded ${portfolios.length} total user portfolios:`,
+        portfolios.map(p => p.name),
       );
     } catch (error) {
       console.error("❌ Error loading portfolios:", error);

@@ -28,7 +28,9 @@ import {
 } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
-import { CRYPTOCURRENCY_DATA, Portfolio, savePortfolio } from "~~/utils/constants";
+import { TokenAllocation } from "~~/types/1inch/api";
+import { Portfolio } from "~~/types/balancer/portfolio";
+import { CRYPTOCURRENCY_DATA, savePortfolio } from "~~/utils/storage/constants";
 
 // Default configuration for new portfolios
 const DEFAULT_CONFIG = [
@@ -60,17 +62,6 @@ const DEFAULT_CONFIG = [
 interface PieChartCreatorProps {
   onBack: () => void;
   initialTemplate?: any; // Template selezionato dal TemplateSelectionModal
-}
-
-interface TokenAllocation {
-  symbol: string;
-  name: string;
-  percentage: number;
-  color: string;
-  image: string;
-  amount: number; // Added to match PortfolioSection interface
-  isProtected?: boolean;
-  minPercentage?: number;
 }
 
 // Updated interface to match new rebalancing system
@@ -502,30 +493,41 @@ export function PieChartCreator({ onBack, initialTemplate }: PieChartCreatorProp
     const cleanTokens = allocations.map(allocation => ({
       symbol: allocation.symbol,
       percentage: allocation.percentage,
-      amount: allocation.amount,
+      amount: allocation.amount ?? 0,
     }));
 
-    // Generate random performance for new portfolio
-    const performance = Math.random() * 40 - 10; // -10% to +30%
+    // Generate random performance for new portfolio (as an object matching PortfolioPerformance)
+    const returnPercentage = Math.random() * 40 - 10; // -10% to +30%
+    const performance = {
+      totalValue: Math.round(totalValue * (1 + returnPercentage / 100)),
+      totalReturn: Math.round(totalValue * (returnPercentage / 100)),
+      returnPercentage: returnPercentage,
+      dailyChange: 0,
+      dailyChangePercentage: 0,
+    };
 
     const portfolioData: Portfolio = {
       id: `portfolio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: walletName.trim(),
-      tokens: cleanTokens,
-      totalValue: totalValue,
+      allocations: cleanTokens.map(ct => ({ symbol: ct.symbol, percentage: ct.percentage, amount: ct.amount })),
+      totalInvestment: totalValue,
       performance: performance,
       isPublic: false, // Default to private
       strategy: undefined, // Can be added later
       createdAt: new Date().toISOString(),
-      investmentType: rebalanceType, // Direct mapping to new system
-      investmentConfig:
+      type: rebalanceType, // Direct mapping to new system
+      config:
         rebalanceType === "time"
           ? {
               initialDeposit: totalValue,
-              monthlyInvestment: 0,
-              years: 1,
+              rebalanceFrequency,
             }
-          : undefined,
+          : rebalanceType === "drift"
+            ? {
+                initialDeposit: totalValue,
+                driftThreshold: driftThreshold,
+              }
+            : undefined,
       isTemplate: false,
     };
 
@@ -1169,7 +1171,7 @@ export function PieChartCreator({ onBack, initialTemplate }: PieChartCreatorProp
                           </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          ${allocation.amount.toLocaleString()}
+                          ${(allocation.amount ?? 0).toLocaleString()}
                           {allocation.isProtected && (
                             <span className="ml-2 text-yellow-600 dark:text-yellow-400 font-medium">
                               • Protected Asset (Min: {allocation.minPercentage}%)
@@ -1552,8 +1554,8 @@ export function PieChartCreator({ onBack, initialTemplate }: PieChartCreatorProp
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={token.image}
-                          alt={token.name}
+                          src={(token as any).image ?? ""}
+                          alt={token.name ?? token.symbol}
                           className="w-6 h-6 object-contain"
                           onError={e => {
                             const img = e.currentTarget as HTMLImageElement;
@@ -1575,9 +1577,11 @@ export function PieChartCreator({ onBack, initialTemplate }: PieChartCreatorProp
                         <p className="text-sm text-muted-foreground">{token.name}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-medium text-foreground">${token.price}</div>
-                        <div className={`text-xs ${token.change.startsWith("+") ? "text-green-500" : "text-red-500"}`}>
-                          {token.change}%
+                        <div className="text-sm font-medium text-foreground">{token.price ?? "$0"}</div>
+                        <div
+                          className={`text-xs ${String(token.change24h ?? "0").startsWith("+") ? "text-green-500" : "text-red-500"}`}
+                        >
+                          {String(token.change24h ?? "0")}
                         </div>
                       </div>
                     </div>

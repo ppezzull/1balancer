@@ -15,7 +15,7 @@ import { useTheme } from "~~/hooks/use-theme";
 import scaffoldConfig from "~~/scaffold.config";
 import { getPrivyConfig } from "~~/services/web3/privyConfig";
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
-import { initializeDefaultPortfolios } from "~~/utils/constants";
+import { initializeDefaultPortfolios } from "~~/utils/storage/constants";
 
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   useInitializeNativeCurrencyPrice();

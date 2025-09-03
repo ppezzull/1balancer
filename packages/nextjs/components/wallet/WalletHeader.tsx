@@ -3,8 +3,8 @@ import { Copy, ExternalLink, Eye, EyeOff, MoreHorizontal, RefreshCw, Search, Set
 import { motion } from "motion/react";
 import { Button } from "~~/components/shared/ui/button";
 import { useTheme } from "~~/hooks/use-theme";
-import { WALLET_CONFIG } from "~~/utils/constants";
-import { copyWalletAddress, generateWalletAvatar } from "~~/utils/dashboard-helpers";
+import { WALLET_CONFIG } from "~~/utils/storage/constants";
+import { copyWalletAddress, generateWalletAvatar } from "~~/utils/storage/dashboard-helpers";
 
 interface WalletHeaderProps {
   isInView: boolean;

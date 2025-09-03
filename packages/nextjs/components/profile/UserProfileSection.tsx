@@ -31,7 +31,7 @@ import {
   UserProfile as UserProfileType,
   getUserProfile,
   updateUserProfileStats,
-} from "~~/utils/constants";
+} from "~~/utils/storage/constants";
 
 // Use the types from constants
 

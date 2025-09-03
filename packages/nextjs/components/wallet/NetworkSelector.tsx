@@ -4,8 +4,8 @@ import { motion } from "motion/react";
 import { Badge } from "~~/components/shared/ui/badge";
 import { Button } from "~~/components/shared/ui/button";
 import { useTheme } from "~~/hooks/use-theme";
-import { NETWORKS } from "~~/utils/constants";
-import type { NetworkId } from "~~/utils/constants";
+import { NETWORKS } from "~~/utils/storage/constants";
+import type { NetworkId } from "~~/utils/storage/constants";
 
 interface NetworkSelectorProps {
   selectedNetwork: NetworkId;

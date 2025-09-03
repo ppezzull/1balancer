@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState 
 import { decodeJwtUnsafe } from "../../../lib/jwt";
 import { usePrivy } from "@privy-io/react-auth";
 import { clearSupabaseTokenCache, getSupabaseAccessToken } from "~~/services/store/token-cache";
-import { clearSupabaseAuthCookie } from "~~/utils/actions/auth";
+import { clearSupabaseAuthCookie } from "~~/utils/actions/supabase/auth";
 import { createClient as createBrowserSupabase } from "~~/utils/supabase/client";
 
 type Ctx = {

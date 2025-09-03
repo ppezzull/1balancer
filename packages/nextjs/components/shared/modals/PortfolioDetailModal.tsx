@@ -9,10 +9,10 @@ import { Activity, DollarSign, Heart, Share, Star, Target, TrendingDown, Trendin
 import { AnimatePresence, motion } from "motion/react";
 import { Cell, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useIsMobile } from "~~/hooks/use-mobile";
-import { SharedPortfolio } from "~~/types/portfolio";
+import { Portfolio } from "~~/types/balancer/portfolio";
 
 interface PortfolioDetailModalProps {
-  portfolio: SharedPortfolio | null;
+  portfolio: Portfolio | null;
   isOpen: boolean;
   onClose: () => void;
 }

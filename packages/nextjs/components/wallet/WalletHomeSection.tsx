@@ -11,7 +11,7 @@ import { PieChartCreator } from "~~/components/shared/ui/PieChartCreator";
 import { SocialSection } from "~~/components/social/SocialSection";
 import { CryptoDetailScreen } from "~~/components/trade/CryptoDetailScreen";
 import { TradeSection } from "~~/components/trade/TradeSection";
-import { initializeDefaultPortfolios } from "~~/utils/constants";
+import { initializeDefaultPortfolios } from "~~/utils/storage/constants";
 
 interface WalletHomeSectionProps {
   activeWalletTab: "home" | "portfolio" | "trade" | "social" | "profile";

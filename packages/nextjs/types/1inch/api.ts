@@ -1,76 +1,71 @@
-export interface TagDto {
-  provider: string;
-  value: string;
-  providers: string[];
-}
+import {
+  BadRequestErrorDto,
+  CustomTokensAndWalletsRequest,
+  CustomTokensRequest,
+  MultiWalletBalancesResponse,
+  TokenBalancesResponse,
+} from "./token";
+import { CandlesResponse, Line, LinesResponse } from "./tokenCharts";
 
+// ...existing code...
 export interface TokenDto {
   chainId: number;
   symbol: string;
   name: string;
   address: string;
   decimals: number;
-  logoURI?: string;
+  logoURI: string;
   rating: number;
-  eip2612?: boolean;
-  isFoT?: boolean;
-  tags: TagDto[];
+  eip2612: boolean;
+  isFoT: boolean;
+  tags: Array<{ provider: string; tag: string }>;
 }
 
-export interface BadRequestErrorDto {
-  statusCode: number;
-  message: string;
-  error: string;
+export interface Comment {
+  id: string;
+  author: string;
+  avatar?: string;
+  content: string;
+  createdAt: string;
+  likes?: number;
+  replies?: Comment[];
 }
 
-export interface CustomTokensRequest {
-  tokens: string[];
+export interface TokenAllocation {
+  symbol: string;
+  name?: string;
+  percentage: number;
+  amount?: number;
+  color?: string;
+  image?: string;
+  // Optional protection metadata used by the UI (not all sources provide this)
+  isProtected?: boolean;
+  minPercentage?: number;
 }
 
-export interface CustomTokensAndWalletsRequest {
-  tokens: string[];
-  wallets: string[];
-}
-
-export type TokenBalancesResponse = Record<string, string>;
-
-export type MultiWalletBalancesResponse = Record<string, Record<string, string>>;
-
-export interface Line {
+export interface ChartDataPoint {
   time: number;
   value: number;
+  formattedTime?: string;
+  percentageChange?: number;
 }
 
-export interface LinesResponse {
-  data: Line[];
-}
-
-export interface Candle {
-  time: number;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-}
-
-export interface CandlesResponse {
-  data: Candle[];
-}
-
-// Extended interfaces for enhanced functionality
-export interface TokenWithBalance extends TokenDto {
+// Reuse and extend existing token/chart types
+export type TokenWithBalance = TokenDto & {
   balance?: string;
   balanceUSD?: number;
   priceUSD?: number;
   change24h?: number;
   isProtected?: boolean;
   minPercentage?: number;
-}
+};
 
 export interface ChartDataPoint extends Line {
   formattedTime?: string;
   percentageChange?: number;
 }
+
+// Additional interfaces added above
 
 export interface TokenChartData {
   symbol: string;
@@ -86,6 +81,15 @@ export interface PortfolioToken extends TokenWithBalance {
   currentAmount?: number;
   needsRebalancing?: boolean;
 }
+
+// Re-export commonly used request/response types from token.ts
+export type {
+  BadRequestErrorDto,
+  CustomTokensRequest,
+  CustomTokensAndWalletsRequest,
+  TokenBalancesResponse,
+  MultiWalletBalancesResponse,
+};
 
 // API Response wrappers
 export interface ApiResponse<T> {

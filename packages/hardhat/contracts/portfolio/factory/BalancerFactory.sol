@@ -5,21 +5,37 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Permit.sol";
-import "../balancers/Balancer.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+// Minimal interface for the Balancer implementation to avoid importing full bytecode
+interface IBalancer {
+    function initialize(
+        address newOwner,
+        address[] calldata assets,
+        uint256[] calldata targetPercBps,
+        uint256[] calldata initialDepositAmounts
+    ) external;
+}
 
 /**
  * @title BalancerFactory (minimal)
  * @notice Deploys Balancer instances with initial deposits. No automation, no oracles.
  */
-contract BalancerFactory is Ownable {
+contract BalancerFactory is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    using Clones for address;
 
-    event BalancerCreated(address indexed owner, address balancer);
+    event BalancerCreated(address indexed owner, address balancer, uint256 assetsLength);
 
+    address public immutable implementation; // Balancer implementation
     address[] public allBalancers;
     mapping(address => address[]) public userBalancers; // owner => balancers
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _implementation) Ownable(msg.sender) {
+        require(_implementation != address(0), "impl=0");
+        implementation = _implementation;
+    }
 
     // ===== Errors =====
     error ArrayLengthMismatch();
@@ -27,13 +43,19 @@ contract BalancerFactory is Ownable {
     error PermitInsufficientValue();
     error InsufficientBalance();
     error InsufficientAllowance();
+    error InvalidAsset(address token);
+    error MaxAssetsExceeded(uint256 max);
+
+    uint256 public constant MAX_ASSETS = 32;
 
     // ===== Types =====
     struct PermitInput {
-        address token;       // ERC20 token address
-        uint256 value;       // allowance to approve to the Factory (spender)
-        uint256 deadline;    // EIP-2612 deadline
-        uint8 v; bytes32 r; bytes32 s; // ECDSA parts
+        address token; // ERC20 token address
+        uint256 value; // allowance to approve to the Factory (spender)
+        uint256 deadline; // EIP-2612 deadline
+        uint8 v;
+        bytes32 r;
+        bytes32 s; // ECDSA parts
     }
 
     /**
@@ -51,12 +73,18 @@ contract BalancerFactory is Ownable {
         uint256[] calldata targetPercBps,
         uint256[] calldata initialDepositAmounts,
         PermitInput[] calldata permits
-    ) external returns (address balancerAddr) {
+    ) external nonReentrant returns (address balancerAddr) {
         if (assets.length != targetPercBps.length || assets.length != initialDepositAmounts.length) {
             revert ArrayLengthMismatch();
         }
         if (permits.length != assets.length) {
             revert ArrayLengthMismatch();
+        }
+        if (assets.length > MAX_ASSETS) revert MaxAssetsExceeded(MAX_ASSETS);
+        // basic token sanity
+        for (uint256 i; i < assets.length; i++) {
+            if (assets[i] == address(0) || assets[i].code.length == 0) revert InvalidAsset(assets[i]);
+            for (uint256 j; j < i; j++) if (assets[j] == assets[i]) revert InvalidAsset(assets[i]);
         }
 
         // 1) Validate alignment and intended allowances BEFORE deploying
@@ -84,15 +112,10 @@ contract BalancerFactory is Ownable {
             if (IERC20(token).balanceOf(msg.sender) < amount) revert InsufficientBalance();
         }
 
-        // 3) Deploy balancer with zero initial pulls; we'll fund via Factory transfers after permits
-        uint256[] memory zeros = new uint256[](assets.length);
-        Balancer balancer = new Balancer(
-            msg.sender,
-            assets,
-            targetPercBps,
-            zeros
-        );
-        balancerAddr = address(balancer);
+    // 3) Clone minimal proxy and initialize
+    address clone = implementation.clone();
+    balancerAddr = clone;
+    IBalancer(balancerAddr).initialize(msg.sender, assets, targetPercBps, new uint256[](assets.length));
 
         // 4) Move funds now that allowances are guaranteed
         for (uint256 i; i < assets.length; i++) {
@@ -102,11 +125,15 @@ contract BalancerFactory is Ownable {
             IERC20(token).safeTransferFrom(msg.sender, balancerAddr, amount);
         }
 
-        allBalancers.push(balancerAddr);
-        userBalancers[msg.sender].push(balancerAddr);
-        emit BalancerCreated(msg.sender, balancerAddr);
+    allBalancers.push(balancerAddr);
+    userBalancers[msg.sender].push(balancerAddr);
+    emit BalancerCreated(msg.sender, balancerAddr, assets.length);
     }
 
-    function balancerCount() external view returns (uint256) { return allBalancers.length; }
-    function getUserBalancers(address user) external view returns (address[] memory) { return userBalancers[user]; }
+    function balancerCount() external view returns (uint256) {
+        return allBalancers.length;
+    }
+    function getUserBalancers(address user) external view returns (address[] memory) {
+        return userBalancers[user];
+    }
 }

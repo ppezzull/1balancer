@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useAccount, useChainId } from "wagmi";
-import { PortfolioToken, TokenWithBalance, WalletBalances } from "~~/types/api";
+import { PortfolioToken, TokenWithBalance, WalletBalances } from "~~/types/1inch/api";
 
 export interface UseWalletSSRData {
   // Wallet connection state

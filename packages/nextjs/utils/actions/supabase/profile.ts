@@ -1,8 +1,8 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { Database } from "../models/supabase";
-import { createClient as createServerSupabase } from "../supabase/server";
+import { Database } from "../../models/supabase";
+import { createClient as createServerSupabase } from "../../supabase/server";
 import { decodeJwt } from "jose";
 
 export type UserRow = Pick<Database["public"]["Tables"]["users"]["Row"], "id" | "name" | "surname" | "created_at">;

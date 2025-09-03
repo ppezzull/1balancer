@@ -12,7 +12,7 @@ import { Button } from "~~/components/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~~/components/shared/ui/card";
 import { Input } from "~~/components/shared/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~~/components/shared/ui/select";
-import { CRYPTOCURRENCY_DATA } from "~~/utils/constants";
+import { CRYPTOCURRENCY_DATA } from "~~/utils/storage/constants";
 
 interface TradingPair {
   symbol: string;

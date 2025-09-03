@@ -38,7 +38,14 @@ function getActualSourcesForContract(sources: Record<string, any>, contractName:
   for (const sourcePath of Object.keys(sources)) {
     const sourceName = sourcePath.split("/").pop()?.split(".sol")[0];
     if (sourceName === contractName) {
-      const contractContent = sources[sourcePath].content as string;
+      const contractContent =
+        sources[sourcePath] && typeof sources[sourcePath].content === "string"
+          ? (sources[sourcePath].content as string)
+          : undefined;
+      if (!contractContent) {
+        // No inline source available in metadata (common when metadata is trimmed). Bail out gracefully.
+        return [];
+      }
       const regex = /contract\s+(\w+)\s+is\s+([^{}]+)\{/;
       const match = contractContent.match(regex);
 

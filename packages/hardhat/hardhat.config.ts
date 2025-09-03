@@ -39,6 +39,33 @@ const config: HardhatUserConfig = {
         },
       },
     ],
+    // Override specific contracts with settings that reduce bytecode size.
+    // Rationale: The Factory embeds the Balancer creation bytecode when using `new Balancer(...)`.
+    // Smaller Balancer creation code => smaller Factory runtime => lower Factory deploy gas.
+    overrides: {
+      // Compile the Balancer (child) with smaller code size
+      "contracts/portfolio/balancers/Balancer.sol": {
+        version: "0.8.23",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: false,
+        },
+      },
+      // Also compile the Factory itself for smaller runtime
+      "contracts/portfolio/factory/BalancerFactory.sol": {
+        version: "0.8.23",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          viaIR: true,
+        },
+      },
+    },
   },
   defaultNetwork: "localhost",
   namedAccounts: {
@@ -144,6 +171,10 @@ const config: HardhatUserConfig = {
   },
   sourcify: {
     enabled: false,
+  },
+  gasReporter: {
+    enabled: true,
+    currency: "ETH",
   },
 };
 

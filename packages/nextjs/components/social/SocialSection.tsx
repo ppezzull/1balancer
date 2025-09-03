@@ -1,6 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/shared/ui/avatar";
+import { Badge } from "../../components/shared/ui/badge";
+import { Button } from "../../components/shared/ui/button";
+import { Card, CardContent, CardHeader } from "../../components/shared/ui/card";
+import { Input } from "../../components/shared/ui/input";
+import { Textarea } from "../../components/shared/ui/textarea";
+import { useIsMobile } from "../../hooks/use-mobile";
+import { useTheme } from "../../hooks/use-theme";
+import { SocialPortfolio } from "../../types/balancer/portfolio";
+import { SocialComment, SocialUser } from "../../types/balancer/social";
+import { CRYPTOCURRENCY_DATA, getPortfolios, getUserProfile } from "../../utils/storage/constants";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Award,
   Bookmark,
@@ -22,206 +34,143 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { Cell, Legend, Pie, PieChart as RechartsPieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "~~/components/shared/ui/avatar";
-import { Badge } from "~~/components/shared/ui/badge";
-import { Button } from "~~/components/shared/ui/button";
-import { Card, CardContent, CardHeader } from "~~/components/shared/ui/card";
-import { Input } from "~~/components/shared/ui/input";
-import { Textarea } from "~~/components/shared/ui/textarea";
-import { useIsMobile } from "~~/hooks/use-mobile";
-import { useTheme } from "~~/hooks/use-theme";
-import { CRYPTOCURRENCY_DATA, Portfolio, getPortfolios, getUserProfile } from "~~/utils/constants";
 
-interface SocialPortfolio extends Portfolio {
-  user: {
-    id: string;
-    username: string;
-    avatar?: string;
-    followers: number;
-    isFollowing: boolean;
-    joinDate: string;
-    bio?: string;
-    isVerified?: boolean;
-    level?: "Beginner" | "Intermediate" | "Expert" | "Pro";
-  };
-  likes: number;
-  comments: Comment[];
-  shares: number;
-  views: number;
-  isLiked: boolean;
-  isBookmarked: boolean;
-  tags: string[];
-}
-
-interface Comment {
-  id: string;
-  userId: string;
-  username: string;
-  avatar?: string;
-  content: string;
-  timestamp: string;
-  likes: number;
-  isLiked: boolean;
-}
-
-// Expanded Mock Users with more diverse profiles
-const MOCK_USERS = [
+const MOCK_USERS: SocialUser[] = [
   {
-    id: "user1",
+    id: "defi_alpha",
     username: "DeFiAlpha",
     avatar:
       "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 2840,
-    isFollowing: false,
+    description:
+      "Professional DeFi strategist with 5+ years experience in portfolio optimization. Specialized in yield farming and risk management.",
     joinDate: "2023-03-15",
-    bio: "Professional DeFi strategist with 5+ years experience in portfolio optimization. Specialized in yield farming and risk management.",
-    isVerified: true,
-    level: "Expert" as const,
+    totalPortfolios: 12,
+    publicPortfolios: 8,
+    totalInvestment: 120000,
+    bestPerformance: 45.2,
   },
   {
-    id: "user2",
+    id: "crypto_sage",
     username: "CryptoSage",
     avatar:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 1560,
-    isFollowing: true,
+    description:
+      "Long-term investor focused on sustainable crypto growth strategies. Believers in DeFi revolution and decentralized finance future.",
     joinDate: "2023-01-20",
-    bio: "Long-term investor focused on sustainable crypto growth strategies. Believers in DeFi revolution and decentralized finance future.",
-    isVerified: false,
-    level: "Intermediate" as const,
+    totalPortfolios: 7,
+    publicPortfolios: 5,
+    totalInvestment: 65000,
+    bestPerformance: 32.8,
   },
   {
-    id: "user3",
+    id: "yield_master",
     username: "YieldMaster",
     avatar:
       "https://images.unsplash.com/photo-1494790108755-2616b612b814?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 892,
-    isFollowing: false,
+    description:
+      "Yield farming expert specializing in high-APY strategies. Always looking for the next big opportunity in DeFi protocols.",
     joinDate: "2023-06-10",
-    bio: "Yield farming expert specializing in high-APY strategies. Always looking for the next big opportunity in DeFi protocols.",
-    isVerified: false,
-    level: "Expert" as const,
+    totalPortfolios: 5,
+    publicPortfolios: 3,
+    totalInvestment: 34000,
+    bestPerformance: 67.8,
   },
   {
-    id: "user4",
+    id: "stable_coin_pro",
     username: "StableCoin_Pro",
     avatar:
       "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 3200,
-    isFollowing: true,
+    description:
+      "Conservative investor focused on stable returns and risk management. 10+ years in traditional finance, now exploring DeFi safely.",
     joinDate: "2022-11-05",
-    bio: "Conservative investor focused on stable returns and risk management. 10+ years in traditional finance, now exploring DeFi safely.",
-    isVerified: true,
-    level: "Pro" as const,
+    totalPortfolios: 10,
+    publicPortfolios: 7,
+    totalInvestment: 90000,
+    bestPerformance: 18.4,
   },
   {
-    id: "user5",
-    username: "LayerTwoLover",
-    avatar:
-      "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
-    followers: 1245,
-    isFollowing: false,
-    joinDate: "2023-08-22",
-    bio: "Layer 2 enthusiast and early adopter. Arbitrum and Optimism maximalist. Building the future of scalable DeFi one transaction at a time.",
-    isVerified: false,
-    level: "Intermediate" as const,
-  },
-  {
-    id: "user6",
-    username: "NFTPortfolioGuru",
-    avatar:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
-    followers: 2180,
-    isFollowing: true,
-    joinDate: "2023-02-14",
-    bio: "Combining traditional portfolio theory with NFT and gaming tokens. Creating balanced exposure across DeFi, gaming, and metaverse.",
-    isVerified: false,
-    level: "Expert" as const,
-  },
-  {
-    id: "user7",
-    username: "QuantDeFi",
-    avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
-    followers: 3890,
-    isFollowing: false,
-    joinDate: "2022-09-30",
-    bio: "Quantitative analyst applying mathematical models to DeFi. PhD in Finance, creating algorithmic strategies for optimal portfolio allocation.",
-    isVerified: true,
-    level: "Pro" as const,
-  },
-  {
-    id: "user8",
+    id: "meme_token_mania",
     username: "MemeTokenMania",
     avatar:
       "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 967,
-    isFollowing: false,
+    description:
+      "High-risk, high-reward meme token investor. DYOR always, but sometimes you just have to believe in the community and the memes! 🚀",
     joinDate: "2023-05-18",
-    bio: "High-risk, high-reward meme token investor. DYOR always, but sometimes you just have to believe in the community and the memes! 🚀",
-    isVerified: false,
-    level: "Beginner" as const,
+    totalPortfolios: 3,
+    publicPortfolios: 2,
+    totalInvestment: 12000,
+    bestPerformance: 156.7,
   },
   {
-    id: "user9",
+    id: "institutional_crypto",
     username: "InstitutionalCrypto",
     avatar:
       "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 4567,
-    isFollowing: true,
+    description:
+      "Institutional portfolio manager bringing traditional investment principles to DeFi. Focus on risk-adjusted returns and regulatory compliance.",
     joinDate: "2022-12-08",
-    bio: "Institutional portfolio manager bringing traditional investment principles to DeFi. Focus on risk-adjusted returns and regulatory compliance.",
-    isVerified: true,
-    level: "Pro" as const,
+    totalPortfolios: 15,
+    publicPortfolios: 10,
+    totalInvestment: 250000,
+    bestPerformance: 12.3,
   },
   {
-    id: "user10",
+    id: "defi_degenerator",
     username: "DeFiDegenerator",
     avatar:
       "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 1890,
-    isFollowing: false,
+    description:
+      "Full-time DeFi degen exploring the wildest protocols. Aping into new projects daily. Not financial advice, just sharing the journey! 🦍",
     joinDate: "2023-04-12",
-    bio: "Full-time DeFi degen exploring the wildest protocols. Aping into new projects daily. Not financial advice, just sharing the journey! 🦍",
-    isVerified: false,
-    level: "Intermediate" as const,
+    totalPortfolios: 6,
+    publicPortfolios: 4,
+    totalInvestment: 18000,
+    bestPerformance: 88.2,
   },
   {
-    id: "user11",
+    id: "eth_maximalist",
     username: "ETHMaximalist",
     avatar:
       "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 2341,
-    isFollowing: true,
+    description:
+      "Ethereum believer since 2017. Building wealth through ETH ecosystem tokens. Staking, lending, and hodling for the long term.",
     joinDate: "2022-10-15",
-    bio: "Ethereum believer since 2017. Building wealth through ETH ecosystem tokens. Staking, lending, and hodling for the long term.",
-    isVerified: false,
-    level: "Expert" as const,
+    totalPortfolios: 8,
+    publicPortfolios: 5,
+    totalInvestment: 42000,
+    bestPerformance: 34.5,
   },
   {
-    id: "user12",
+    id: "stablecoin_strategy",
     username: "StablecoinStrategy",
     avatar: "https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=100&h=100&fit=crop&crop=face&auto=format&q=80",
     followers: 1567,
-    isFollowing: false,
+    description:
+      "Master of stablecoin yield strategies. Finding the best rates across lending protocols while maintaining minimal risk exposure.",
     joinDate: "2023-07-03",
-    bio: "Master of stablecoin yield strategies. Finding the best rates across lending protocols while maintaining minimal risk exposure.",
-    isVerified: false,
-    level: "Intermediate" as const,
+    totalPortfolios: 4,
+    publicPortfolios: 3,
+    totalInvestment: 16000,
+    bestPerformance: 19.7,
   },
 ];
 
 // Additional Mock Portfolios with diverse strategies
-const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
-  SocialPortfolio,
-  "user" | "likes" | "comments" | "shares" | "views" | "isLiked" | "isBookmarked" | "tags"
->[] = [
+const ADDITIONAL_MOCK_PORTFOLIOS: SocialPortfolio[] = [
   {
     id: "mock_conservative_defi",
-    isTemplate: false,
     name: "Conservative DeFi Stack",
+    user: MOCK_USERS[0], // Using first mock user
     tokens: [
       { symbol: "SLD", percentage: 40, amount: 8000 },
       { symbol: "USDC", percentage: 30, amount: 6000 },
@@ -231,21 +180,22 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
     ],
     totalValue: 20000,
     performance: 8.5,
-    isPublic: true,
     strategy:
       "Low-risk approach focusing on established DeFi protocols with proven track records. Heavy weighting in stablecoins for capital preservation with selective exposure to blue-chip DeFi tokens for growth potential.",
     createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    investmentType: "time",
-    investmentConfig: {
-      initialDeposit: 15000,
-      monthlyInvestment: 500,
-      years: 3,
-    },
+    isPublic: true,
+    likes: 45,
+    comments: [],
+    shares: 12,
+    views: 234,
+    isLiked: false,
+    isBookmarked: false,
+    tags: ["Conservative", "DeFi", "Stablecoins"],
   },
   {
     id: "mock_layer2_maximalist",
-    isTemplate: false,
     name: "Layer 2 Scaling Bet",
+    user: MOCK_USERS[1], // Using second mock user
     tokens: [
       { symbol: "ARB", percentage: 35, amount: 10500 },
       { symbol: "OP", percentage: 25, amount: 7500 },
@@ -255,16 +205,23 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
     ],
     totalValue: 30000,
     performance: 45.2,
-    isPublic: true,
     strategy:
       "Betting big on Ethereum Layer 2 solutions. This portfolio captures the growth of scaling solutions while maintaining some stability with stablecoins. Focus on tokens that benefit from increased L2 adoption.",
     createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    isPublic: true,
+    likes: 78,
+    comments: [],
+    shares: 23,
+    views: 456,
+    isLiked: true,
+    isBookmarked: false,
+    tags: ["Layer2", "Scaling", "Ethereum"],
     investmentType: "drift",
   },
   {
     id: "mock_yield_farming_pro",
-    isTemplate: false,
     name: "High-Yield DeFi Hunter",
+    user: MOCK_USERS[2], // Using third mock user
     tokens: [
       { symbol: "CRV", percentage: 25, amount: 6250 },
       { symbol: "BAL", percentage: 20, amount: 5000 },
@@ -275,16 +232,23 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
     ],
     totalValue: 25000,
     performance: 67.8,
-    isPublic: true,
     strategy:
       "Aggressive yield farming strategy targeting high-APY opportunities across multiple DeFi protocols. Regular rebalancing to chase optimal yields while managing impermanent loss risk.",
     createdAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000).toISOString(),
+    isPublic: true,
+    likes: 156,
+    comments: [],
+    shares: 45,
+    views: 789,
+    isLiked: false,
+    isBookmarked: true,
+    tags: ["Yield Farming", "High Risk", "DeFi"],
     investmentType: "drift",
   },
   {
     id: "mock_gaming_metaverse",
-    isTemplate: false,
     name: "Gaming & Metaverse Portfolio",
+    user: MOCK_USERS[3], // Using fourth mock user
     tokens: [
       { symbol: "AXS", percentage: 30, amount: 9000 },
       { symbol: "SAND", percentage: 25, amount: 7500 },
@@ -294,10 +258,17 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
     ],
     totalValue: 30000,
     performance: 23.4,
-    isPublic: true,
     strategy:
       "Focused on the intersection of gaming, NFTs, and metaverse development. Investing in platforms that are building the future of virtual worlds and digital ownership.",
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    isPublic: true,
+    likes: 92,
+    comments: [],
+    shares: 28,
+    views: 567,
+    isLiked: true,
+    isBookmarked: false,
+    tags: ["Gaming", "Metaverse", "NFTs"],
     investmentType: "time",
     investmentConfig: {
       initialDeposit: 25000,
@@ -307,8 +278,8 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
   },
   {
     id: "mock_meme_degen",
-    isTemplate: false,
     name: "Degen Meme Machine",
+    user: MOCK_USERS[4], // Using fifth mock user
     tokens: [
       { symbol: "PEPE", percentage: 40, amount: 4000 },
       { symbol: "SHIB", percentage: 30, amount: 3000 },
@@ -317,16 +288,23 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
     ],
     totalValue: 10000,
     performance: 156.7,
-    isPublic: true,
     strategy:
       "High-risk meme token portfolio for maximum volatility and potential gains. Only invest what you can afford to lose. This is pure speculation and fun money allocation!",
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    isPublic: true,
+    likes: 203,
+    comments: [],
+    shares: 67,
+    views: 891,
+    isLiked: false,
+    isBookmarked: false,
+    tags: ["Meme", "High Risk", "Speculative"],
     investmentType: "drift",
   },
   {
     id: "mock_institutional_grade",
-    isTemplate: false,
     name: "Institutional Grade DeFi",
+    user: MOCK_USERS[5], // Using sixth mock user
     tokens: [
       { symbol: "SLD", percentage: 25, amount: 12500 },
       { symbol: "USDC", percentage: 25, amount: 12500 },
@@ -337,10 +315,17 @@ const ADDITIONAL_MOCK_PORTFOLIOS: Omit<
     ],
     totalValue: 50000,
     performance: 12.3,
-    isPublic: true,
     strategy:
       "Institutional-quality portfolio emphasizing regulatory compliance and risk management. Balanced allocation across established protocols with strong governance and proven security records.",
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    isPublic: true,
+    likes: 134,
+    comments: [],
+    shares: 41,
+    views: 723,
+    isLiked: true,
+    isBookmarked: true,
+    tags: ["Institutional", "Conservative", "Compliant"],
     investmentType: "time",
     investmentConfig: {
       initialDeposit: 40000,
@@ -377,7 +362,7 @@ const PIE_COLORS = [
 ];
 
 export function SocialSection() {
-  const [socialPortfolios, setSocialPortfolios] = useState<SocialPortfolio[]>([]);
+  const [portfolios, setPortfolios] = useState<SocialPortfolio[]>([]);
   const [selectedPortfolio, setSelectedPortfolio] = useState<SocialPortfolio | null>(null);
   const [showPortfolioDetail, setShowPortfolioDetail] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -393,8 +378,8 @@ export function SocialSection() {
     const userProfile = getUserProfile();
 
     // Transform user portfolios
-    const userSocialPortfolios: SocialPortfolio[] = publicUserPortfolios.map(portfolio => {
-      const mockComments: Comment[] = [
+    const transformedUserPortfolios: SocialPortfolio[] = publicUserPortfolios.map(portfolio => {
+      const mockComments: SocialComment[] = [
         {
           id: `comment1_${portfolio.id}`,
           userId: "commenter1",
@@ -418,7 +403,8 @@ export function SocialSection() {
       ];
 
       return {
-        ...portfolio,
+        id: portfolio.id,
+        name: portfolio.name,
         user: {
           id: "current_user",
           username: userProfile?.username || "You",
@@ -429,6 +415,17 @@ export function SocialSection() {
           isVerified: false,
           level: "Beginner" as const,
         },
+        tokens:
+          portfolio.allocations?.map(alloc => ({
+            symbol: alloc.symbol,
+            percentage: alloc.percentage,
+            amount: alloc.amount || 0,
+          })) || [],
+        totalValue: portfolio.totalInvestment || 0,
+        performance: portfolio.performance?.totalReturn || 0,
+        strategy: portfolio.strategy?.description || "Custom strategy",
+        createdAt: portfolio.createdAt || new Date().toISOString(),
+        isPublic: portfolio.isPublic || false,
         likes: Math.floor(Math.random() * 50) + 10,
         comments: mockComments,
         shares: Math.floor(Math.random() * 20) + 3,
@@ -440,9 +437,9 @@ export function SocialSection() {
     });
 
     // Transform mock portfolios
-    const mockSocialPortfolios: SocialPortfolio[] = ADDITIONAL_MOCK_PORTFOLIOS.map((portfolio, index) => {
+    const mockPortfolios: SocialPortfolio[] = ADDITIONAL_MOCK_PORTFOLIOS.map((portfolio, index) => {
       const user = MOCK_USERS[index % MOCK_USERS.length];
-      const mockComments: Comment[] = [
+      const mockComments: SocialComment[] = [
         {
           id: `comment1_${portfolio.id}`,
           userId: "commenter1",
@@ -488,13 +485,13 @@ export function SocialSection() {
     });
 
     // Combine both arrays
-    const allSocialPortfolios = [...userSocialPortfolios, ...mockSocialPortfolios];
-    setSocialPortfolios(allSocialPortfolios);
+    const allPortfolios = [...transformedUserPortfolios, ...mockPortfolios];
+    setPortfolios(allPortfolios);
   }, []);
 
   // Filter portfolios based on search and filter
   const filteredPortfolios = useMemo(() => {
-    let filtered = socialPortfolios;
+    let filtered = portfolios;
 
     // Search filter
     if (searchTerm) {
@@ -519,15 +516,15 @@ export function SocialSection() {
         filtered = filtered.sort((a, b) => b.performance - a.performance);
         break;
       case "following":
-        filtered = filtered.filter(portfolio => portfolio.user.isFollowing);
+        filtered = filtered.filter(portfolio => portfolio.user.isFollowing ?? false);
         break;
     }
 
     return filtered;
-  }, [socialPortfolios, searchTerm, selectedFilter]);
+  }, [portfolios, searchTerm, selectedFilter]);
 
   const handleLikePortfolio = useCallback((portfolioId: string) => {
-    setSocialPortfolios(prev =>
+    setPortfolios(prev =>
       prev.map(portfolio => {
         if (portfolio.id === portfolioId) {
           return {
@@ -542,7 +539,7 @@ export function SocialSection() {
   }, []);
 
   const handleBookmarkPortfolio = useCallback((portfolioId: string) => {
-    setSocialPortfolios(prev =>
+    setPortfolios(prev =>
       prev.map(portfolio => {
         if (portfolio.id === portfolioId) {
           return {
@@ -561,15 +558,16 @@ export function SocialSection() {
   }, []);
 
   const handleFollowUser = useCallback((userId: string) => {
-    setSocialPortfolios(prev =>
+    setPortfolios(prev =>
       prev.map(portfolio => {
         if (portfolio.user.id === userId) {
           return {
             ...portfolio,
             user: {
               ...portfolio.user,
-              isFollowing: !portfolio.user.isFollowing,
-              followers: portfolio.user.isFollowing ? portfolio.user.followers - 1 : portfolio.user.followers + 1,
+              isFollowing: !(portfolio.user.isFollowing ?? false),
+              followers:
+                (portfolio.user.isFollowing ?? false) ? portfolio.user.followers - 1 : portfolio.user.followers + 1,
             },
           };
         }
@@ -589,7 +587,7 @@ export function SocialSection() {
   const handleAddComment = useCallback(() => {
     if (!commentText.trim() || !selectedPortfolio) return;
 
-    const newComment: Comment = {
+    const newComment: SocialComment = {
       id: `comment_${Date.now()}`,
       userId: "current_user",
       username: "You",
@@ -599,7 +597,7 @@ export function SocialSection() {
       isLiked: false,
     };
 
-    setSocialPortfolios(prev =>
+    setPortfolios(prev =>
       prev.map(portfolio => {
         if (portfolio.id === selectedPortfolio.id) {
           return {
@@ -620,7 +618,7 @@ export function SocialSection() {
     setShowPortfolioDetail(true);
 
     // Increment view count
-    setSocialPortfolios(prev => prev.map(p => (p.id === portfolio.id ? { ...p, views: p.views + 1 } : p)));
+    setPortfolios(prev => prev.map(p => (p.id === portfolio.id ? { ...p, views: p.views + 1 } : p)));
   }, []);
 
   const getLevelIcon = (level: string) => {
@@ -774,9 +772,9 @@ export function SocialSection() {
                     e.stopPropagation();
                     handleFollowUser(portfolio.user.id);
                   }}
-                  className={`text-xs ${portfolio.user.isFollowing ? "bg-accent" : "bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600"}`}
+                  className={`text-xs ${(portfolio.user.isFollowing ?? false) ? "bg-accent" : "bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600"}`}
                 >
-                  {portfolio.user.isFollowing ? "Following" : "Follow"}
+                  {(portfolio.user.isFollowing ?? false) ? "Following" : "Follow"}
                 </Button>
               )}
             </div>
@@ -1208,17 +1206,17 @@ export function SocialSection() {
 
                             {selectedPortfolio.user.id !== "current_user" && (
                               <Button
-                                variant={selectedPortfolio.user.isFollowing ? "outline" : "default"}
+                                variant={(selectedPortfolio.user.isFollowing ?? false) ? "outline" : "default"}
                                 size="sm"
                                 onClick={() => handleFollowUser(selectedPortfolio.user.id)}
                                 className={
-                                  !selectedPortfolio.user.isFollowing
+                                  !(selectedPortfolio.user.isFollowing ?? false)
                                     ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:from-teal-600 hover:to-cyan-600"
                                     : ""
                                 }
                               >
                                 <UserPlus className="w-4 h-4 mr-1" />
-                                {selectedPortfolio.user.isFollowing ? "Following" : "Follow"}
+                                {(selectedPortfolio.user.isFollowing ?? false) ? "Following" : "Follow"}
                               </Button>
                             )}
                           </div>

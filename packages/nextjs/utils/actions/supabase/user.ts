@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "../supabase/admin";
+import { supabaseAdmin } from "../../supabase/admin";
 import type { JWTPayload } from "jose";
 
 export type PrivyAccessTokenPayload = JWTPayload & {

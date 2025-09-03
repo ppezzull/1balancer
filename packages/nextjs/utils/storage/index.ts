@@ -1,4 +1,4 @@
-import { ChartDataPoint, PortfolioToken, TokenDto, TokenWithBalance } from "../../types/api";
+import { ChartDataPoint, PortfolioToken, TokenDto, TokenWithBalance } from "../../types/1inch/api";
 
 // Mock data for development and testing
 export const mockTokens: TokenDto[] = [
@@ -15,8 +15,7 @@ export const mockTokens: TokenDto[] = [
     tags: [
       {
         provider: "1inch",
-        value: "native",
-        providers: ["1inch"],
+        tag: "native",
       },
     ],
   },
@@ -33,8 +32,7 @@ export const mockTokens: TokenDto[] = [
     tags: [
       {
         provider: "1inch",
-        value: "stablecoin",
-        providers: ["1inch"],
+        tag: "stablecoin",
       },
     ],
   },
@@ -51,8 +49,7 @@ export const mockTokens: TokenDto[] = [
     tags: [
       {
         provider: "1inch",
-        value: "wrapped",
-        providers: ["1inch"],
+        tag: "wrapped",
       },
     ],
   },
@@ -111,8 +108,7 @@ export const mockTopPerformers: TokenWithBalance[] = [
     tags: [
       {
         provider: "1inch",
-        value: "oracle",
-        providers: ["1inch"],
+        tag: "oracle",
       },
     ],
     balance: "500",
