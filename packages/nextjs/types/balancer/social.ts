@@ -1,5 +1,36 @@
 // Social types for the social section component
-import type { UserProfile } from "./user";
+import type { Portfolio } from "./portfolio";
+import type { PortfolioPerformance } from "./portfolio";
+import type { User } from "./user";
+
+export interface SocialPortfolio {
+  // The underlying portfolio object
+  portfolio: Portfolio;
+
+  // Who shared/owns this in the social context
+  user: SocialUser;
+
+  // Optional legacy token list in addition to normalized allocations
+  tokens?: Array<{ symbol: string; percentage: number; amount: number }>;
+
+  // Summary values (prefer portfolio.performance.totalValue when available)
+  totalValue?: number;
+  performance?: PortfolioPerformance | number; // legacy numeric supported
+
+  // Discussion thread
+  comments?: SocialComment[];
+
+  // Engagement/counters live in portfolio.metrics and detailed booleans here
+  engagement?: SocialEngagement;
+
+  // Optional investment presets/config used in UI
+  investmentType?: "drift" | "time";
+  investmentConfig?: {
+    initialDeposit?: number;
+    monthlyInvestment?: number;
+    years?: number;
+  };
+}
 
 export interface SocialComment {
   id: string;
@@ -12,8 +43,7 @@ export interface SocialComment {
   isLiked: boolean;
 }
 
-export interface SocialUser extends UserProfile {
-  followers: number;
+export interface SocialUser extends User {
   isFollowing?: boolean;
   isVerified?: boolean;
   level?: string;

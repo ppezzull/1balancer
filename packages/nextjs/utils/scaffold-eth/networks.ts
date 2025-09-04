@@ -36,28 +36,10 @@ export const RPC_CHAIN_NAMES: Record<number, string> = {
   [chains.celoAlfajores.id]: "celo-alfajores",
 };
 
-// Mapping of chainId to 1inch supported chains
-export const ONE_INCH_SUPPORTED_CHAINS: Record<number, number> = {
-  [chains.mainnet.id]: 1, // Ethereum Mainnet
-  [chains.arbitrum.id]: 42161, // Arbitrum
-  [chains.avalanche.id]: 43114, // Avalanche
-  [chains.bsc.id]: 56, // BNB Chain
-  [chains.gnosis.id]: 100, // Gnosis
-  [chains.optimism.id]: 10, // Optimism
-  [chains.polygon.id]: 137, // Polygon
-  [chains.zkSync.id]: 324, // zkSync Era
-  [chains.base.id]: 8453, // Base
-  // Additional chains from 1inch support list
-  59144: 59144, // Linea
-  1301: 1301, // Unichain
-  146: 146, // Sonic
-  // Note: Testnets like Base Sepolia may not be supported by 1inch
-  // Add more as 1inch adds support
-};
-
-export const getOneInchHttpUrl = (chainId: number) => {
-  const oneInchChainId = ONE_INCH_SUPPORTED_CHAINS[chainId];
-  return scaffoldConfig.oneInchApiKey && oneInchChainId ? `https://api.1inch.dev/web3/${oneInchChainId}` : undefined;
+export const getAlchemyHttpUrl = (chainId: number) => {
+  return scaffoldConfig.alchemyApiKey && RPC_CHAIN_NAMES[chainId]
+    ? `https://${RPC_CHAIN_NAMES[chainId]}.g.alchemy.com/v2/${scaffoldConfig.alchemyApiKey}`
+    : undefined;
 };
 
 export const NETWORKS_EXTRA_DATA: Record<string, ChainAttributes> = {
