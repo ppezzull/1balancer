@@ -1,5 +1,3 @@
-"use server";
-
 export enum PresetEnum {
   fast = "fast",
   medium = "medium",

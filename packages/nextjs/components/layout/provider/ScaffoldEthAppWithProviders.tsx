@@ -9,7 +9,6 @@ import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
 import { Toaster } from "react-hot-toast";
 import { HeaderSimplified } from "~~/components/layout/header";
 import { SupabaseProvider } from "~~/components/layout/provider/SupabaseProvider";
-import { LiveCryptoTicker } from "~~/components/shared/interactive/LiveCryptoTicker";
 import { useInitializeNativeCurrencyPrice } from "~~/hooks/scaffold-eth";
 import { useTheme } from "~~/hooks/use-theme";
 import scaffoldConfig from "~~/scaffold.config";
@@ -20,7 +19,6 @@ import { initializeDefaultPortfolios } from "~~/utils/storage/constants";
 const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
   useInitializeNativeCurrencyPrice();
   const pathname = usePathname();
-
   useEffect(() => {
     initializeDefaultPortfolios();
   }, []);
@@ -47,7 +45,8 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
       </main>
 
       {/* Footer - only show on non-wallet pages */}
-      {showFooter && <LiveCryptoTicker />}
+      {/* Moved to server-rendered footer in root layout */}
+      {/* {showFooter && <LiveCryptoTicker />} */}
 
       <Toaster />
     </div>

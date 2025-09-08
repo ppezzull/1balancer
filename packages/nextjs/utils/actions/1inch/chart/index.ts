@@ -1,2 +1,2 @@
-export * from "./getCandleChart";
-export * from "./getLineChart";
+export * from "./candle-chart";
+export * from "./line-chart";

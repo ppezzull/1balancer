@@ -1,9 +1,5 @@
 import { supabaseAdmin } from "../../supabase/admin";
-import type { JWTPayload } from "jose";
-
-export type PrivyAccessTokenPayload = JWTPayload & {
-  sub: string; // Privy DID (stable user id)
-};
+import type { PrivyAccessTokenPayload } from "./auth";
 
 export async function getOrCreateUserUuidFromPrivyPayload(payload: PrivyAccessTokenPayload): Promise<string> {
   if (!payload?.sub) throw new Error("privy_payload_missing_sub");
@@ -20,13 +16,10 @@ export async function getOrCreateUserUuidFromPrivyPayload(payload: PrivyAccessTo
     if (data?.id) return data.id as string;
   }
 
-  // 2) Optional email enrichment (not present in Privy Access Tokens by default)
-  const email: string | null = null;
-
   // 3) Insert new user
   const { data: inserted, error: insertErr } = await supabaseAdmin
     .from("users")
-    .insert({ privy_did: privyDid, email })
+    .insert({ privy_did: privyDid })
     .select("id")
     .single();
   if (insertErr) {

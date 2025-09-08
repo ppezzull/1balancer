@@ -1,5 +1,8 @@
+"use client";
+
 import { create } from "zustand";
 import scaffoldConfig from "~~/scaffold.config";
+import { CryptoData } from "~~/types";
 import { ChainWithAttributes, NETWORKS_EXTRA_DATA } from "~~/utils/scaffold-eth";
 
 /**
@@ -20,6 +23,9 @@ type GlobalState = {
   setIsNativeCurrencyFetching: (newIsNativeCurrencyFetching: boolean) => void;
   targetNetwork: ChainWithAttributes;
   setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => void;
+  // Cached ticker data to avoid spamming external APIs
+  tickerData: CryptoData[];
+  setTickerData: (data: CryptoData[]) => void;
 };
 
 export const useGlobalState = create<GlobalState>(set => ({
@@ -36,4 +42,6 @@ export const useGlobalState = create<GlobalState>(set => ({
     ...NETWORKS_EXTRA_DATA[scaffoldConfig.targetNetworks[0].id],
   },
   setTargetNetwork: (newTargetNetwork: ChainWithAttributes) => set(() => ({ targetNetwork: newTargetNetwork })),
+  tickerData: [],
+  setTickerData: (data: CryptoData[]) => set(() => ({ tickerData: data })),
 }));
